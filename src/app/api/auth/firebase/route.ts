@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-import { adminAuth } from '@/lib/firebase-admin';
+import { getAdminAuth } from '@/lib/firebase-admin';
 
 export async function POST() {
     try {
@@ -9,6 +9,9 @@ export async function POST() {
         if (!userId) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
+
+        // Get the admin auth instance (lazy initialization)
+        const adminAuth = getAdminAuth();
 
         // Create a custom token for the user
         // We use the Clerk userId as the Firebase uid to link them
