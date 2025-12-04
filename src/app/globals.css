@@ -1,0 +1,190 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: 'Inter', sans-serif;
+}
+
+@layer base {
+
+  /* Default Light Theme */
+  :root {
+    --background: 220 90% 96%;
+    --foreground: 222.2 47.4% 11.2%;
+    --card: 220 90% 98%;
+    --card-foreground: 222.2 47.4% 11.2%;
+    --popover: 210 40% 98%;
+    --popover-foreground: 222.2 47.4% 11.2%;
+    --primary: 220 70% 50%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 220 80% 90%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 220 30% 91%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+  }
+
+  /* Default Dark Theme */
+  .dark {
+    --background: 265 40% 10%;
+    --foreground: 210 40% 98%;
+    --card: 265 40% 15%;
+    --card-foreground: 210 40% 98%;
+    --popover: 265 40% 15%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 265 80% 70%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 260 30% 20%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 260 30% 20%;
+    --muted-foreground: 215 20% 65%;
+    --accent: 260 30% 25%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 260 30% 20%;
+    --input: 260 30% 20%;
+    --ring: 265 80% 70%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+  }
+
+  .theme-sutradhaar {
+    --background: 265 40% 10%;
+    --foreground: 210 40% 98%;
+    --card: 265 40% 15%;
+    --card-foreground: 210 40% 98%;
+    --popover: 265 40% 15%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 265 80% 70%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 260 30% 20%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 260 30% 20%;
+    --muted-foreground: 215 20% 65%;
+    --accent: 260 30% 25%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 260 30% 20%;
+    --input: 260 30% 20%;
+    --ring: 265 80% 70%;
+  }
+
+  .theme-forest {
+    --background: 120 25% 95%;
+    --foreground: 120 25% 10%;
+    --card: 120 10% 98%;
+    --card-foreground: 120 25% 10%;
+    --primary: 130 40% 40%;
+    --primary-foreground: 120 25% 95%;
+    --accent: 130 40% 90%;
+    --accent-foreground: 130 40% 30%;
+  }
+
+  .theme-ocean {
+    --background: 200 50% 95%;
+    --foreground: 200 50% 15%;
+    --card: 200 20% 98%;
+    --card-foreground: 200 50% 15%;
+    --primary: 210 60% 50%;
+    --primary-foreground: 200 50% 95%;
+    --accent: 210 60% 92%;
+    --accent-foreground: 210 60% 40%;
+  }
+
+  .theme-sunset {
+    --background: 30 50% 96%;
+    --foreground: 30 50% 10%;
+    --card: 30 20% 98%;
+    --card-foreground: 30 50% 10%;
+    --primary: 20 80% 55%;
+    --primary-foreground: 30 50% 96%;
+    --accent: 20 80% 94%;
+    --accent-foreground: 20 80% 45%;
+  }
+
+  .theme-sunrise {
+    --background: 25 100% 97%;
+    --foreground: 20 60% 20%;
+    --card: 0 0% 100%;
+    --card-foreground: 20 60% 20%;
+    --primary: 15 90% 60%;
+    --primary-foreground: 15 90% 98%;
+    --accent: 35 100% 95%;
+    --accent-foreground: 30 90% 35%;
+  }
+
+  .theme-twilight {
+    --background: 250 40% 10%;
+    --foreground: 250 20% 95%;
+    --card: 250 30% 15%;
+    --card-foreground: 250 20% 95%;
+    --primary: 260 80% 75%;
+    --primary-foreground: 260 80% 10%;
+    --accent: 260 40% 25%;
+    --accent-foreground: 260 40% 80%;
+  }
+
+  .theme-aurora {
+    --background: 180 5% 96%;
+    --foreground: 200 10% 15%;
+    --card: 0 0% 100%;
+    --card-foreground: 200 10% 15%;
+    --primary: 170 80% 40%;
+    --primary-foreground: 170 80% 95%;
+    --accent: 170 80% 94%;
+    --accent-foreground: 170 80% 30%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+
+  .note-content ul {
+    @apply list-disc list-inside pl-4;
+  }
+
+  .note-content ol {
+    @apply list-decimal list-inside pl-4;
+  }
+
+  .note-content .note-table {
+    @apply w-full my-4 border-collapse border border-border;
+  }
+
+  .note-content .note-table td {
+    @apply border border-border p-2;
+  }
+
+  .note-content .note-todo-checkbox {
+    @apply w-4 h-4 align-middle mr-2;
+  }
+}
+
+@layer utilities {
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
