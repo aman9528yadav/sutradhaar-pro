@@ -19,6 +19,8 @@ import {
     Info,
     X,
     ChevronRight,
+    DollarSign,
+    Percent,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -35,6 +37,8 @@ const menuItems = [
         children: [
             { id: 'converter', icon: ArrowRightLeft, label: 'Unit Converter', tab: 'converter' },
             { id: 'calculator', icon: Calculator, label: 'Calculator', tab: 'calculator' },
+            { id: 'loan-calculator', icon: DollarSign, label: 'Loan / EMI', tab: 'loan-calculator' },
+            { id: 'discount-calculator', icon: Percent, label: 'Discount Calculator', tab: 'discount-calculator' },
             { id: 'date-calculator', icon: Calendar, label: 'Date Calculator', tab: 'date-calculator' },
             { id: 'timer', icon: Timer, label: 'Timer', tab: 'timer' },
             { id: 'stopwatch', icon: Hourglass, label: 'Stopwatch', tab: 'stopwatch' },

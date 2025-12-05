@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
     Plus, Search, CheckCircle2, Calendar, Flag, Trash2, Edit2,
     Filter, SortAsc, Star, Clock, TrendingUp, CheckCheck, ListTodo,
-    MoreVertical
+    MoreVertical, Tag
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -30,6 +30,7 @@ export function TodoPage() {
     const [searchQuery, setSearchQuery] = useState('');
     const [filter, setFilter] = useState<'all' | 'active' | 'completed' | 'today' | 'week' | 'overdue'>('all');
     const [priorityFilter, setPriorityFilter] = useState<'all' | 'high' | 'medium' | 'low'>('all');
+    const [categoryFilter, setCategoryFilter] = useState<string>('all');
     const [sortBy, setSortBy] = useState<'priority' | 'dueDate' | 'created'>('priority');
     const [selectedTodo, setSelectedTodo] = useState<TodoItem | undefined>(undefined);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -50,6 +51,14 @@ export function TodoPage() {
         return { total, completed, active, overdue, today, completionRate };
     }, [profile.todos]);
 
+    const uniqueCategories = useMemo(() => {
+        const categories = new Set<string>();
+        profile.todos.forEach(todo => {
+            if (todo.category) categories.add(todo.category);
+        });
+        return Array.from(categories);
+    }, [profile.todos]);
+
     const filteredTodos = useMemo(() => {
         return profile.todos
             .filter(todo => {
@@ -68,8 +77,9 @@ export function TodoPage() {
                 })();
 
                 const matchesPriority = priorityFilter === 'all' || todo.priority === priorityFilter;
+                const matchesCategory = categoryFilter === 'all' || todo.category === categoryFilter;
 
-                return matchesSearch && matchesFilter && matchesPriority;
+                return matchesSearch && matchesFilter && matchesPriority && matchesCategory;
             })
             .sort((a, b) => {
                 // Always put completed items at the bottom
@@ -94,7 +104,7 @@ export function TodoPage() {
                 }
                 return 0;
             });
-    }, [profile.todos, searchQuery, filter, priorityFilter, sortBy]);
+    }, [profile.todos, searchQuery, filter, priorityFilter, categoryFilter, sortBy]);
 
     const handleCreateTodo = () => {
         setSelectedTodo(undefined);
@@ -252,10 +262,10 @@ export function TodoPage() {
                 </div>
 
                 {/* Priority Filter and Sort */}
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <Button variant="outline" size="sm" className="gap-2">
+                            <Button variant="outline" size="sm" className="gap-2 shrink-0">
                                 <Filter className="h-4 w-4" />
                                 Priority: {priorityFilter === 'all' ? 'All' : priorityFilter}
                             </Button>
@@ -268,9 +278,26 @@ export function TodoPage() {
                         </DropdownMenuContent>
                     </DropdownMenu>
 
+                    {uniqueCategories.length > 0 && (
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="outline" size="sm" className="gap-2 shrink-0">
+                                    <Tag className="h-4 w-4" />
+                                    Category: {categoryFilter === 'all' ? 'All' : categoryFilter}
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent>
+                                <DropdownMenuItem onClick={() => setCategoryFilter('all')}>All</DropdownMenuItem>
+                                {uniqueCategories.map(cat => (
+                                    <DropdownMenuItem key={cat} onClick={() => setCategoryFilter(cat)}>{cat}</DropdownMenuItem>
+                                ))}
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    )}
+
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <Button variant="outline" size="sm" className="gap-2">
+                            <Button variant="outline" size="sm" className="gap-2 shrink-0">
                                 <SortAsc className="h-4 w-4" />
                                 Sort: {sortBy === 'dueDate' ? 'Due Date' : sortBy === 'created' ? 'Created' : 'Priority'}
                             </Button>
@@ -285,7 +312,7 @@ export function TodoPage() {
                     {stats.active > 0 && (
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="sm">
+                                <Button variant="ghost" size="sm" className="shrink-0">
                                     <MoreVertical className="h-4 w-4" />
                                 </Button>
                             </DropdownMenuTrigger>
@@ -373,6 +400,18 @@ export function TodoPage() {
                                         <Flag className="w-3 h-3" />
                                         {todo.priority}
                                     </span>
+                                    {todo.category && (
+                                        <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-blue-400 bg-blue-400/10">
+                                            <Tag className="w-3 h-3" />
+                                            {todo.category}
+                                        </span>
+                                    )}
+                                    {todo.subtasks && todo.subtasks.length > 0 && (
+                                        <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-purple-400 bg-purple-400/10">
+                                            <ListTodo className="w-3 h-3" />
+                                            {todo.subtasks.filter(st => st.completed).length}/{todo.subtasks.length}
+                                        </span>
+                                    )}
                                 </div>
                             </div>
 

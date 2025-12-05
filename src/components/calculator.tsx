@@ -13,6 +13,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useProfile, CalculatorHistoryItem } from '@/context/ProfileContext';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import { ProgrammerCalculator } from './programmer-calculator';
+import { FinancialCalculator } from './financial-calculator';
 
 const CalculatorButton = ({
   onClick,
@@ -491,22 +493,12 @@ export function Calculator({ onToggleFullScreen, isFullScreen }: { onToggleFullS
 
             {/* Programmer Mode */}
             <TabsContent value="programmer" className="mt-6">
-              <div className="text-center py-12 text-muted-foreground">
-                <TrendingUp className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p className="text-lg font-semibold">Programmer Mode</p>
-                <p className="text-sm mt-2">Binary, Hex, and Bitwise operations</p>
-                <p className="text-xs mt-4 text-muted-foreground/70">Coming soon...</p>
-              </div>
+              <ProgrammerCalculator />
             </TabsContent>
 
             {/* Financial Mode */}
             <TabsContent value="financial" className="mt-6">
-              <div className="text-center py-12 text-muted-foreground">
-                <DollarSign className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p className="text-lg font-semibold">Financial Mode</p>
-                <p className="text-sm mt-2">Loan, Interest, and Investment calculations</p>
-                <p className="text-xs mt-4 text-muted-foreground/70">Coming soon...</p>
-              </div>
+              <FinancialCalculator currentCalcValue={display} />
             </TabsContent>
           </Tabs>
         </CardContent>

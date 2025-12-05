@@ -35,6 +35,8 @@ import {
   Rocket,
   Wand2,
   ChevronUp,
+  DollarSign,
+  Percent,
 } from 'lucide-react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
@@ -145,16 +147,27 @@ const TodoPage = dynamic(() => import('@/components/todo-page').then(mod => ({ d
   loading: () => <DashboardSkeleton />,
   ssr: false
 });
+const LoanCalculator = dynamic(() => import('@/components/loan-calculator').then(mod => ({ default: mod.LoanCalculator })), {
+  loading: () => <DashboardSkeleton />,
+  ssr: false
+});
+
+const DiscountCalculator = dynamic(() => import('@/components/discount-calculator').then(mod => ({ default: mod.DiscountCalculator })), {
+  loading: () => <DashboardSkeleton />,
+  ssr: false
+});
 
 export const quickAccessItems = [
+  { id: 'notes', icon: BookText, label: 'Notes', href: '/notes', requiresAuth: false, color: 'text-indigo-500', bg: 'bg-indigo-500/10' },
+  { id: 'loan-calculator', icon: DollarSign, label: 'Loan / EMI', href: '/loan-calculator', requiresAuth: false, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
+  { id: 'discount-calculator', icon: Percent, label: 'Discount', href: '/discount-calculator', requiresAuth: false, color: 'text-rose-500', bg: 'bg-rose-500/10' },
   { id: 'converter', icon: ArrowRightLeft, label: 'Converter', href: '/converter', requiresAuth: false, color: 'text-blue-500', bg: 'bg-blue-500/10' },
   { id: 'calculator', icon: Calculator, label: 'Calculator', href: '/calculator', requiresAuth: false, color: 'text-orange-500', bg: 'bg-orange-500/10' },
   { id: 'date-calculator', icon: Calendar, label: 'Date Calc', href: '/date-calculator', requiresAuth: false, color: 'text-green-500', bg: 'bg-green-500/10' },
+  { id: 'todo', icon: CheckSquare, label: 'Todo', href: '/todo', requiresAuth: false, color: 'text-pink-500', bg: 'bg-pink-500/10' },
+  { id: 'budget-tracker', icon: Wallet, label: 'Budget', href: '/budget', requiresAuth: false, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
   { id: 'timer', icon: Timer, label: 'Timer', href: '/timer', requiresAuth: false, color: 'text-red-500', bg: 'bg-red-500/10' },
   { id: 'stopwatch', icon: Hourglass, label: 'Stopwatch', href: '/stopwatch', requiresAuth: false, color: 'text-yellow-500', bg: 'bg-yellow-500/10' },
-  { id: 'budget-tracker', icon: Wallet, label: 'Budget', href: '/budget', requiresAuth: false, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
-  { id: 'notes', icon: BookText, label: 'Notes', href: '/notes', requiresAuth: false, color: 'text-indigo-500', bg: 'bg-indigo-500/10' },
-  { id: 'todo', icon: CheckSquare, label: 'Todo', href: '/todo', requiresAuth: false, color: 'text-pink-500', bg: 'bg-pink-500/10' },
   { id: 'history', icon: History, label: 'History', href: '/history', requiresAuth: false, color: 'text-purple-500', bg: 'bg-purple-500/10' },
   { id: 'analytics', icon: BarChart2, label: 'Analytics', href: '/analytics', requiresAuth: false, color: 'text-cyan-500', bg: 'bg-cyan-500/10' },
   { id: 'membership', icon: Gem, label: 'Premium', href: '/membership', requiresAuth: false, color: 'text-amber-500', bg: 'bg-amber-500/10' },
@@ -552,6 +565,12 @@ export default function DashboardPage() {
           </TabsContent>
           <TabsContent value="calculator" className="p-4 pb-24 mt-0 h-full">
             <CalculatorComponent onToggleFullScreen={() => setIsCalculatorFullScreen(true)} />
+          </TabsContent>
+          <TabsContent value="loan-calculator" className="p-4 pb-24 mt-0 h-full">
+            <LoanCalculator />
+          </TabsContent>
+          <TabsContent value="discount-calculator" className="p-4 pb-24 mt-0 h-full">
+            <DiscountCalculator />
           </TabsContent>
           <TabsContent value="date-calculator" className="p-4 pb-24 mt-0 h-full">
             <DateCalculator />

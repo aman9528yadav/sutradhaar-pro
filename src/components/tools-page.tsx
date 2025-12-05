@@ -16,6 +16,8 @@ import {
     Info,
     BookText,
     CheckSquare,
+    DollarSign,
+    Percent,
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
@@ -27,9 +29,11 @@ interface ToolsPageProps {
 
 export function ToolsPage({ onToolSelect }: ToolsPageProps) {
     const tools = [
+        { id: 'notes', icon: BookText, label: 'Notes', color: 'text-yellow-500', bg: 'bg-yellow-500/10' },
+        { id: 'loan-calculator', icon: DollarSign, label: 'Loan / EMI', color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
+        { id: 'discount-calculator', icon: Percent, label: 'Discount', color: 'text-rose-500', bg: 'bg-rose-500/10' },
         { id: 'converter', icon: ArrowRightLeft, label: 'Converter', color: 'text-blue-500', bg: 'bg-blue-500/10' },
         { id: 'calculator', icon: Calculator, label: 'Calculator', color: 'text-orange-500', bg: 'bg-orange-500/10' },
-        { id: 'notes', icon: BookText, label: 'Notes', color: 'text-yellow-500', bg: 'bg-yellow-500/10' },
         { id: 'todo', icon: CheckSquare, label: 'To-Do', color: 'text-green-500', bg: 'bg-green-500/10' },
         { id: 'history', icon: History, label: 'History', color: 'text-purple-500', bg: 'bg-purple-500/10' },
         { id: 'date-calculator', icon: Calendar, label: 'Date Calc', color: 'text-pink-500', bg: 'bg-pink-500/10' },

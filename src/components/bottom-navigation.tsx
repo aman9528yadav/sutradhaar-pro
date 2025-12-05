@@ -21,7 +21,7 @@ export function BottomNavigation({ activeTab, onTabChange }: BottomNavigationPro
   const isTabActive = (itemId: string) => {
     if (itemId === 'tools') {
       // List of tool IDs that should highlight the 'Tools' tab
-      const toolIds = ['tools', 'converter', 'calculator', 'date-calculator', 'timer', 'stopwatch', 'budget', 'notes', 'todo', 'history', 'analytics', 'membership', 'about'];
+      const toolIds = ['tools', 'converter', 'calculator', 'loan-calculator', 'discount-calculator', 'date-calculator', 'timer', 'stopwatch', 'budget', 'notes', 'todo', 'history', 'analytics', 'membership', 'about'];
       return toolIds.includes(activeTab);
     }
     return activeTab === itemId;

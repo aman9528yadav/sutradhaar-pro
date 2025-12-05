@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import { useProfile, TodoItem } from '@/context/ProfileContext';
+import { useProfile, TodoItem, SubTask } from '@/context/ProfileContext';
 import {
     Dialog,
     DialogContent,
@@ -19,12 +19,9 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { format } from "date-fns";
-import { Calendar as CalendarIcon, Flag } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { MuiDatePicker } from './mui-date-picker';
+import { Plus, X, ListTodo } from 'lucide-react';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface AddTodoDialogProps {
     open: boolean;
@@ -34,15 +31,21 @@ interface AddTodoDialogProps {
 
 export function AddTodoDialog({ open, onOpenChange, todo }: AddTodoDialogProps) {
     const { addTodo, updateTodo } = useProfile();
-    const [text, setText] = useState(todo?.text || '');
-    const [priority, setPriority] = useState<'low' | 'medium' | 'high'>(todo?.priority || 'medium');
-    const [dueDate, setDueDate] = useState<Date | undefined>(todo?.dueDate ? new Date(todo.dueDate) : undefined);
+    const [text, setText] = useState('');
+    const [priority, setPriority] = useState<'low' | 'medium' | 'high'>('medium');
+    const [dueDate, setDueDate] = useState<Date | undefined>(undefined);
+    const [category, setCategory] = useState('');
+    const [subtasks, setSubtasks] = useState<{ text: string; completed: boolean }[]>([]);
+    const [newSubtask, setNewSubtask] = useState('');
 
     React.useEffect(() => {
         if (open) {
             setText(todo?.text || '');
             setPriority(todo?.priority || 'medium');
             setDueDate(todo?.dueDate ? new Date(todo.dueDate) : undefined);
+            setCategory(todo?.category || '');
+            setSubtasks(todo?.subtasks || []);
+            setNewSubtask('');
         }
     }, [open, todo]);
 
@@ -50,12 +53,20 @@ export function AddTodoDialog({ open, onOpenChange, todo }: AddTodoDialogProps) 
         e.preventDefault();
         if (!text.trim()) return;
 
+        const subtasksWithIds: SubTask[] = subtasks.map(st => ({
+            id: (st as any).id || Math.random().toString(36).substr(2, 9),
+            text: st.text,
+            completed: st.completed
+        }));
+
         if (todo) {
             updateTodo({
                 ...todo,
                 text,
                 priority,
                 dueDate: dueDate?.toISOString(),
+                category,
+                subtasks: subtasksWithIds
             });
         } else {
             addTodo({
@@ -63,20 +74,34 @@ export function AddTodoDialog({ open, onOpenChange, todo }: AddTodoDialogProps) 
                 priority,
                 completed: false,
                 dueDate: dueDate?.toISOString(),
+                category,
+                subtasks: subtasksWithIds
             });
         }
         onOpenChange(false);
     };
 
+    const handleAddSubtask = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter' && newSubtask.trim()) {
+            e.preventDefault();
+            setSubtasks([...subtasks, { text: newSubtask.trim(), completed: false }]);
+            setNewSubtask('');
+        }
+    };
+
+    const removeSubtask = (index: number) => {
+        setSubtasks(subtasks.filter((_, i) => i !== index));
+    };
+
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="sm:max-w-[500px] max-h-[90vh] flex flex-col">
                 <DialogHeader>
                     <DialogTitle>{todo ? 'Edit Task' : 'New Task'}</DialogTitle>
                 </DialogHeader>
-                <form onSubmit={handleSubmit} className="space-y-4 pt-4">
+                <form onSubmit={handleSubmit} className="space-y-4 pt-4 flex-1 overflow-y-auto px-1">
                     <div className="space-y-2">
-                        <Label htmlFor="task">Task</Label>
+                        <Label htmlFor="task">Task Name</Label>
                         <Input
                             id="task"
                             placeholder="What needs to be done?"
@@ -110,7 +135,57 @@ export function AddTodoDialog({ open, onOpenChange, todo }: AddTodoDialogProps) 
                         </div>
                     </div>
 
-                    <DialogFooter className="pt-4">
+                    <div className="space-y-2">
+                        <Label>Category</Label>
+                        <Input
+                            placeholder="e.g. Work, Personal, Shopping"
+                            value={category}
+                            onChange={(e) => setCategory(e.target.value)}
+                        />
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label className="flex items-center gap-2">
+                            <ListTodo className="h-4 w-4" /> Subtasks
+                        </Label>
+                        <div className="flex gap-2">
+                            <Input
+                                placeholder="Add a step..."
+                                value={newSubtask}
+                                onChange={(e) => setNewSubtask(e.target.value)}
+                                onKeyDown={handleAddSubtask}
+                            />
+                            <Button type="button" size="icon" onClick={() => {
+                                if (newSubtask.trim()) {
+                                    setSubtasks([...subtasks, { text: newSubtask.trim(), completed: false }]);
+                                    setNewSubtask('');
+                                }
+                            }}>
+                                <Plus className="h-4 w-4" />
+                            </Button>
+                        </div>
+
+                        {subtasks.length > 0 && (
+                            <ScrollArea className="h-[120px] rounded-md border border-white/10 p-2">
+                                <div className="space-y-2">
+                                    {subtasks.map((st, index) => (
+                                        <div key={index} className="flex items-center justify-between bg-white/5 p-2 rounded text-sm group">
+                                            <span>{st.text}</span>
+                                            <button
+                                                type="button"
+                                                onClick={() => removeSubtask(index)}
+                                                className="text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                                            >
+                                                <X className="h-3 w-3" />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            </ScrollArea>
+                        )}
+                    </div>
+
+                    <DialogFooter className="pt-4 mt-auto">
                         <Button type="submit" className="w-full">Save Task</Button>
                     </DialogFooter>
                 </form>

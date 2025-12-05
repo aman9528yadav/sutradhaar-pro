@@ -9,6 +9,7 @@ import {
     Plus,
     Target,
     CreditCard,
+    Download,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -19,12 +20,34 @@ import { TransactionList } from './transaction-list';
 import { BudgetOverview } from './budget-overview';
 import { ManageAccountsDialog } from './manage-accounts-dialog';
 import { BudgetAnalytics } from './budget-analytics';
+import { BudgetGoals } from './budget-goals';
 
 export function BudgetTrackerPage() {
     const { profile } = useProfile();
     const { budget } = profile;
     const [isAddTransactionOpen, setIsAddTransactionOpen] = useState(false);
     const [isManageAccountsOpen, setIsManageAccountsOpen] = useState(false);
+
+    const handleExport = () => {
+        const headers = ['Date', 'Type', 'Amount', 'Category', 'Account', 'Description'];
+        const csvContent = [
+            headers.join(','),
+            ...budget.transactions.map(t => [
+                new Date(t.date).toLocaleDateString(),
+                t.type,
+                t.amount,
+                budget.categories.find(c => c.id === t.categoryId)?.name || 'Unknown',
+                budget.accounts.find(a => a.id === t.accountId)?.name || 'Unknown',
+                `"${t.description}"`
+            ].join(','))
+        ].join('\n');
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `budget_export_${new Date().toISOString().split('T')[0]}.csv`;
+        link.click();
+    };
 
     const totalBalance = budget.accounts.reduce((acc, account) => acc + account.balance, 0);
 
@@ -138,21 +161,32 @@ export function BudgetTrackerPage() {
 
             {/* Tabs for different views */}
             <Tabs defaultValue="overview" className="w-full">
-                <TabsList className="grid w-full grid-cols-3 bg-muted/50 p-1">
-                    <TabsTrigger value="overview">Overview</TabsTrigger>
-                    <TabsTrigger value="transactions">Transactions</TabsTrigger>
-                    <TabsTrigger value="analytics">Analytics</TabsTrigger>
-                </TabsList>
+                <div className="flex items-center justify-between mb-4">
+                    <TabsList className="grid w-full max-w-md grid-cols-4 bg-muted/50 p-1">
+                        <TabsTrigger value="overview">Overview</TabsTrigger>
+                        <TabsTrigger value="transactions">History</TabsTrigger>
+                        <TabsTrigger value="goals">Goals</TabsTrigger>
+                        <TabsTrigger value="analytics">Analytics</TabsTrigger>
+                    </TabsList>
 
-                <TabsContent value="overview" className="space-y-4 mt-4">
+                    <Button variant="outline" size="sm" onClick={handleExport} className="hidden md:flex">
+                        <Download className="mr-2 h-4 w-4" /> Export CSV
+                    </Button>
+                </div>
+
+                <TabsContent value="overview" className="space-y-4 mt-0">
                     <BudgetOverview />
                 </TabsContent>
 
-                <TabsContent value="transactions" className="mt-4">
+                <TabsContent value="transactions" className="mt-0">
                     <TransactionList />
                 </TabsContent>
 
-                <TabsContent value="analytics" className="mt-4">
+                <TabsContent value="goals" className="mt-0">
+                    <BudgetGoals />
+                </TabsContent>
+
+                <TabsContent value="analytics" className="mt-0">
                     <BudgetAnalytics />
                 </TabsContent>
             </Tabs>

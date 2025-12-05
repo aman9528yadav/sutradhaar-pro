@@ -23,6 +23,9 @@ import {
     Download,
     Share2,
     Filter,
+    History,
+    CheckCircle2,
+    ArrowRight
 } from 'lucide-react';
 import { useProfile } from '@/context/ProfileContext';
 import { isToday, isYesterday, formatDistanceToNow, startOfWeek, endOfWeek, isWithinInterval, format } from 'date-fns';
@@ -30,6 +33,8 @@ import { ActivityBreakdownChart } from '@/components/activity-breakdown-chart';
 import { WeeklySummaryChart } from './weekly-summary-chart';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Progress } from "@/components/ui/progress";
 
 const StatCard = ({
     title,
@@ -38,6 +43,7 @@ const StatCard = ({
     description,
     icon: Icon,
     trend,
+    className
 }: {
     title: string;
     value: string | number;
@@ -45,12 +51,13 @@ const StatCard = ({
     description: string;
     icon?: any;
     trend?: 'up' | 'down' | 'neutral';
+    className?: string;
 }) => {
     const isPositive = change !== undefined && change >= 0;
     const TrendIcon = isPositive ? TrendingUp : TrendingDown;
 
     return (
-        <Card className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border-white/20 shadow-lg overflow-hidden relative group hover:scale-[1.02] transition-all duration-300">
+        <Card className={cn("bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border-white/20 shadow-lg overflow-hidden relative group hover:scale-[1.02] transition-all duration-300", className)}>
             <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
             <CardHeader className="p-4 pb-2 relative z-10">
                 <div className="flex justify-between items-start">
@@ -75,7 +82,7 @@ const StatCard = ({
 };
 
 const InsightCard = ({ title, description, icon: Icon, color }: { title: string; description: string; icon: any; color: string }) => (
-    <div className={cn("p-4 rounded-xl border", `bg-${color}-500/10 border-${color}-500/20`)}>
+    <div className={cn("p-4 rounded-xl border transition-all hover:bg-white/5", `bg-${color}-500/10 border-${color}-500/20`)}>
         <div className="flex items-start gap-3">
             <div className={cn("p-2 rounded-lg", `bg-${color}-500/20`)}>
                 <Icon className={cn("h-4 w-4", `text-${color}-400`)} />
@@ -88,10 +95,99 @@ const InsightCard = ({ title, description, icon: Icon, color }: { title: string;
     </div>
 );
 
+const DailyGoalCard = ({ current, target }: { current: number; target: number }) => {
+    const progress = Math.min(100, (current / target) * 100);
+    const isCompleted = current >= target;
+
+    return (
+        <Card className="bg-gradient-to-br from-primary/20 to-primary/5 backdrop-blur-xl border-primary/20 shadow-lg relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent skew-x-12 translate-x-[-100%] animate-[shimmer_2s_infinite]" />
+            <CardHeader className="pb-2">
+                <div className="flex justify-between items-center">
+                    <CardTitle className="text-lg font-bold text-white flex items-center gap-2">
+                        <Target className="h-5 w-5 text-primary" />
+                        Daily Goal
+                    </CardTitle>
+                    {isCompleted && (
+                        <Badge className="bg-green-500/20 text-green-400 border-green-500/50">
+                            <CheckCircle2 className="h-3 w-3 mr-1" />
+                            Completed
+                        </Badge>
+                    )}
+                </div>
+                <CardDescription className="text-white/60">
+                    {isCompleted 
+                        ? "You've reached your daily goal! Great job!" 
+                        : `You need ${target - current} more activities to reach your goal.`}
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                <div className="space-y-2">
+                    <div className="flex justify-between text-sm text-white/80">
+                        <span>Progress</span>
+                        <span className="font-medium">{current} / {target}</span>
+                    </div>
+                    <Progress value={progress} className="h-2 bg-white/10" indicatorClassName={isCompleted ? "bg-green-500" : "bg-primary"} />
+                </div>
+            </CardContent>
+        </Card>
+    );
+};
+
+const RecentActivityList = ({ history }: { history: any[] }) => {
+    if (!history || history.length === 0) {
+        return (
+            <div className="text-center py-8 text-white/40">
+                <History className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                <p>No recent activity</p>
+            </div>
+        );
+    }
+
+    return (
+        <div className="space-y-3">
+            {history.slice(0, 5).map((item) => {
+                let title = "Activity";
+                let details = "";
+                let Icon = Activity;
+
+                if (item.type === 'conversion') {
+                    title = "Conversion";
+                    details = `${item.fromValue} ${item.fromUnit} → ${item.toValue} ${item.toUnit}`;
+                    Icon = ArrowRight;
+                } else if (item.type === 'calculator') {
+                    title = "Calculation";
+                    details = `${item.expression} = ${item.result}`;
+                    Icon = Calendar; // Using Calendar as placeholder or generic math icon if available
+                } else if (item.type === 'date_calculation') {
+                    title = "Date Calc";
+                    details = item.calculationType;
+                    Icon = Calendar;
+                }
+
+                return (
+                    <div key={item.id} className="flex items-center gap-3 p-3 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
+                        <div className="p-2 rounded-full bg-primary/10 text-primary">
+                            <Icon className="h-4 w-4" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-white truncate">{title}</p>
+                            <p className="text-xs text-white/50 truncate">{details}</p>
+                        </div>
+                        <div className="text-xs text-white/40 whitespace-nowrap">
+                            {formatDistanceToNow(new Date(item.timestamp), { addSuffix: true })}
+                        </div>
+                    </div>
+                );
+            })}
+        </div>
+    );
+};
+
 export function AnalyticsPageEnhanced() {
     const { profile } = useProfile();
     const { history, favorites, budget } = profile;
-    const [timeRange, setTimeRange] = useState<'today' | 'week' | 'month' | 'all'>('week');
+    const [timeRange, setTimeRange] = useState<'today' | 'week' | 'month'>('week');
     const [showInsights, setShowInsights] = useState(true);
 
     const getCountForDay = (items: any[], dateFn: (d: Date) => boolean) => {
@@ -250,131 +346,142 @@ export function AnalyticsPageEnhanced() {
     return (
         <div className="w-full space-y-6 pb-24">
             {/* Header */}
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-white">Analytics</h1>
-                    <p className="text-sm text-white/60">Track your productivity and usage</p>
+                    <h1 className="text-3xl font-bold text-white tracking-tight">Analytics</h1>
+                    <p className="text-sm text-white/60">Track your productivity and usage patterns</p>
                 </div>
                 <div className="flex gap-2">
                     <Button variant="outline" size="sm" onClick={exportData} className="bg-white/5 border-white/20 text-white hover:bg-white/10">
                         <Download className="h-4 w-4 mr-2" />
-                        Export
+                        Export Data
                     </Button>
                 </div>
             </div>
 
-            {/* Key Metrics - 2x2 Grid */}
-            <div className="grid grid-cols-2 gap-3">
-                <StatCard
-                    title="Today"
-                    value={analyticsData.todayActivities.value}
-                    description={analyticsData.todayActivities.description}
-                    icon={Activity}
-                    change={analyticsData.totalActivities.change}
-                />
-                <StatCard
-                    title="Streak"
-                    value={analyticsData.currentStreak.value}
-                    description={analyticsData.currentStreak.description}
-                    icon={Award}
-                />
-                <StatCard
-                    title="Productivity"
-                    value={`${analyticsData.productivityScore.value}%`}
-                    description={analyticsData.productivityScore.description}
-                    icon={Zap}
-                />
-                <StatCard
-                    title="Peak Time"
-                    value={analyticsData.mostActiveHour.value}
-                    description={analyticsData.mostActiveHour.description}
-                    icon={Clock}
-                />
-            </div>
+            <Tabs defaultValue="overview" className="w-full">
+                <TabsList className="grid w-full grid-cols-2 lg:w-[400px] bg-white/5 border border-white/10">
+                    <TabsTrigger value="overview">Overview</TabsTrigger>
+                    <TabsTrigger value="detailed">Detailed Stats</TabsTrigger>
+                </TabsList>
 
-            {/* Insights */}
-            {showInsights && insights.length > 0 && (
-                <Card className="bg-gradient-to-br from-primary/10 to-transparent backdrop-blur-xl border-primary/20 shadow-xl">
-                    <CardHeader className="pb-3">
-                        <div className="flex items-center justify-between">
-                            <CardTitle className="text-white flex items-center gap-2">
-                                <Zap className="h-5 w-5 text-primary" />
-                                Insights
-                            </CardTitle>
-                            <Button variant="ghost" size="sm" onClick={() => setShowInsights(false)} className="text-white/60 hover:text-white">
-                                Hide
-                            </Button>
-                        </div>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                        {insights.map((insight, idx) => (
-                            <InsightCard key={idx} {...insight} />
-                        ))}
-                    </CardContent>
-                </Card>
-            )}
+                <TabsContent value="overview" className="space-y-6 mt-6">
+                    {/* Top Stats Row */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <DailyGoalCard current={analyticsData.todayActivities.value} target={10} />
+                        <StatCard
+                            title="Current Streak"
+                            value={analyticsData.currentStreak.value}
+                            description={analyticsData.currentStreak.description}
+                            icon={Award}
+                            className="bg-gradient-to-br from-orange-500/10 to-transparent border-orange-500/20"
+                        />
+                        <StatCard
+                            title="Productivity Score"
+                            value={`${analyticsData.productivityScore.value}%`}
+                            description={analyticsData.productivityScore.description}
+                            icon={Zap}
+                            className="bg-gradient-to-br from-blue-500/10 to-transparent border-blue-500/20"
+                        />
+                    </div>
 
-            {/* Charts */}
-            <div className="grid grid-cols-1 gap-4">
-                <Card className="bg-white/10 backdrop-blur-xl border-white/20 shadow-xl">
-                    <CardHeader className="pb-3">
-                        <CardTitle className="text-white flex items-center gap-2">
-                            <BarChart3 className="h-5 w-5" />
-                            Weekly Summary
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent className="h-[180px]">
-                        <WeeklySummaryChart />
-                    </CardContent>
-                </Card>
+                    {/* Main Charts Area */}
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <Card className="lg:col-span-2 bg-white/5 backdrop-blur-xl border-white/10 shadow-xl">
+                            <CardHeader>
+                                <CardTitle className="text-white flex items-center gap-2">
+                                    <BarChart3 className="h-5 w-5 text-primary" />
+                                    Weekly Activity
+                                </CardTitle>
+                                <CardDescription className="text-white/40">Your activity over the last 7 days</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="h-[250px] w-full">
+                                    <WeeklySummaryChart />
+                                </div>
+                            </CardContent>
+                        </Card>
 
-                <Card className="bg-white/10 backdrop-blur-xl border-white/20 shadow-xl">
-                    <CardHeader className="pb-3">
-                        <CardTitle className="text-white flex items-center gap-2">
-                            <PieChart className="h-5 w-5" />
-                            Activity Breakdown
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent className="h-[250px] flex justify-center items-center">
-                        <ActivityBreakdownChart />
-                    </CardContent>
-                </Card>
-            </div>
+                        <div className="space-y-6">
+                            {/* Activity Breakdown */}
+                            <Card className="bg-white/5 backdrop-blur-xl border-white/10 shadow-xl">
+                                <CardHeader>
+                                    <CardTitle className="text-white flex items-center gap-2">
+                                        <PieChart className="h-5 w-5 text-primary" />
+                                        Breakdown
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent className="h-[200px] flex justify-center items-center">
+                                    <ActivityBreakdownChart />
+                                </CardContent>
+                            </Card>
 
-            {/* Detailed Stats Grid */}
-            <Card className="bg-white/10 backdrop-blur-xl border-white/20 shadow-xl">
-                <CardHeader className="pb-3">
-                    <CardTitle className="text-white">Detailed Statistics</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-1">
-                            <p className="text-xs text-white/60">Total Activities</p>
-                            <p className="text-2xl font-bold text-white">{analyticsData.totalActivities.value}</p>
-                        </div>
-                        <div className="space-y-1">
-                            <p className="text-xs text-white/60">Conversions</p>
-                            <p className="text-2xl font-bold text-white">{analyticsData.totalConversions.value}</p>
-                        </div>
-                        <div className="space-y-1">
-                            <p className="text-xs text-white/60">Calculator Ops</p>
-                            <p className="text-2xl font-bold text-white">{analyticsData.calculatorOps.value}</p>
-                        </div>
-                        <div className="space-y-1">
-                            <p className="text-xs text-white/60">Favorites</p>
-                            <p className="text-2xl font-bold text-white">{analyticsData.favoriteConversions.value}</p>
-                        </div>
-                        <div className="space-y-1">
-                            <p className="text-xs text-white/60">This Week</p>
-                            <p className="text-2xl font-bold text-white">{analyticsData.weekActivities.value}</p>
-                        </div>
-                        <div className="space-y-1">
-                            <p className="text-xs text-white/60">Avg/Day</p>
-                            <p className="text-2xl font-bold text-white">{analyticsData.avgPerDay.value}</p>
+                            {/* Recent Activity */}
+                            <Card className="bg-white/5 backdrop-blur-xl border-white/10 shadow-xl">
+                                <CardHeader>
+                                    <CardTitle className="text-white flex items-center gap-2">
+                                        <History className="h-5 w-5 text-primary" />
+                                        Recent Activity
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <RecentActivityList history={history} />
+                                </CardContent>
+                            </Card>
                         </div>
                     </div>
-                </CardContent>
-            </Card>
+
+                    {/* Insights Section */}
+                    {showInsights && insights.length > 0 && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                            {insights.map((insight, idx) => (
+                                <InsightCard key={idx} {...insight} />
+                            ))}
+                        </div>
+                    )}
+                </TabsContent>
+
+                <TabsContent value="detailed" className="space-y-6 mt-6">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <StatCard
+                            title="Total Activities"
+                            value={analyticsData.totalActivities.value}
+                            description="All time"
+                            icon={Activity}
+                        />
+                        <StatCard
+                            title="Conversions"
+                            value={analyticsData.totalConversions.value}
+                            description="Total conversions"
+                            icon={ArrowRight}
+                        />
+                        <StatCard
+                            title="Calculations"
+                            value={analyticsData.calculatorOps.value}
+                            description="Total calculations"
+                            icon={Calendar}
+                        />
+                        <StatCard
+                            title="Peak Time"
+                            value={analyticsData.mostActiveHour.value}
+                            description={analyticsData.mostActiveHour.description}
+                            icon={Clock}
+                        />
+                        <StatCard
+                            title="Favorites"
+                            value={analyticsData.favoriteConversions.value}
+                            description="Saved items"
+                            icon={Target}
+                        />
+                        <StatCard
+                            title="Avg / Day"
+                            value={analyticsData.avgPerDay.value}
+                            description="Daily average"
+                            icon={Activity}
+                        />
+                    </div>
+                </TabsContent>
+            </Tabs>
         </div>
     );
 }

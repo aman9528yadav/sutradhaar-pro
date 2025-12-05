@@ -77,6 +77,9 @@ export type NoteItem = {
   isPinned: boolean;
   createdAt: string;
   updatedAt: string;
+  tags?: string[];
+  isTrashed?: boolean;
+  isArchived?: boolean;
 };
 
 export type SubTask = {

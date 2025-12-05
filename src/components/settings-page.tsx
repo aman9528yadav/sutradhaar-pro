@@ -59,13 +59,11 @@ import { useUser } from '@clerk/nextjs';
 
 const themes = [
   { name: 'Sutradhaar', value: 'sutradhaar', isPremium: false },
-  { name: 'Forest', value: 'forest', isPremium: true },
-  { name: 'Ocean', value: 'ocean', isPremium: true },
-  { name: 'Sunset', value: 'sunset', isPremium: true },
-  { name: 'Sunrise', value: 'sunrise', isPremium: true },
-  { name: 'Twilight', value: 'twilight', isPremium: true },
-  { name: 'Aurora', value: 'aurora', isPremium: true },
-  { name: 'Custom', value: 'custom', isPremium: true },
+  { name: 'Midnight', value: 'midnight', isPremium: false },
+  { name: 'Nebula', value: 'nebula', isPremium: false },
+  { name: 'Emerald', value: 'emerald', isPremium: false },
+  { name: 'Slate', value: 'slate', isPremium: false },
+  { name: 'Custom', value: 'custom', isPremium: false },
 ];
 
 const appearanceModes = [
@@ -464,14 +462,14 @@ export function SettingsPage() {
 
         <SettingsItem icon={Palette} iconBg="bg-teal-500" label="App Theme">
           <Select
-            value={theme?.includes('theme-') ? theme.substring(6) : (theme === 'custom' ? 'custom' : 'sutradhaar')}
+            value={theme?.startsWith('theme-') ? theme.replace('theme-', '') : (theme === 'custom' ? 'custom' : 'sutradhaar')}
             onValueChange={(v) => {
               const selectedTheme = themes.find(t => t.value === v);
               if (selectedTheme?.isPremium && !isPremium) {
                 toast({ title: "Premium Theme", description: "Upgrade to unlock this theme." });
                 return;
               }
-              setTheme(v === 'sutradhaar' ? 'sutradhaar' : v === 'custom' ? 'custom' : `theme-${v}`);
+              setTheme(v === 'sutradhaar' || v === 'custom' ? v : `theme-${v}`);
             }}
           >
             <SelectTrigger className="w-[140px] h-8 text-xs bg-background/50 border-0">
