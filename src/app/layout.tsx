@@ -42,7 +42,7 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://comic-clam-51.clerk.accounts.dev" />
       </head>
       <body className="theme-sutradhaar" suppressHydrationWarning>
-        <ClerkProvider>
+        <ClerkProvider publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}>
           <ThemeProvider
             attribute="class"
             defaultTheme="light"

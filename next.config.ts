@@ -25,7 +25,7 @@ const nextConfig: NextConfig = {
   compress: true,
   poweredByHeader: false,
   reactStrictMode: true,
-  swcMinify: true,
+
   experimental: {
     optimizePackageImports: ['lucide-react', 'framer-motion', '@mui/x-date-pickers'],
   },
