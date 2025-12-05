@@ -82,7 +82,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = async () => {
     try {
-      await firebaseSignOut(auth); // Firebase sign out first
+      try {
+        await firebaseSignOut(auth); // Firebase sign out first
+      } catch (firebaseError) {
+        console.error("Firebase sign out error (non-fatal):", firebaseError);
+      }
       await signOut({ redirectUrl: '/auth-action?action=logout' }); // Clerk sign out with redirect
     } catch (error: any) {
       console.error("Error signing out", error);

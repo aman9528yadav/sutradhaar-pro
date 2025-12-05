@@ -28,9 +28,11 @@ import {
     Calendar,
     Star,
     ChevronRight,
-    Shield
+    Shield,
+    LogIn
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 
 interface ProfilePageProps {
     onNavigate: (tab: string) => void;
@@ -42,11 +44,11 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
     const { profile } = useProfile();
     const { logout: firebaseLogout } = useAuth();
     const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+    const router = useRouter();
 
     const handleLogout = async () => {
         try {
-            await firebaseLogout();
-            await signOut({ redirectUrl: '/auth-action?action=logout' });
+            await signOut({ redirectUrl: '/login' });
         } catch (error) {
             console.error("Logout error:", error);
         }
@@ -198,14 +200,25 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
                 </Card>
 
                 <div className="pt-2">
-                    <Button
-                        variant="destructive"
-                        className="w-full h-12 rounded-xl shadow-sm"
-                        onClick={() => setShowLogoutConfirm(true)}
-                    >
-                        <LogOut className="mr-2 h-4 w-4" />
-                        Sign Out
-                    </Button>
+                    {clerkUser ? (
+                        <Button
+                            variant="destructive"
+                            className="w-full h-12 rounded-xl shadow-sm"
+                            onClick={() => setShowLogoutConfirm(true)}
+                        >
+                            <LogOut className="mr-2 h-4 w-4" />
+                            Sign Out
+                        </Button>
+                    ) : (
+                        <Button
+                            variant="default"
+                            className="w-full h-12 rounded-xl shadow-sm"
+                            onClick={() => router.push('/login')}
+                        >
+                            <LogIn className="mr-2 h-4 w-4" />
+                            Sign In
+                        </Button>
+                    )}
                 </div>
             </motion.div>
 
