@@ -273,6 +273,11 @@ export function Calculator({ onToggleFullScreen, isFullScreen }: { onToggleFullS
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore if focus is on an input or textarea
+      if (e.target instanceof HTMLElement && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) {
+        return;
+      }
+
       const key = e.key;
       if (/^[0-9.]$/.test(key)) {
         e.preventDefault();

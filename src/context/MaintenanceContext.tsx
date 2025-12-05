@@ -4,8 +4,8 @@
 
 import React, { createContext, useContext, useState, ReactNode, useEffect, useRef } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { doc, onSnapshot, setDoc, getDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { ref, onValue, set } from 'firebase/database';
+import { rtdb } from '@/lib/firebase';
 import type { Icon as LucideIcon } from 'lucide-react';
 import { DashboardSkeleton } from '@/components/dashboard-skeleton';
 
@@ -263,13 +263,13 @@ const sanitizePathForKey = (path: string) => {
 export const MaintenanceProvider = ({ children }: { children: ReactNode }) => {
     const [isLoading, setIsLoading] = useState(true);
     const [maintenanceConfig, setMaintenanceConfigState] = useState<MaintenanceConfig>(defaultMaintenanceConfig);
-    const configDocRef = doc(db, 'config', 'main');
+    const configRef = ref(rtdb, 'config/main');
 
     const updateConfigInDb = async (config: MaintenanceConfig) => {
         try {
-            await setDoc(configDocRef, config);
+            await set(configRef, config);
         } catch (error) {
-            console.error("Error updating maintenance config in Firestore:", error);
+            console.error("Error updating maintenance config in Firebase RTDB:", error);
         }
     };
 
@@ -282,62 +282,50 @@ export const MaintenanceProvider = ({ children }: { children: ReactNode }) => {
     }
 
     useEffect(() => {
-        const unsubscribe = onSnapshot(configDocRef,
-            (docSnap) => {
-                if (docSnap.exists()) {
-                    const dbConfig = docSnap.data() as Partial<MaintenanceConfig>;
-                    const mergedConfig = {
-                        ...defaultMaintenanceConfig,
-                        ...dbConfig,
-                        pageMaintenance: dbConfig.pageMaintenance || defaultMaintenanceConfig.pageMaintenance,
-                        dashboardBanner: { ...defaultMaintenanceConfig.dashboardBanner, ...(dbConfig.dashboardBanner || {}) },
-                        maintenanceCards: dbConfig.maintenanceCards || defaultMaintenanceConfig.maintenanceCards,
-                        aboutPageContent: {
-                            ...defaultMaintenanceConfig.aboutPageContent,
-                            ...(dbConfig.aboutPageContent || {}),
-                            roadmap: dbConfig.aboutPageContent?.roadmap || defaultMaintenanceConfig.aboutPageContent.roadmap,
-                        },
-                        comingSoonItems: dbConfig.comingSoonItems || defaultMaintenanceConfig.comingSoonItems,
-                        welcomeDialog: { ...defaultMaintenanceConfig.welcomeDialog, ...(dbConfig.welcomeDialog || {}) },
-                        membershipFeatures: dbConfig.membershipFeatures || defaultMaintenanceConfig.membershipFeatures,
-                        premiumCriteria: { ...defaultMaintenanceConfig.premiumCriteria, ...(dbConfig.premiumCriteria || {}) },
-                        appUpdate: { ...defaultMaintenanceConfig.appUpdate, ...(dbConfig.appUpdate || {}) },
-                        featureFlags: { ...defaultMaintenanceConfig.featureFlags, ...(dbConfig.featureFlags || {}) },
-                        noteSavedToast: { ...defaultMaintenanceConfig.noteSavedToast, ...(dbConfig.noteSavedToast || {}) },
-                    };
-                    setMaintenanceConfigState(mergedConfig);
-                } else {
-                    // If no config exists, create it with default values
-                    updateConfigInDb(defaultMaintenanceConfig);
-                    setMaintenanceConfigState(defaultMaintenanceConfig);
-                }
-                setIsLoading(false);
-            },
-            (error) => {
-                console.error("Error fetching maintenance config:", error);
-                // Attempt to load from localStorage as a fallback
-                try {
-                    const localConfig = localStorage.getItem('sutradhaar_maintenance_config');
-                    if (localConfig) {
-                        setMaintenanceConfigState(JSON.parse(localConfig));
-                    } else {
-                        setMaintenanceConfigState(defaultMaintenanceConfig);
-                    }
-                } catch (e) {
-                    setMaintenanceConfigState(defaultMaintenanceConfig);
-                }
-                setIsLoading(false);
-            });
-
-        // Fallback timeout to prevent infinite loading
-        const timeoutId = setTimeout(() => {
+        const unsubscribe = onValue(configRef, (snapshot) => {
+            if (snapshot.exists()) {
+                const dbConfig = snapshot.val() as Partial<MaintenanceConfig>;
+                const mergedConfig = {
+                    ...defaultMaintenanceConfig,
+                    ...dbConfig,
+                    pageMaintenance: dbConfig.pageMaintenance || defaultMaintenanceConfig.pageMaintenance,
+                    dashboardBanner: { ...defaultMaintenanceConfig.dashboardBanner, ...(dbConfig.dashboardBanner || {}) },
+                    maintenanceCards: dbConfig.maintenanceCards || defaultMaintenanceConfig.maintenanceCards,
+                    aboutPageContent: {
+                        ...defaultMaintenanceConfig.aboutPageContent,
+                        ...(dbConfig.aboutPageContent || {}),
+                        roadmap: dbConfig.aboutPageContent?.roadmap || defaultMaintenanceConfig.aboutPageContent.roadmap,
+                    },
+                    comingSoonItems: dbConfig.comingSoonItems || defaultMaintenanceConfig.comingSoonItems,
+                    welcomeDialog: { ...defaultMaintenanceConfig.welcomeDialog, ...(dbConfig.welcomeDialog || {}) },
+                    membershipFeatures: dbConfig.membershipFeatures || defaultMaintenanceConfig.membershipFeatures,
+                    premiumCriteria: { ...defaultMaintenanceConfig.premiumCriteria, ...(dbConfig.premiumCriteria || {}) },
+                    appUpdate: { ...defaultMaintenanceConfig.appUpdate, ...(dbConfig.appUpdate || {}) },
+                    featureFlags: { ...defaultMaintenanceConfig.featureFlags, ...(dbConfig.featureFlags || {}) },
+                    noteSavedToast: { ...defaultMaintenanceConfig.noteSavedToast, ...(dbConfig.noteSavedToast || {}) },
+                };
+                setMaintenanceConfigState(mergedConfig);
+            } else {
+                // If no config exists, create it with default values
+                updateConfigInDb(defaultMaintenanceConfig);
+                setMaintenanceConfigState(defaultMaintenanceConfig);
+            }
             setIsLoading(false);
-        }, 5000);
+        }, (error) => {
+            console.error("Error fetching maintenance config:", error);
+            // Fallback to local storage
+            try {
+                const localConfig = localStorage.getItem('sutradhaar_maintenance_config');
+                if (localConfig) {
+                    setMaintenanceConfigState(JSON.parse(localConfig));
+                }
+            } catch (e) {
+                // Ignore
+            }
+            setIsLoading(false);
+        });
 
-        return () => {
-            unsubscribe();
-            clearTimeout(timeoutId);
-        };
+        return () => unsubscribe();
     }, []);
 
     // Save to localStorage whenever config changes

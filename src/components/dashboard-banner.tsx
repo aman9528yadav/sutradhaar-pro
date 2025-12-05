@@ -1,46 +1,45 @@
-
-
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Rocket, Info, PartyPopper } from 'lucide-react';
+import { Rocket, Info, PartyPopper, X, Bell, Clock } from 'lucide-react';
 import { useMaintenance, Countdown } from '@/context/MaintenanceContext';
 import Link from 'next/link';
 import { AppUpdateBanner } from './app-update-banner';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const CountdownBox = ({ value, label }: { value: string; label: string }) => (
-  <div className="bg-accent/70 rounded-md p-1.5 w-12 flex flex-col items-center">
-    <span className="text-xl font-bold text-primary">{value}</span>
-    <span className="text-[10px] text-muted-foreground">{label}</span>
+  <div className="flex flex-col items-center justify-center bg-white/10 backdrop-blur-md rounded-lg p-2 min-w-[3rem] border border-white/10 shadow-sm">
+    <span className="text-xl font-bold text-white tabular-nums leading-none">{value}</span>
+    <span className="text-[10px] font-medium text-white/80 uppercase tracking-wider mt-1">{label}</span>
   </div>
 );
 
 const calculateTimeLeft = (targetDate: string): Countdown => {
-    const difference = +new Date(targetDate) - +new Date();
-    let timeLeft: Countdown = { days: 0, hours: 0, minutes: 0, seconds: 0 };
+  const difference = +new Date(targetDate) - +new Date();
+  let timeLeft: Countdown = { days: 0, hours: 0, minutes: 0, seconds: 0 };
 
-    if (difference > 0) {
-        timeLeft = {
-            days: Math.floor(difference / (1000 * 60 * 60 * 24)),
-            hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
-            minutes: Math.floor((difference / 1000 / 60) % 60),
-            seconds: Math.floor((difference / 1000) % 60)
-        };
-    }
+  if (difference > 0) {
+    timeLeft = {
+      days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+      hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+      minutes: Math.floor((difference / 1000 / 60) % 60),
+      seconds: Math.floor((difference / 1000) % 60)
+    };
+  }
 
-    return timeLeft;
+  return timeLeft;
 };
 
 export function DashboardBanner() {
   const { maintenanceConfig } = useMaintenance();
   const { show, targetDate, category } = maintenanceConfig.dashboardBanner || {};
-  
+
   const [timeLeft, setTimeLeft] = useState<Countdown>(calculateTimeLeft(targetDate));
   const [isVisible, setIsVisible] = useState(show || false);
   const [isClient, setIsClient] = useState(false);
+  const [isDismissed, setIsDismissed] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
@@ -48,7 +47,7 @@ export function DashboardBanner() {
 
   useEffect(() => {
     if (maintenanceConfig.dashboardBanner) {
-        setIsVisible(maintenanceConfig.dashboardBanner.show);
+      setIsVisible(maintenanceConfig.dashboardBanner.show);
     }
   }, [maintenanceConfig.dashboardBanner]);
 
@@ -56,62 +55,105 @@ export function DashboardBanner() {
     if (!isVisible || !isClient || !targetDate) return;
 
     const timer = setTimeout(() => {
-        setTimeLeft(calculateTimeLeft(targetDate));
+      setTimeLeft(calculateTimeLeft(targetDate));
     }, 1000);
 
     return () => clearTimeout(timer);
   }, [timeLeft, isVisible, isClient, targetDate]);
 
   const isTimerFinished = timeLeft.days <= 0 && timeLeft.hours <= 0 && timeLeft.minutes <= 0 && timeLeft.seconds <= 0;
-  
+
+  if (isDismissed) return <AppUpdateBanner />;
+
   return (
     <>
       <AppUpdateBanner />
-      {isVisible && maintenanceConfig.dashboardBanner && (
-        <Card className="bg-gradient-to-br from-primary/10 to-accent/20 border-primary/20">
-          <CardContent className="p-4 relative">
-            <div className="flex items-start gap-4">
-                <div className="p-3 bg-primary/10 rounded-full mt-1">
-                    <Rocket className="h-6 w-6 text-primary" />
+      <AnimatePresence>
+        {isVisible && maintenanceConfig.dashboardBanner && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="relative overflow-hidden rounded-xl shadow-lg mb-6 group"
+          >
+            {/* Background Gradient & Effects */}
+            <div className="absolute inset-0 bg-gradient-to-br from-violet-600 via-indigo-600 to-purple-700 opacity-95" />
+            <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10" />
+
+            {/* Decorative circles */}
+            <div className="absolute top-0 right-0 w-48 h-48 bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+            <div className="absolute bottom-0 left-0 w-32 h-32 bg-black/10 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2" />
+
+            <div className="relative p-6 flex flex-col gap-5 text-white">
+
+              {/* Row 1: Title & Badge */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <h3 className="text-xl font-bold tracking-tight text-white leading-tight">
+                    {isTimerFinished ? "Update Live!" : "Update Incoming"}
+                  </h3>
+                  <Badge variant="secondary" className="bg-white/20 hover:bg-white/30 text-white border-none backdrop-blur-md px-2.5 py-0.5 h-6">
+                    {category}
+                  </Badge>
                 </div>
-                <div className='flex-1 space-y-2'>
-                    <div>
-                        <h3 className="font-bold">Next Update Incoming!</h3>
-                         <p className="text-xs text-muted-foreground">
-                            {isTimerFinished ? "The latest update is live!" : "We're launching new features soon. Check out what's new!"}
-                        </p>
-                    </div>
-                    
-                    {isTimerFinished ? (
-                        <div className="flex items-center justify-center gap-2 p-4 bg-accent/70 rounded-md text-primary font-semibold">
-                           <PartyPopper className="h-5 w-5" />
-                           <span>The new update is live!</span>
-                        </div>
-                    ) : (
-                        <div className="flex gap-2">
-                            <CountdownBox value={String(timeLeft.days).padStart(2, '0')} label="DAYS" />
-                            <CountdownBox value={String(timeLeft.hours).padStart(2, '0')} label="HOURS" />
-                            <CountdownBox value={String(timeLeft.minutes).padStart(2, '0')} label="MINS" />
-                            <CountdownBox value={String(timeLeft.seconds).padStart(2, '0')} label="SECS" />
-                        </div>
-                    )}
-                    
-                    <div className="flex justify-between items-center">
-                        <Badge variant="outline" className="text-primary bg-primary/10 border-primary/50 text-xs shrink-0">
-                            {category}
-                        </Badge>
-                         <Button asChild size="sm" variant="link" className="text-primary pr-0">
-                             <Link href="/whats-new">
-                                <Info className="mr-2 h-4 w-4" />
-                                Learn More
-                             </Link>
-                        </Button>
-                    </div>
+                {/* Close Button */}
+                <button
+                  onClick={() => setIsDismissed(true)}
+                  className="p-1.5 text-white/50 hover:text-white hover:bg-white/10 rounded-full transition-colors -mr-2 -mt-2"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              {/* Row 2: Timer */}
+              <div className="flex justify-center py-2">
+                {!isTimerFinished ? (
+                  <div className="flex gap-3">
+                    <CountdownBox value={String(timeLeft.days)} label="DAYS" />
+                    <CountdownBox value={String(timeLeft.hours).padStart(2, '0')} label="HRS" />
+                    <CountdownBox value={String(timeLeft.minutes).padStart(2, '0')} label="MINS" />
+                    <CountdownBox value={String(timeLeft.seconds).padStart(2, '0')} label="SECS" />
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 px-6 py-3 bg-white/10 backdrop-blur-md rounded-xl border border-white/20 w-full justify-center">
+                    <PartyPopper className="h-5 w-5 text-yellow-300" />
+                    <span className="font-semibold">The update is now live!</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Row 3: Icon & Content */}
+              <div className="flex items-start gap-4 bg-white/5 rounded-xl p-4 border border-white/10">
+                <div className="p-2.5 bg-white/10 backdrop-blur-sm rounded-lg border border-white/10 shadow-inner shrink-0">
+                  <Rocket className="h-5 w-5 text-white" />
                 </div>
+                <div className="flex-1 space-y-3">
+                  <p className="text-sm text-indigo-100/90 leading-relaxed">
+                    {isTimerFinished
+                      ? "We've just pushed some exciting new features and improvements. Check out the details to see what's new."
+                      : "We're putting the finishing touches on a major update. Get ready for a smoother, faster experience."}
+                  </p>
+
+                  <div className="flex items-center gap-3">
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      className="h-8 text-xs bg-white text-indigo-600 hover:bg-indigo-50 font-semibold shadow-sm border-none"
+                      asChild
+                    >
+                      <Link href="/whats-new">
+                        <Info className="mr-1.5 h-3.5 w-3.5" />
+                        View Details
+                      </Link>
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
             </div>
-          </CardContent>
-        </Card>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }
