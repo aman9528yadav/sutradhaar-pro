@@ -66,11 +66,11 @@ interface ModernSidebarProps {
 
 export function ModernSidebar({ activeTab = 'dashboard', onNavigate }: ModernSidebarProps) {
     const { isOpen, setIsOpen } = useSidebarContext();
-    const [expandedSections, setExpandedSections] = useState<string[]>(['tools', 'productivity']);
+    const [expandedSections, setExpandedSections] = useState<string[]>(['tools']);
 
     const toggleSection = (id: string) => {
         setExpandedSections(prev =>
-            prev.includes(id) ? prev.filter(s => s !== id) : [...prev, id]
+            prev.includes(id) ? [] : [id]
         );
     };
 
