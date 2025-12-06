@@ -7,7 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { ArrowLeft, GripVertical, Eye, EyeOff, ArrowUp, ArrowDown } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useProfile } from '@/context/ProfileContext';
-import { quickAccessItems, moreAccessItems } from '@/app/page';
+import { quickAccessItems, moreAccessItems } from '@/lib/navigation-items';
 import { cn } from '@/lib/utils';
 
 const allAccessItems = [...quickAccessItems, ...moreAccessItems];
@@ -16,7 +16,7 @@ const allAccessItems = [...quickAccessItems, ...moreAccessItems];
 export default function ManageQuickAccessPage() {
   const router = useRouter();
   const { profile, setProfile } = useProfile();
-  
+
   const [managedItems, setManagedItems] = useState(
     (profile.quickAccessOrder && profile.quickAccessOrder.length > 0)
       ? profile.quickAccessOrder
@@ -26,22 +26,22 @@ export default function ManageQuickAccessPage() {
   useEffect(() => {
     // Sync with profile context if it changes
     if (profile.quickAccessOrder && profile.quickAccessOrder.length > 0) {
-        // Filter out any items that might have been removed from the main lists
-        const validOrder = profile.quickAccessOrder.filter(orderItem => allAccessItems.some(item => item.id === orderItem.id));
-        
-        // Add any new items that are not in the user's saved order
-        const savedIds = new Set(validOrder.map(item => item.id));
-        const newItems = allAccessItems
-            .filter(item => !savedIds.has(item.id))
-            .map(item => ({ id: item.id, hidden: false }));
-        
-        setManagedItems([...validOrder, ...newItems]);
+      // Filter out any items that might have been removed from the main lists
+      const validOrder = profile.quickAccessOrder.filter(orderItem => allAccessItems.some(item => item.id === orderItem.id));
+
+      // Add any new items that are not in the user's saved order
+      const savedIds = new Set(validOrder.map(item => item.id));
+      const newItems = allAccessItems
+        .filter(item => !savedIds.has(item.id))
+        .map(item => ({ id: item.id, hidden: false }));
+
+      setManagedItems([...validOrder, ...newItems]);
     } else {
       // If the profile has no order, initialize with default
       setManagedItems(allAccessItems.map(item => ({ id: item.id, hidden: false })));
     }
   }, [profile.quickAccessOrder]);
-  
+
 
   const handleMove = (index: number, direction: 'up' | 'down') => {
     const newItems = [...managedItems];
@@ -69,7 +69,7 @@ export default function ManageQuickAccessPage() {
     setProfile(p => ({ ...p, quickAccessOrder: managedItems }));
     router.back();
   };
-  
+
   const itemMap = new Map(allAccessItems.map(item => [item.id, item]));
 
   return (
@@ -93,41 +93,41 @@ export default function ManageQuickAccessPage() {
         </div>
 
         <main className="flex-1 space-y-4 pb-12">
-            <p className="text-muted-foreground text-sm">Use the arrows to reorder items. Use the eye icon to show or hide items from your dashboard.</p>
-            <div className="space-y-2">
-                {managedItems.map((orderItem, index) => {
-                const itemDetails = itemMap.get(orderItem.id);
-                if (!itemDetails) return null;
-                const { icon: Icon, label } = itemDetails;
+          <p className="text-muted-foreground text-sm">Use the arrows to reorder items. Use the eye icon to show or hide items from your dashboard.</p>
+          <div className="space-y-2">
+            {managedItems.map((orderItem, index) => {
+              const itemDetails = itemMap.get(orderItem.id);
+              if (!itemDetails) return null;
+              const { icon: Icon, label } = itemDetails;
 
-                return (
-                    <Card
-                    key={orderItem.id}
-                    className={cn("p-2", orderItem.hidden && "opacity-50")}
-                    >
-                    <div className="flex items-center gap-3">
-                        <GripVertical className="h-5 w-5 text-muted-foreground" />
-                        <div className="p-2 bg-accent rounded-lg">
-                        <Icon className="h-5 w-5 text-primary" />
-                        </div>
-                        <span className="font-medium flex-1">{label}</span>
-                        <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8"
-                        onClick={() => toggleVisibility(orderItem.id)}
-                        >
-                        {orderItem.hidden ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                        </Button>
-                        <div className="flex flex-col">
-                           <Button variant="ghost" size="icon" className="h-6 w-6" disabled={index === 0} onClick={() => handleMove(index, 'up')}><ArrowUp className="h-4 w-4" /></Button>
-                           <Button variant="ghost" size="icon" className="h-6 w-6" disabled={index === managedItems.length - 1} onClick={() => handleMove(index, 'down')}><ArrowDown className="h-4 w-4" /></Button>
-                        </div>
+              return (
+                <Card
+                  key={orderItem.id}
+                  className={cn("p-2", orderItem.hidden && "opacity-50")}
+                >
+                  <div className="flex items-center gap-3">
+                    <GripVertical className="h-5 w-5 text-muted-foreground" />
+                    <div className="p-2 bg-accent rounded-lg">
+                      <Icon className="h-5 w-5 text-primary" />
                     </div>
-                    </Card>
-                );
-                })}
-            </div>
+                    <span className="font-medium flex-1">{label}</span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => toggleVisibility(orderItem.id)}
+                    >
+                      {orderItem.hidden ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </Button>
+                    <div className="flex flex-col">
+                      <Button variant="ghost" size="icon" className="h-6 w-6" disabled={index === 0} onClick={() => handleMove(index, 'up')}><ArrowUp className="h-4 w-4" /></Button>
+                      <Button variant="ghost" size="icon" className="h-6 w-6" disabled={index === managedItems.length - 1} onClick={() => handleMove(index, 'down')}><ArrowDown className="h-4 w-4" /></Button>
+                    </div>
+                  </div>
+                </Card>
+              );
+            })}
+          </div>
         </main>
       </div>
     </div>

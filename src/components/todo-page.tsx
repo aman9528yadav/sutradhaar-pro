@@ -25,6 +25,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 
+import { useSearchParams, useRouter } from 'next/navigation';
+
 export function TodoPage() {
     const { profile, updateTodo, deleteTodo } = useProfile();
     const [searchQuery, setSearchQuery] = useState('');
@@ -34,6 +36,31 @@ export function TodoPage() {
     const [sortBy, setSortBy] = useState<'priority' | 'dueDate' | 'created'>('priority');
     const [selectedTodo, setSelectedTodo] = useState<TodoItem | undefined>(undefined);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+    const searchParams = useSearchParams();
+    const router = useRouter();
+
+    // Open todo from URL param
+    React.useEffect(() => {
+        const todoId = searchParams.get('id');
+        if (todoId && profile.todos) {
+            const todo = profile.todos.find(t => t.id === todoId);
+            if (todo) {
+                setSelectedTodo(todo);
+                setIsDialogOpen(true);
+            }
+        }
+    }, [searchParams, profile.todos]);
+
+    const handleDialogOpenChange = (open: boolean) => {
+        setIsDialogOpen(open);
+        if (!open) {
+            const params = new URLSearchParams(searchParams.toString());
+            params.delete('id');
+            router.replace(`?${params.toString()}`, { scroll: false });
+            setSelectedTodo(undefined);
+        }
+    };
 
     // Statistics
     const stats = useMemo(() => {
@@ -412,6 +439,12 @@ export function TodoPage() {
                                             {todo.subtasks.filter(st => st.completed).length}/{todo.subtasks.length}
                                         </span>
                                     )}
+                                    {todo.timeSpent && todo.timeSpent > 0 && (
+                                        <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-orange-400 bg-orange-400/10">
+                                            <Clock className="w-3 h-3" />
+                                            {formatTimeSpent(todo.timeSpent)}
+                                        </span>
+                                    )}
                                 </div>
                             </div>
 
@@ -453,7 +486,7 @@ export function TodoPage() {
 
             <AddTodoDialog
                 open={isDialogOpen}
-                onOpenChange={setIsDialogOpen}
+                onOpenChange={handleDialogOpenChange}
                 todo={selectedTodo}
             />
         </div>
@@ -465,4 +498,13 @@ function formatDate(dateString: string) {
     if (isToday(date)) return 'Today';
     if (isTomorrow(date)) return 'Tomorrow';
     return format(date, 'MMM d');
+}
+
+function formatTimeSpent(seconds: number) {
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = seconds % 60;
+    if (h > 0) return `${h}h ${m}m ${s}s`;
+    if (m > 0) return `${m}m ${s}s`;
+    return `${s}s`;
 }

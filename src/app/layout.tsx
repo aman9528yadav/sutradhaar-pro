@@ -14,7 +14,7 @@ import { ConditionalHeader } from '@/components/conditional-header';
 import { ModernSidebar } from '@/components/modern-sidebar';
 import { SidebarProvider } from '@/context/SidebarContext';
 import { ClerkProvider } from '@clerk/nextjs';
-
+import { TimerProvider } from '@/context/TimerContext';
 
 export const metadata: Metadata = {
   title: 'Sutradhaar',
@@ -53,21 +53,23 @@ export default function RootLayout({
             <AuthProvider>
               <MaintenanceProvider>
                 <ProfileProvider>
-                  <SidebarProvider>
-                    <NotificationProvider>
-                      <CustomThemeHandler />
-                      <div className="flex flex-col items-center w-full min-h-screen bg-background text-foreground">
-                        <div className="w-full max-w-[412px] flex flex-col flex-1">
-                          <MaintenanceWrapper>
-                            <ConditionalHeader />
-                            {children}
-                          </MaintenanceWrapper>
+                  <TimerProvider>
+                    <SidebarProvider>
+                      <NotificationProvider>
+                        <CustomThemeHandler />
+                        <div className="flex flex-col items-center w-full min-h-screen bg-background text-foreground">
+                          <div className="w-full max-w-[412px] flex flex-col flex-1">
+                            <MaintenanceWrapper>
+                              <ConditionalHeader />
+                              {children}
+                            </MaintenanceWrapper>
+                          </div>
                         </div>
-                      </div>
-                      <Toaster />
-                      <BroadcastListener />
-                    </NotificationProvider>
-                  </SidebarProvider>
+                        <Toaster />
+                        <BroadcastListener />
+                      </NotificationProvider>
+                    </SidebarProvider>
+                  </TimerProvider>
                 </ProfileProvider>
               </MaintenanceProvider>
             </AuthProvider>

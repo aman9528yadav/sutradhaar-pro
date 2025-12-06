@@ -36,7 +36,7 @@ export function BudgetOverview() {
                                         <p className="text-xs text-muted-foreground">****</p>
                                     </div>
                                 </div>
-                                <p className="font-bold">${account.balance.toLocaleString()}</p>
+                                <p className="font-bold">₹{account.balance.toLocaleString('en-IN')}</p>
                             </CardContent>
                         </Card>
                     ))}
@@ -65,8 +65,8 @@ export function BudgetOverview() {
                                         </div>
                                         <Progress value={progress} className="h-2 bg-emerald-950/20" indicatorClassName="bg-emerald-500" />
                                         <div className="flex justify-between text-xs text-muted-foreground">
-                                            <span>${goal.currentAmount.toLocaleString()}</span>
-                                            <span>Target: ${goal.targetAmount.toLocaleString()}</span>
+                                            <span>₹{goal.currentAmount.toLocaleString('en-IN')}</span>
+                                            <span>Target: ₹{goal.targetAmount.toLocaleString('en-IN')}</span>
                                         </div>
                                     </CardContent>
                                 </Card>
@@ -95,7 +95,7 @@ export function BudgetOverview() {
                                     </div>
                                 </div>
                                 <span className={`font-bold text-sm ${transaction.type === 'income' ? 'text-emerald-500' : 'text-rose-500'}`}>
-                                    {transaction.type === 'income' ? '+' : '-'}${transaction.amount.toLocaleString()}
+                                    {transaction.type === 'income' ? '+' : '-'}₹{transaction.amount.toLocaleString('en-IN')}
                                 </span>
                             </div>
                         ))

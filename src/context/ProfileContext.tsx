@@ -98,6 +98,8 @@ export type TodoItem = {
   subtasks?: SubTask[];
   createdAt: string;
   completedAt?: string;
+  recurring?: 'daily' | 'weekly' | 'monthly';
+  timeSpent?: number; // in seconds
 };
 
 export type QuickAccessItemOrder = {
@@ -135,6 +137,7 @@ export type UserSettings = {
   enableNotifications: boolean;
   enableSounds: boolean;
   notePassword?: string;
+  lastBackupDate?: string;
 };
 
 export type Membership = 'guest' | 'member' | 'premium' | 'owner';
@@ -163,6 +166,7 @@ export type Category = {
   id: string;
   name: string;
   icon: string;
+  budgetLimit?: number;
 };
 
 export type Transaction = {
@@ -175,6 +179,11 @@ export type Transaction = {
   date: string; // ISO string
   notes?: string;
   tags?: string[];
+  recurring?: {
+    frequency: 'daily' | 'weekly' | 'monthly' | 'yearly';
+    nextDue: string;
+  };
+  receiptUrl?: string;
 };
 
 export type SavingsGoal = {
@@ -184,6 +193,14 @@ export type SavingsGoal = {
   currentAmount: number;
 };
 
+export type BillReminder = {
+  id: string;
+  title: string;
+  amount: number;
+  dueDate: string;
+  frequency: 'monthly' | 'yearly' | 'once';
+  isPaid: boolean;
+};
 
 export type Budget = {
   transactions: Transaction[];
@@ -222,6 +239,7 @@ export type UserProfile = {
   customUnits: CustomUnit[];
   customCategories: CustomCategory[];
   budget: Budget;
+  billReminders: BillReminder[];
 };
 
 type ProfileContextType = {
@@ -268,6 +286,10 @@ type ProfileContextType = {
   updateSavingsGoal: (goal: SavingsGoal) => void;
   deleteSavingsGoal: (id: string) => void;
   contributeToGoal: (goalId: string, amount: number, accountId: string) => void;
+  // Bill Reminder functions
+  addBillReminder: (reminder: Omit<BillReminder, 'id'>) => void;
+  updateBillReminder: (reminder: BillReminder) => void;
+  deleteBillReminder: (id: string) => void;
 };
 
 const ProfileContext = createContext<ProfileContextType | undefined>(undefined);
@@ -292,6 +314,7 @@ const defaultSettings: UserSettings = {
   enableNotifications: true,
   enableSounds: true,
   notePassword: '',
+  lastBackupDate: undefined,
 };
 
 const defaultDashboardWidgets: DashboardWidgetItem[] = [
@@ -355,6 +378,7 @@ const getInitialProfile = (): UserProfile => {
     customUnits: [],
     customCategories: [],
     budget: defaultBudget,
+    billReminders: [],
   };
 };
 
@@ -387,6 +411,7 @@ const guestProfileDefault: UserProfile = {
   customUnits: [],
   customCategories: [],
   budget: defaultBudget,
+  billReminders: [],
 }
 
 export const ProfileProvider = ({ children }: { children: ReactNode }) => {
@@ -424,6 +449,7 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
         dashboardWidgets: parsedProfile.dashboardWidgets || defaultDashboardWidgets,
         dashboardLayout: parsedProfile.dashboardLayout || defaultDashboardLayout,
         budget: { ...defaultBudget, ...(parsedProfile.budget || {}) },
+        billReminders: parsedProfile.billReminders || [],
       };
     };
 
@@ -824,6 +850,19 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
+  const addBillReminder = (reminder: Omit<BillReminder, 'id'>) => {
+    const newReminder: BillReminder = { ...reminder, id: new Date().getTime().toString() };
+    setProfile(p => ({ ...p, billReminders: [...p.billReminders, newReminder] }));
+  };
+
+  const updateBillReminder = (reminder: BillReminder) => {
+    setProfile(p => ({ ...p, billReminders: p.billReminders.map(r => r.id === reminder.id ? reminder : r) }));
+  };
+
+  const deleteBillReminder = (id: string) => {
+    setProfile(p => ({ ...p, billReminders: p.billReminders.filter(r => r.id !== id) }));
+  };
+
 
   const addNote = (note: Omit<NoteItem, 'id' | 'createdAt' | 'updatedAt'>) => {
     const newNote: NoteItem = {
@@ -904,7 +943,10 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
       addSavingsGoal,
       updateSavingsGoal,
       deleteSavingsGoal,
-      contributeToGoal
+      contributeToGoal,
+      addBillReminder,
+      updateBillReminder,
+      deleteBillReminder,
     }}>
       {children}
     </ProfileContext.Provider>

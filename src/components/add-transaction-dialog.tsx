@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { MuiDatePicker } from './mui-date-picker';
-import { ArrowDownCircle, ArrowUpCircle, DollarSign } from 'lucide-react';
+import { ArrowDownCircle, ArrowUpCircle, DollarSign, Repeat, Link } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface AddTransactionDialogProps {
@@ -41,6 +41,8 @@ export function AddTransactionDialog({ open, onOpenChange, transaction }: AddTra
     const [categoryId, setCategoryId] = useState(transaction?.categoryId || '');
     const [accountId, setAccountId] = useState(transaction?.accountId || budget.accounts[0]?.id || '');
     const [date, setDate] = useState<Date>(transaction?.date ? new Date(transaction.date) : new Date());
+    const [recurring, setRecurring] = useState<string>(transaction?.recurring?.frequency || 'none');
+    const [receiptUrl, setReceiptUrl] = useState(transaction?.receiptUrl || '');
 
     useEffect(() => {
         if (open) {
@@ -51,6 +53,8 @@ export function AddTransactionDialog({ open, onOpenChange, transaction }: AddTra
                 setCategoryId(transaction.categoryId);
                 setAccountId(transaction.accountId);
                 setDate(new Date(transaction.date));
+                setRecurring(transaction.recurring?.frequency || 'none');
+                setReceiptUrl(transaction.receiptUrl || '');
             } else {
                 setType('expense');
                 setAmount('');
@@ -58,6 +62,8 @@ export function AddTransactionDialog({ open, onOpenChange, transaction }: AddTra
                 setCategoryId('');
                 setAccountId(budget.accounts[0]?.id || '');
                 setDate(new Date());
+                setRecurring('none');
+                setReceiptUrl('');
             }
         }
     }, [open, transaction, budget.accounts]);
@@ -73,6 +79,11 @@ export function AddTransactionDialog({ open, onOpenChange, transaction }: AddTra
             return;
         }
 
+        const recurringData = recurring !== 'none' ? {
+            frequency: recurring as 'daily' | 'weekly' | 'monthly' | 'yearly',
+            nextDue: date.toISOString() // Initial next due is the transaction date itself or calculated next
+        } : undefined;
+
         if (transaction) {
             updateTransaction({
                 ...transaction,
@@ -82,6 +93,8 @@ export function AddTransactionDialog({ open, onOpenChange, transaction }: AddTra
                 categoryId,
                 accountId,
                 date: date.toISOString(),
+                recurring: recurringData,
+                receiptUrl,
             });
             toast({
                 title: "Transaction Updated",
@@ -95,6 +108,8 @@ export function AddTransactionDialog({ open, onOpenChange, transaction }: AddTra
                 categoryId,
                 accountId,
                 date: date.toISOString(),
+                recurring: recurringData,
+                receiptUrl,
             });
             toast({
                 title: "Transaction Added",
@@ -114,110 +129,145 @@ export function AddTransactionDialog({ open, onOpenChange, transaction }: AddTra
                     </DialogTitle>
                 </DialogHeader>
                 <form onSubmit={handleSubmit} className="space-y-6 pt-4">
-                    {/* Type Selection */}
-                    <div className="grid grid-cols-2 gap-3">
-                        <button
-                            type="button"
-                            onClick={() => setType('expense')}
-                            className={cn(
-                                "flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all",
-                                type === 'expense'
-                                    ? "border-red-500 bg-red-500/10 text-red-500"
-                                    : "border-border hover:border-red-500/50"
-                            )}
-                        >
-                            <ArrowDownCircle className="h-8 w-8" />
-                            <span className="font-semibold">Expense</span>
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => setType('income')}
-                            className={cn(
-                                "flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all",
-                                type === 'income'
-                                    ? "border-green-500 bg-green-500/10 text-green-500"
-                                    : "border-border hover:border-green-500/50"
-                            )}
-                        >
-                            <ArrowUpCircle className="h-8 w-8" />
-                            <span className="font-semibold">Income</span>
-                        </button>
-                    </div>
+                    <div className="max-h-[60vh] overflow-y-auto px-2 space-y-6">
+                        {/* Type Selection */}
+                        <div className="grid grid-cols-2 gap-3">
+                            <button
+                                type="button"
+                                onClick={() => setType('expense')}
+                                className={cn(
+                                    "flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all",
+                                    type === 'expense'
+                                        ? "border-red-500 bg-red-500/10 text-red-500"
+                                        : "border-border hover:border-red-500/50"
+                                )}
+                            >
+                                <ArrowDownCircle className="h-8 w-8" />
+                                <span className="font-semibold">Expense</span>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setType('income')}
+                                className={cn(
+                                    "flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all",
+                                    type === 'income'
+                                        ? "border-green-500 bg-green-500/10 text-green-500"
+                                        : "border-border hover:border-green-500/50"
+                                )}
+                            >
+                                <ArrowUpCircle className="h-8 w-8" />
+                                <span className="font-semibold">Income</span>
+                            </button>
+                        </div>
 
-                    {/* Amount */}
-                    <div className="space-y-2">
-                        <Label htmlFor="amount" className="text-sm font-semibold">Amount *</Label>
-                        <div className="relative">
-                            <span className="absolute left-3 top-3 text-lg text-muted-foreground">₹</span>
+                        {/* Amount */}
+                        <div className="space-y-2">
+                            <Label htmlFor="amount" className="text-sm font-semibold">Amount *</Label>
+                            <div className="relative">
+                                <span className="absolute left-3 top-3 text-lg text-muted-foreground">₹</span>
+                                <Input
+                                    id="amount"
+                                    type="number"
+                                    step="0.01"
+                                    placeholder="0.00"
+                                    className="pl-10 h-12 text-lg"
+                                    value={amount}
+                                    onChange={(e) => setAmount(e.target.value)}
+                                    required
+                                />
+                            </div>
+                        </div>
+
+                        {/* Description */}
+                        <div className="space-y-2">
+                            <Label htmlFor="description" className="text-sm font-semibold">Description *</Label>
                             <Input
-                                id="amount"
-                                type="number"
-                                step="0.01"
-                                placeholder="0.00"
-                                className="pl-10 h-12 text-lg"
-                                value={amount}
-                                onChange={(e) => setAmount(e.target.value)}
+                                id="description"
+                                placeholder="What is this for?"
+                                className="h-12"
+                                value={description}
+                                onChange={(e) => setDescription(e.target.value)}
                                 required
                             />
                         </div>
-                    </div>
 
-                    {/* Description */}
-                    <div className="space-y-2">
-                        <Label htmlFor="description" className="text-sm font-semibold">Description *</Label>
-                        <Input
-                            id="description"
-                            placeholder="What is this for?"
-                            className="h-12"
-                            value={description}
-                            onChange={(e) => setDescription(e.target.value)}
-                            required
-                        />
-                    </div>
+                        {/* Category and Account */}
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label className="text-sm font-semibold">Category *</Label>
+                                <Select value={categoryId} onValueChange={setCategoryId} required>
+                                    <SelectTrigger className="h-12">
+                                        <SelectValue placeholder="Select category" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {budget.categories.map((category) => (
+                                            <SelectItem key={category.id} value={category.id}>
+                                                {category.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
 
-                    {/* Category and Account */}
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <Label className="text-sm font-semibold">Category *</Label>
-                            <Select value={categoryId} onValueChange={setCategoryId} required>
-                                <SelectTrigger className="h-12">
-                                    <SelectValue placeholder="Select category" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {budget.categories.map((category) => (
-                                        <SelectItem key={category.id} value={category.id}>
-                                            {category.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                            <div className="space-y-2">
+                                <Label className="text-sm font-semibold">Account *</Label>
+                                <Select value={accountId} onValueChange={setAccountId} required>
+                                    <SelectTrigger className="h-12">
+                                        <SelectValue placeholder="Select account" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {budget.accounts.map((account) => (
+                                            <SelectItem key={account.id} value={account.id}>
+                                                {account.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
                         </div>
 
-                        <div className="space-y-2">
-                            <Label className="text-sm font-semibold">Account *</Label>
-                            <Select value={accountId} onValueChange={setAccountId} required>
-                                <SelectTrigger className="h-12">
-                                    <SelectValue placeholder="Select account" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {budget.accounts.map((account) => (
-                                        <SelectItem key={account.id} value={account.id}>
-                                            {account.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                        {/* Date and Recurring */}
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label className="text-sm font-semibold">Date *</Label>
+                                <MuiDatePicker
+                                    label="Transaction Date"
+                                    value={date}
+                                    onChange={(d) => d && setDate(d)}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label className="text-sm font-semibold flex items-center gap-2">
+                                    <Repeat className="w-4 h-4" /> Recurring
+                                </Label>
+                                <Select value={recurring} onValueChange={(v: any) => setRecurring(v)}>
+                                    <SelectTrigger className="h-12">
+                                        <SelectValue placeholder="None" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="none">None</SelectItem>
+                                        <SelectItem value="daily">Daily</SelectItem>
+                                        <SelectItem value="weekly">Weekly</SelectItem>
+                                        <SelectItem value="monthly">Monthly</SelectItem>
+                                        <SelectItem value="yearly">Yearly</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
                         </div>
-                    </div>
 
-                    {/* Date */}
-                    <div className="space-y-2">
-                        <Label className="text-sm font-semibold">Date *</Label>
-                        <MuiDatePicker
-                            label="Transaction Date"
-                            value={date}
-                            onChange={(d) => d && setDate(d)}
-                        />
+                        {/* Receipt URL */}
+                        <div className="space-y-2">
+                            <Label htmlFor="receipt" className="text-sm font-semibold flex items-center gap-2">
+                                <Link className="w-4 h-4" /> Receipt URL (Optional)
+                            </Label>
+                            <Input
+                                id="receipt"
+                                placeholder="https://example.com/receipt.jpg"
+                                className="h-12"
+                                value={receiptUrl}
+                                onChange={(e) => setReceiptUrl(e.target.value)}
+                            />
+                        </div>
                     </div>
 
                     <DialogFooter className="gap-2 sm:gap-0">

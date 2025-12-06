@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import {
   Divide, Equal, Minus, Plus, X, Percent, History, Undo2, Trash2,
   Volume2, VolumeX, Delete, Maximize, Minimize, Calculator as CalcIcon,
@@ -15,6 +16,7 @@ import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { ProgrammerCalculator } from './programmer-calculator';
 import { FinancialCalculator } from './financial-calculator';
+import { SaveToBudgetDialog } from './save-to-budget-dialog';
 
 const CalculatorButton = ({
   onClick,
@@ -45,7 +47,8 @@ const CalculatorButton = ({
 
   const playSound = () => {
     if (calculatorSounds) {
-      const audio = new Audio('/sound/keyboard-click-327728.mp3');
+      const soundFile = localStorage.getItem('sutradhaar_calculator_sound_file') || '/sound/keyboard-click-327728.mp3';
+      const audio = new Audio(soundFile);
       audio.play().catch(e => console.error("Failed to play sound", e));
     }
   };
@@ -78,6 +81,7 @@ export function Calculator({ onToggleFullScreen, isFullScreen }: { onToggleFullS
   const [calculatorSounds, setCalculatorSounds] = useState(false);
   const [memory, setMemory] = useState(0);
   const [showMemory, setShowMemory] = useState(false);
+  const [isSaveToBudgetOpen, setIsSaveToBudgetOpen] = useState(false);
 
   useEffect(() => {
     const soundsEnabled = localStorage.getItem('sutradhaar_calculator_sounds') === 'true';
@@ -327,8 +331,14 @@ export function Calculator({ onToggleFullScreen, isFullScreen }: { onToggleFullS
           <div className="bg-gradient-to-br from-slate-900 to-slate-800 dark:from-slate-950 dark:to-slate-900 p-6 rounded-2xl text-right relative shadow-2xl">
             <div className='flex justify-between items-center mb-4'>
               <div className="flex gap-2">
-                <Button variant="ghost" size="icon" className="h-9 w-9 text-white/70 hover:text-white hover:bg-white/10" onClick={toggleSounds}>
-                  {calculatorSounds ? <Volume2 className="h-5 w-5" /> : <VolumeX className="h-5 w-5" />}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-9 w-9 text-white/70 hover:text-white hover:bg-white/10"
+                  onClick={() => setIsSaveToBudgetOpen(true)}
+                  title="Save to Budget"
+                >
+                  <Plus className="h-5 w-5" />
                 </Button>
                 <Button variant="ghost" size="icon" className="h-9 w-9 text-white/70 hover:text-white hover:bg-white/10" onClick={onToggleFullScreen}>
                   {isFullScreen ? <Minimize className="h-5 w-5" /> : <Maximize className="h-5 w-5" />}
@@ -366,24 +376,31 @@ export function Calculator({ onToggleFullScreen, isFullScreen }: { onToggleFullS
 
           {/* Mode Tabs */}
           <Tabs value={mode} onValueChange={(v: any) => setMode(v)} className="w-full">
-            <TabsList className="grid w-full grid-cols-4 h-12 bg-muted/50">
-              <TabsTrigger value="basic" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                <CalcIcon className="h-4 w-4 mr-2" />
-                Basic
-              </TabsTrigger>
-              <TabsTrigger value="scientific" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                <Zap className="h-4 w-4 mr-2" />
-                Scientific
-              </TabsTrigger>
-              <TabsTrigger value="programmer" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                <TrendingUp className="h-4 w-4 mr-2" />
-                Programmer
-              </TabsTrigger>
-              <TabsTrigger value="financial" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                <DollarSign className="h-4 w-4 mr-2" />
-                Financial
-              </TabsTrigger>
-            </TabsList>
+            <ScrollArea className="w-full whitespace-nowrap pb-2">
+              <div className="flex space-x-2">
+                {[
+                  { id: 'basic', label: 'Basic', icon: CalcIcon },
+                  { id: 'scientific', label: 'Scientific', icon: Zap },
+                  { id: 'programmer', label: 'Programmer', icon: TrendingUp },
+                  { id: 'financial', label: 'Financial', icon: DollarSign },
+                ].map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setMode(tab.id as any)}
+                    className={cn(
+                      "flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200",
+                      mode === tab.id
+                        ? "bg-primary text-primary-foreground shadow-lg shadow-primary/25"
+                        : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
+                    )}
+                  >
+                    <tab.icon className="h-4 w-4" />
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+              <ScrollBar orientation="horizontal" className="invisible" />
+            </ScrollArea>
 
             {/* Basic Mode */}
             <TabsContent value="basic" className="mt-6 space-y-3">
@@ -548,6 +565,12 @@ export function Calculator({ onToggleFullScreen, isFullScreen }: { onToggleFullS
           </CardContent>
         </Card>
       )}
+
+      <SaveToBudgetDialog
+        open={isSaveToBudgetOpen}
+        onOpenChange={setIsSaveToBudgetOpen}
+        amount={display}
+      />
     </div>
   );
 }

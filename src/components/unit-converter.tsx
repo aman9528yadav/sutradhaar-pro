@@ -55,6 +55,7 @@ import { AdMobBanner } from '@/components/admob-banner';
 import { useProfile, ConversionHistoryItem, FavoriteItem } from '@/context/ProfileContext';
 import Link from 'next/link';
 import { ConversionComparisonDialog } from './conversion-comparison-dialog';
+import { useSearchParams } from 'next/navigation';
 
 const premiumCategories = ['Pressure', 'Currency'];
 
@@ -62,9 +63,71 @@ export function UnitConverter() {
   const { toast } = useToast();
   const { profile, addConversionToHistory, addFavorite, deleteFavorite, deleteHistoryItem } = useProfile();
   const { history, favorites, membership } = profile;
+  const searchParams = useSearchParams();
 
   const [region, setRegion] = useState('International');
   const [category, setCategory] = useState(CATEGORIES[0].name);
+  useEffect(() => {
+    const valParam = searchParams.get('value');
+    const fromParam = searchParams.get('from');
+    const toParam = searchParams.get('to');
+    const catParam = searchParams.get('category');
+
+    if (valParam) {
+      setInputValue(valParam);
+    }
+
+    let targetCategory = catParam;
+    let targetFromUnit = fromParam;
+    let targetToUnit = toParam;
+
+    // Helper to find unit across all categories
+    const findUnit = (query: string, specificCategory?: string) => {
+      const catsToCheck = specificCategory
+        ? CATEGORIES.filter(c => c.name === specificCategory)
+        : CATEGORIES;
+
+      for (const cat of catsToCheck) {
+        const unit = cat.units.find(u =>
+          u.name.toLowerCase() === query.toLowerCase() ||
+          u.symbol.toLowerCase() === query.toLowerCase()
+        );
+        if (unit) return { unit, category: cat.name };
+      }
+      return null;
+    };
+
+    if (fromParam) {
+      const found = findUnit(fromParam, targetCategory || undefined);
+      if (found) {
+        if (!targetCategory) targetCategory = found.category;
+        targetFromUnit = found.unit.name;
+      }
+    }
+
+    if (toParam) {
+      // If we already have a category, restrict search to it
+      const found = findUnit(toParam, targetCategory || undefined);
+      if (found) {
+        if (!targetCategory) targetCategory = found.category;
+        targetToUnit = found.unit.name;
+      }
+    }
+
+    if (targetCategory && targetCategory !== category) {
+      setCategory(targetCategory);
+    }
+
+    // We need to wait for category state to update before setting units if category changed?
+    // Actually, we can just set them. The `units` memo depends on `activeCategory` which depends on `category`.
+    // But `fromUnit` and `toUnit` are state.
+
+    if (targetFromUnit) setFromUnit(targetFromUnit);
+    if (targetToUnit) setToUnit(targetToUnit);
+
+  }, [searchParams]); // Run when searchParams change
+
+  // ... (rest of the code)
   const [inputValue, setInputValue] = useState('1');
   const [fromUnit, setFromUnit] = useState(CATEGORIES[0].units[0].name);
   const [toUnit, setToUnit] = useState(CATEGORIES[0].units[1].name);

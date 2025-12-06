@@ -76,7 +76,7 @@ const sanitizePathForKey = (path: string) => {
   return path.replace(/\//g, '_');
 };
 
-type TabId = 'maintenance' | 'banner' | 'updates' | 'content' | 'ui' | 'welcome' | 'premium' | 'broadcast' | 'flags' | 'security';
+type TabId = 'maintenance' | 'banner' | 'updates' | 'content' | 'ui' | 'welcome' | 'premium' | 'pricing' | 'broadcast' | 'flags' | 'security';
 
 interface TabConfig {
   id: TabId;
@@ -94,6 +94,7 @@ const tabs: TabConfig[] = [
   { id: 'ui', label: 'UI & Messaging', icon: Bell, description: 'Test and edit UI components and messages.', color: 'text-pink-500' },
   { id: 'welcome', label: 'Welcome Dialog', icon: MessageSquare, description: 'Edit the welcome dialog content.', color: 'text-indigo-500' },
   { id: 'premium', label: 'Premium Criteria', icon: Gem, description: 'Set goals for premium membership upgrade.', color: 'text-yellow-500' },
+  { id: 'pricing', label: 'Pricing', icon: Gem, description: 'Manage membership pricing.', color: 'text-emerald-500' },
   { id: 'broadcast', label: 'Broadcast', icon: Send, description: 'Send a real-time message to all users.', color: 'text-cyan-500' },
   { id: 'flags', label: 'Feature Flags', icon: Flag, description: 'Toggle experimental features on and off.', color: 'text-red-500' },
   { id: 'security', label: 'Security & Data', icon: Shield, description: 'Manage developer access and clear local data.', color: 'text-slate-500' },
@@ -341,6 +342,16 @@ export function DevPanel() {
     }
   };
 
+  const handlePricingChange = (field: 'monthly' | 'yearly' | 'currency', value: string) => {
+    setMaintenanceConfig(prev => ({
+      ...prev,
+      pricing: {
+        ...prev.pricing,
+        [field]: value
+      }
+    }));
+  };
+
   const renderContent = () => {
     switch (activeTab) {
       case 'maintenance':
@@ -582,6 +593,46 @@ export function DevPanel() {
                 <div className="space-y-2">
                   <Label htmlFor="premium-streak">Streak Goal (days)</Label>
                   <Input id="premium-streak" type="number" value={premiumCriteria.streak} onChange={e => handlePremiumCriteriaChange('streak', e.target.value)} />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        );
+      case 'pricing':
+        return (
+          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <Card>
+              <CardHeader>
+                <CardTitle>Pricing Configuration</CardTitle>
+                <CardDescription>Manage membership pricing details.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="price-monthly">Monthly Price</Label>
+                    <Input
+                      id="price-monthly"
+                      value={maintenanceConfig.pricing?.monthly || ''}
+                      onChange={e => handlePricingChange('monthly', e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="price-yearly">Yearly Price</Label>
+                    <Input
+                      id="price-yearly"
+                      value={maintenanceConfig.pricing?.yearly || ''}
+                      onChange={e => handlePricingChange('yearly', e.target.value)}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="price-currency">Currency Symbol</Label>
+                  <Input
+                    id="price-currency"
+                    value={maintenanceConfig.pricing?.currency || ''}
+                    onChange={e => handlePricingChange('currency', e.target.value)}
+                    className="w-24"
+                  />
                 </div>
               </CardContent>
             </Card>

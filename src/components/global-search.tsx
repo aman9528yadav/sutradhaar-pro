@@ -1,11 +1,13 @@
 "use client";
 
 import React, { useState, useCallback, useEffect, useRef } from 'react';
-import { Search, Calculator, History, DollarSign, StickyNote, CheckSquare, TrendingUp, X, ArrowRight } from 'lucide-react';
+import { Search, Calculator, History, DollarSign, StickyNote, CheckSquare, TrendingUp, X, ArrowRight, Calendar } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
 import { parseUnitInput } from '@/lib/conversion-helpers';
+import { useProfile } from '@/context/ProfileContext';
+import { CATEGORIES } from '@/lib/units';
 
 interface SearchResult {
     type: 'conversion' | 'history' | 'budget' | 'note' | 'todo' | 'quick-convert';
@@ -23,39 +25,81 @@ export function GlobalSearchBar() {
     const [selectedIndex, setSelectedIndex] = useState(0);
     const inputRef = useRef<HTMLInputElement>(null);
     const router = useRouter();
+    const { profile } = useProfile();
 
     // Parse conversion queries like "5 km to m" or "100 usd to inr"
-    const parseConversionQuery = useCallback((q: string): SearchResult | null => {
-        // Pattern: "number unit to unit" or "number from unit to unit"
-        const conversionPattern = /(\d+\.?\d*)\s*([a-z]+)\s+(?:to|in)\s+([a-z]+)/i;
-        const match = q.match(conversionPattern);
+    const parseConversionQuery = useCallback((q: string): SearchResult[] => {
+        const results: SearchResult[] = [];
 
-        if (match) {
-            const [, value, fromUnit, toUnit] = match;
-            return {
-                type: 'quick-convert',
-                title: `Convert ${value} ${fromUnit} to ${toUnit}`,
-                description: 'Quick conversion',
-                icon: <Calculator className="h-4 w-4 text-blue-400" />,
-                action: () => {
-                    // Navigate to converter with pre-filled values
-                    const params = new URLSearchParams({
-                        value,
-                        from: fromUnit,
-                        to: toUnit
-                    });
-                    router.push(`/converter?${params.toString()}`);
-                    setIsOpen(false);
-                    setQuery('');
+        // 1. Smart conversion with context: "number unit to [target]"
+        // Matches: "12 km to", "12 km to m", "12 km to meters"
+        const contextPattern = /^(\d+\.?\d*)\s*([a-zA-Z]+)\s+(?:to|in)\s*([a-zA-Z]*)$/i;
+        const contextMatch = q.match(contextPattern);
+
+        if (contextMatch) {
+            const [, value, fromUnitStr, toUnitStr] = contextMatch;
+            const lowerFrom = fromUnitStr.toLowerCase();
+            const lowerTo = toUnitStr ? toUnitStr.toLowerCase() : '';
+
+            // Find the source unit and its category
+            let sourceCategory = null;
+            let sourceUnit = null;
+
+            for (const cat of CATEGORIES) {
+                const unit = cat.units.find(u =>
+                    u.name.toLowerCase() === lowerFrom ||
+                    u.symbol.toLowerCase() === lowerFrom ||
+                    u.name.toLowerCase().startsWith(lowerFrom)
+                );
+                if (unit) {
+                    sourceCategory = cat;
+                    sourceUnit = unit;
+                    break;
                 }
-            };
+            }
+
+            // If we found a valid source unit/category
+            if (sourceCategory && sourceUnit) {
+                let matchesFound = 0;
+                const maxMatches = 5;
+
+                for (const targetUnit of sourceCategory.units) {
+                    if (matchesFound >= maxMatches) break;
+
+                    // Check if target matches the partial input (or show all if empty)
+                    if (!lowerTo ||
+                        targetUnit.name.toLowerCase().startsWith(lowerTo) ||
+                        targetUnit.symbol.toLowerCase().startsWith(lowerTo)) {
+
+                        results.push({
+                            type: 'quick-convert',
+                            title: `Convert ${value} ${sourceUnit.symbol} to ${targetUnit.name}`,
+                            description: `in ${sourceCategory.name}`,
+                            icon: <Calculator className="h-4 w-4 text-blue-400" />,
+                            action: () => {
+                                const params = new URLSearchParams({
+                                    value,
+                                    from: sourceUnit!.name,
+                                    to: targetUnit.name,
+                                    category: sourceCategory!.name
+                                });
+                                router.push(`/converter?${params.toString()}`);
+                                setIsOpen(false);
+                                setQuery('');
+                            }
+                        });
+                        matchesFound++;
+                    }
+                }
+                return results; // Return early if we matched this pattern
+            }
         }
 
-        // Try auto-detect for mixed units like "5 feet 10 inches"
+        // 2. Auto-detect mixed units: "5 feet 10 inches"
         const parsed = parseUnitInput(q);
         if (parsed.length > 0) {
             const first = parsed[0];
-            return {
+            results.push({
                 type: 'quick-convert',
                 title: `Convert ${first.value} ${first.unit}`,
                 description: 'Auto-detected unit',
@@ -70,10 +114,52 @@ export function GlobalSearchBar() {
                     setIsOpen(false);
                     setQuery('');
                 }
-            };
+            });
+            return results;
         }
 
-        return null;
+        // 3. Partial unit match: "77 k" -> Suggest "77 Kilometers", "77 Kilograms", etc.
+        const partialPattern = /^(\d+(?:\.\d+)?)\s*([a-zA-Z]+)$/;
+        const partialMatch = q.match(partialPattern);
+
+        if (partialMatch) {
+            const [, value, partialUnit] = partialMatch;
+            const lowerPartial = partialUnit.toLowerCase();
+
+            let matchesFound = 0;
+            const maxMatches = 5;
+
+            for (const category of CATEGORIES) {
+                for (const unit of category.units) {
+                    if (matchesFound >= maxMatches) break;
+
+                    if (unit.name.toLowerCase().startsWith(lowerPartial) ||
+                        unit.symbol.toLowerCase().startsWith(lowerPartial)) {
+
+                        results.push({
+                            type: 'quick-convert',
+                            title: `Convert ${value} ${unit.name}`,
+                            description: `in ${category.name}`,
+                            icon: <Calculator className="h-4 w-4 text-indigo-400" />,
+                            action: () => {
+                                const params = new URLSearchParams({
+                                    value,
+                                    from: unit.name,
+                                    category: category.name
+                                });
+                                router.push(`/converter?${params.toString()}`);
+                                setIsOpen(false);
+                                setQuery('');
+                            }
+                        });
+                        matchesFound++;
+                    }
+                }
+                if (matchesFound >= maxMatches) break;
+            }
+        }
+
+        return results;
     }, [router]);
 
     // Search across all data
@@ -87,89 +173,198 @@ export function GlobalSearchBar() {
         const lowerQuery = q.toLowerCase();
 
         // 1. Check for conversion query first
-        const conversionResult = parseConversionQuery(q);
-        if (conversionResult) {
-            searchResults.push(conversionResult);
+        const conversionResults = parseConversionQuery(q);
+        if (conversionResults.length > 0) {
+            searchResults.push(...conversionResults);
         }
 
-        // 2. Search history (mock data - replace with actual history)
-        if (lowerQuery.includes('history') || lowerQuery.includes('convert')) {
+        // 2. Search History
+        if (profile.history) {
+            const historyMatches = profile.history.filter(item => {
+                if (item.type === 'conversion') {
+                    return item.fromValue.toLowerCase().includes(lowerQuery) ||
+                        item.toValue.toLowerCase().includes(lowerQuery) ||
+                        item.fromUnit.toLowerCase().includes(lowerQuery) ||
+                        item.toUnit.toLowerCase().includes(lowerQuery);
+                } else if (item.type === 'calculator') {
+                    return item.expression.includes(lowerQuery) || item.result.includes(lowerQuery);
+                }
+                return false;
+            }).slice(0, 3); // Limit to 3 history items
+
+            historyMatches.forEach(item => {
+                searchResults.push({
+                    type: 'history',
+                    title: item.type === 'conversion'
+                        ? `${item.fromValue} ${item.fromUnit} → ${item.toValue} ${item.toUnit}`
+                        : item.type === 'calculator'
+                            ? `${item.expression} = ${item.result}`
+                            : 'Date Calculation',
+                    description: 'History',
+                    icon: <History className="h-4 w-4 text-green-400" />,
+                    action: () => {
+                        router.push('/history');
+                        setTimeout(() => {
+                            setIsOpen(false);
+                            setQuery('');
+                        }, 100);
+                    }
+                });
+            });
+        }
+
+        // 3. Search Notes
+        if (profile.notes) {
+            const noteMatches = profile.notes.filter(note =>
+                note.title.toLowerCase().includes(lowerQuery) ||
+                note.content.toLowerCase().includes(lowerQuery)
+            ).slice(0, 3);
+
+            noteMatches.forEach(note => {
+                searchResults.push({
+                    type: 'note',
+                    title: note.title,
+                    description: note.content.substring(0, 50) + '...',
+                    icon: <StickyNote className="h-4 w-4 text-orange-400" />,
+                    action: () => {
+                        router.push(`/notes?id=${note.id}`);
+                        setTimeout(() => {
+                            setIsOpen(false);
+                            setQuery('');
+                        }, 100);
+                    }
+                });
+            });
+        }
+
+        // 4. Search Todos
+        if (profile.todos) {
+            const todoMatches = profile.todos.filter(todo =>
+                todo.text.toLowerCase().includes(lowerQuery)
+            ).slice(0, 3);
+
+            todoMatches.forEach(todo => {
+                searchResults.push({
+                    type: 'todo',
+                    title: todo.text,
+                    description: todo.completed ? 'Completed' : 'Pending',
+                    icon: <CheckSquare className="h-4 w-4 text-pink-400" />,
+                    action: () => {
+                        router.push('/todo');
+                        setTimeout(() => {
+                            setIsOpen(false);
+                            setQuery('');
+                        }, 100);
+                    }
+                });
+            });
+        }
+
+        // 5. Search Budget
+        if (profile.budget?.transactions) {
+            const budgetMatches = profile.budget.transactions.filter(t =>
+                t.description.toLowerCase().includes(lowerQuery) ||
+                t.amount.toString().includes(lowerQuery)
+            ).slice(0, 3);
+
+            budgetMatches.forEach(t => {
+                searchResults.push({
+                    type: 'budget',
+                    title: t.description,
+                    description: `${t.type === 'income' ? '+' : '-'}${t.amount}`,
+                    icon: <DollarSign className="h-4 w-4 text-yellow-400" />,
+                    action: () => {
+                        router.push('/analytics?tab=transactions');
+                        setTimeout(() => {
+                            setIsOpen(false);
+                            setQuery('');
+                        }, 100);
+                    }
+                });
+            });
+        }
+
+        // 6. Generic Page Navigation (Fallback)
+        if (lowerQuery.includes('history')) {
             searchResults.push({
                 type: 'history',
-                title: 'Conversion History',
-                description: 'View all your past conversions',
+                title: 'Go to History',
+                description: 'View all past activities',
                 icon: <History className="h-4 w-4 text-green-400" />,
                 action: () => {
                     router.push('/history');
-                    setIsOpen(false);
-                    setQuery('');
+                    setTimeout(() => {
+                        setIsOpen(false);
+                        setQuery('');
+                    }, 100);
                 }
             });
         }
-
-        // 3. Search budget
-        if (lowerQuery.includes('budget') || lowerQuery.includes('expense') || lowerQuery.includes('money')) {
-            searchResults.push({
-                type: 'budget',
-                title: 'Budget Tracker',
-                description: 'Manage your expenses and budgets',
-                icon: <DollarSign className="h-4 w-4 text-yellow-400" />,
-                action: () => {
-                    router.push('/budget');
-                    setIsOpen(false);
-                    setQuery('');
-                }
-            });
-        }
-
-        // 4. Search notes
-        if (lowerQuery.includes('note') || lowerQuery.includes('memo')) {
+        if (lowerQuery.includes('note')) {
             searchResults.push({
                 type: 'note',
-                title: 'Notes',
-                description: 'View and create notes',
+                title: 'Go to Notes',
+                description: 'View all notes',
                 icon: <StickyNote className="h-4 w-4 text-orange-400" />,
                 action: () => {
                     router.push('/notes');
-                    setIsOpen(false);
-                    setQuery('');
+                    setTimeout(() => {
+                        setIsOpen(false);
+                        setQuery('');
+                    }, 100);
                 }
             });
         }
-
-        // 5. Search todos
-        if (lowerQuery.includes('todo') || lowerQuery.includes('task') || lowerQuery.includes('checklist')) {
+        if (lowerQuery.includes('todo')) {
             searchResults.push({
                 type: 'todo',
-                title: 'To-Do List',
-                description: 'Manage your tasks',
+                title: 'Go to Todos',
+                description: 'View all tasks',
                 icon: <CheckSquare className="h-4 w-4 text-pink-400" />,
                 action: () => {
-                    router.push('/todos');
-                    setIsOpen(false);
-                    setQuery('');
+                    router.push('/todo');
+                    setTimeout(() => {
+                        setIsOpen(false);
+                        setQuery('');
+                    }, 100);
+                }
+            });
+        }
+        if (lowerQuery.includes('budget') || lowerQuery.includes('money')) {
+            searchResults.push({
+                type: 'budget',
+                title: 'Go to Budget Tracker',
+                description: 'Manage finances',
+                icon: <DollarSign className="h-4 w-4 text-yellow-400" />,
+                action: () => {
+                    router.push('/analytics?tab=overview');
+                    setTimeout(() => {
+                        setIsOpen(false);
+                        setQuery('');
+                    }, 100);
+                }
+            });
+        }
+        if (lowerQuery.includes('analytics') || lowerQuery.includes('stats')) {
+            searchResults.push({
+                type: 'budget',
+                title: 'Go to Analytics',
+                description: 'View detailed statistics',
+                icon: <TrendingUp className="h-4 w-4 text-blue-400" />,
+                action: () => {
+                    router.push('/analytics?tab=analytics');
+                    setTimeout(() => {
+                        setIsOpen(false);
+                        setQuery('');
+                    }, 100);
                 }
             });
         }
 
-        // 6. Quick conversions suggestions
-        if (lowerQuery.match(/\d+/) && !conversionResult) {
-            searchResults.push({
-                type: 'conversion',
-                title: 'Unit Converter',
-                description: 'Convert units, currencies, and more',
-                icon: <Calculator className="h-4 w-4 text-blue-400" />,
-                action: () => {
-                    router.push('/converter');
-                    setIsOpen(false);
-                    setQuery('');
-                }
-            });
-        }
 
         setResults(searchResults);
         setSelectedIndex(0);
-    }, [parseConversionQuery, router]);
+    }, [parseConversionQuery, router, profile]);
 
     // Handle keyboard shortcuts
     useEffect(() => {
@@ -252,7 +447,7 @@ export function GlobalSearchBar() {
                                 type="text"
                                 value={query}
                                 onChange={(e) => setQuery(e.target.value)}
-                                placeholder="Search conversions, history, budget, notes, todos... (try '5 km to m')"
+                                placeholder="Search everything..."
                                 className="flex-1 bg-transparent border-none text-white placeholder:text-white/40 focus-visible:ring-0 focus-visible:ring-offset-0 text-lg"
                                 autoFocus
                             />

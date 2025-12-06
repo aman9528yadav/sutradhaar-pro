@@ -37,6 +37,7 @@ export function AddTodoDialog({ open, onOpenChange, todo }: AddTodoDialogProps) 
     const [category, setCategory] = useState('');
     const [subtasks, setSubtasks] = useState<{ text: string; completed: boolean }[]>([]);
     const [newSubtask, setNewSubtask] = useState('');
+    const [recurring, setRecurring] = useState<string>('none');
 
     React.useEffect(() => {
         if (open) {
@@ -46,6 +47,7 @@ export function AddTodoDialog({ open, onOpenChange, todo }: AddTodoDialogProps) 
             setCategory(todo?.category || '');
             setSubtasks(todo?.subtasks || []);
             setNewSubtask('');
+            setRecurring(todo?.recurring || 'none');
         }
     }, [open, todo]);
 
@@ -59,6 +61,8 @@ export function AddTodoDialog({ open, onOpenChange, todo }: AddTodoDialogProps) 
             completed: st.completed
         }));
 
+        const recurringValue = recurring !== 'none' ? recurring as 'daily' | 'weekly' | 'monthly' : undefined;
+
         if (todo) {
             updateTodo({
                 ...todo,
@@ -66,7 +70,8 @@ export function AddTodoDialog({ open, onOpenChange, todo }: AddTodoDialogProps) 
                 priority,
                 dueDate: dueDate?.toISOString(),
                 category,
-                subtasks: subtasksWithIds
+                subtasks: subtasksWithIds,
+                recurring: recurringValue
             });
         } else {
             addTodo({
@@ -75,7 +80,8 @@ export function AddTodoDialog({ open, onOpenChange, todo }: AddTodoDialogProps) 
                 completed: false,
                 dueDate: dueDate?.toISOString(),
                 category,
-                subtasks: subtasksWithIds
+                subtasks: subtasksWithIds,
+                recurring: recurringValue
             });
         }
         onOpenChange(false);
@@ -133,6 +139,21 @@ export function AddTodoDialog({ open, onOpenChange, todo }: AddTodoDialogProps) 
                                 onChange={setDueDate}
                             />
                         </div>
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label>Recurring</Label>
+                        <Select value={recurring} onValueChange={(v: any) => setRecurring(v)}>
+                            <SelectTrigger>
+                                <SelectValue placeholder="None" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="none">None</SelectItem>
+                                <SelectItem value="daily">Daily</SelectItem>
+                                <SelectItem value="weekly">Weekly</SelectItem>
+                                <SelectItem value="monthly">Monthly</SelectItem>
+                            </SelectContent>
+                        </Select>
                     </div>
 
                     <div className="space-y-2">

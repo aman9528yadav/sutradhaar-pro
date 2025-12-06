@@ -122,6 +122,11 @@ export type MaintenanceConfig = {
         activities: number;
         streak: number;
     };
+    pricing: {
+        monthly: string;
+        yearly: string;
+        currency: string;
+    };
     appUpdate: AppUpdateConfig;
     featureFlags: FeatureFlags;
     noteSavedToast: ToastNotificationConfig;
@@ -232,6 +237,11 @@ const defaultMaintenanceConfig: MaintenanceConfig = {
         activities: 3000,
         streak: 15,
     },
+    pricing: {
+        monthly: "9.99",
+        yearly: "99.99",
+        currency: "$"
+    },
     appUpdate: {
         showBanner: false,
         version: "1.5.1",
@@ -300,6 +310,7 @@ export const MaintenanceProvider = ({ children }: { children: ReactNode }) => {
                     welcomeDialog: { ...defaultMaintenanceConfig.welcomeDialog, ...(dbConfig.welcomeDialog || {}) },
                     membershipFeatures: dbConfig.membershipFeatures || defaultMaintenanceConfig.membershipFeatures,
                     premiumCriteria: { ...defaultMaintenanceConfig.premiumCriteria, ...(dbConfig.premiumCriteria || {}) },
+                    pricing: { ...defaultMaintenanceConfig.pricing, ...(dbConfig.pricing || {}) },
                     appUpdate: { ...defaultMaintenanceConfig.appUpdate, ...(dbConfig.appUpdate || {}) },
                     featureFlags: { ...defaultMaintenanceConfig.featureFlags, ...(dbConfig.featureFlags || {}) },
                     noteSavedToast: { ...defaultMaintenanceConfig.noteSavedToast, ...(dbConfig.noteSavedToast || {}) },

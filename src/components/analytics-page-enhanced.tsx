@@ -74,7 +74,7 @@ const StatCard = ({
                 </div>
             </CardHeader>
             <CardContent className="p-4 pt-0 relative z-10">
-                <div className="text-3xl font-bold text-white tracking-tight mb-1">{value}</div>
+                <div className="text-2xl sm:text-3xl font-bold text-white tracking-tight mb-1">{value}</div>
                 <p className="text-xs text-white/40">{description}</p>
             </CardContent>
         </Card>
@@ -103,7 +103,7 @@ const DailyGoalCard = ({ current, target }: { current: number; target: number })
         <Card className="bg-gradient-to-br from-primary/20 to-primary/5 backdrop-blur-xl border-primary/20 shadow-lg relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent skew-x-12 translate-x-[-100%] animate-[shimmer_2s_infinite]" />
             <CardHeader className="pb-2">
-                <div className="flex justify-between items-center">
+                <div className="flex flex-wrap justify-between items-center gap-2">
                     <CardTitle className="text-lg font-bold text-white flex items-center gap-2">
                         <Target className="h-5 w-5 text-primary" />
                         Daily Goal
@@ -116,8 +116,8 @@ const DailyGoalCard = ({ current, target }: { current: number; target: number })
                     )}
                 </div>
                 <CardDescription className="text-white/60">
-                    {isCompleted 
-                        ? "You've reached your daily goal! Great job!" 
+                    {isCompleted
+                        ? "You've reached your daily goal! Great job!"
                         : `You need ${target - current} more activities to reach your goal.`}
                 </CardDescription>
             </CardHeader>
@@ -348,7 +348,7 @@ export function AnalyticsPageEnhanced() {
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold text-white tracking-tight">Analytics</h1>
+                    <h1 className="text-3xl font-bold text-white tracking-tight">App Insights</h1>
                     <p className="text-sm text-white/60">Track your productivity and usage patterns</p>
                 </div>
                 <div className="flex gap-2">
@@ -367,7 +367,7 @@ export function AnalyticsPageEnhanced() {
 
                 <TabsContent value="overview" className="space-y-6 mt-6">
                     {/* Top Stats Row */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-2 gap-4">
                         <DailyGoalCard current={analyticsData.todayActivities.value} target={10} />
                         <StatCard
                             title="Current Streak"
@@ -376,18 +376,20 @@ export function AnalyticsPageEnhanced() {
                             icon={Award}
                             className="bg-gradient-to-br from-orange-500/10 to-transparent border-orange-500/20"
                         />
-                        <StatCard
-                            title="Productivity Score"
-                            value={`${analyticsData.productivityScore.value}%`}
-                            description={analyticsData.productivityScore.description}
-                            icon={Zap}
-                            className="bg-gradient-to-br from-blue-500/10 to-transparent border-blue-500/20"
-                        />
                     </div>
 
+                    {/* Productivity Score - Full Width */}
+                    <StatCard
+                        title="Productivity Score"
+                        value={`${analyticsData.productivityScore.value}%`}
+                        description={analyticsData.productivityScore.description}
+                        icon={Zap}
+                        className="bg-gradient-to-br from-blue-500/10 to-transparent border-blue-500/20"
+                    />
+
                     {/* Main Charts Area */}
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <Card className="lg:col-span-2 bg-white/5 backdrop-blur-xl border-white/10 shadow-xl">
+                    <div className="space-y-6">
+                        <Card className="bg-white/5 backdrop-blur-xl border-white/10 shadow-xl">
                             <CardHeader>
                                 <CardTitle className="text-white flex items-center gap-2">
                                     <BarChart3 className="h-5 w-5 text-primary" />
@@ -396,39 +398,37 @@ export function AnalyticsPageEnhanced() {
                                 <CardDescription className="text-white/40">Your activity over the last 7 days</CardDescription>
                             </CardHeader>
                             <CardContent>
-                                <div className="h-[250px] w-full">
+                                <div className="h-[200px] sm:h-[250px] w-full">
                                     <WeeklySummaryChart />
                                 </div>
                             </CardContent>
                         </Card>
 
-                        <div className="space-y-6">
-                            {/* Activity Breakdown */}
-                            <Card className="bg-white/5 backdrop-blur-xl border-white/10 shadow-xl">
-                                <CardHeader>
-                                    <CardTitle className="text-white flex items-center gap-2">
-                                        <PieChart className="h-5 w-5 text-primary" />
-                                        Breakdown
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent className="h-[200px] flex justify-center items-center">
-                                    <ActivityBreakdownChart />
-                                </CardContent>
-                            </Card>
+                        {/* Recent Activity */}
+                        <Card className="bg-white/5 backdrop-blur-xl border-white/10 shadow-xl">
+                            <CardHeader>
+                                <CardTitle className="text-white flex items-center gap-2">
+                                    <History className="h-5 w-5 text-primary" />
+                                    Recent Activity
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <RecentActivityList history={history} />
+                            </CardContent>
+                        </Card>
 
-                            {/* Recent Activity */}
-                            <Card className="bg-white/5 backdrop-blur-xl border-white/10 shadow-xl">
-                                <CardHeader>
-                                    <CardTitle className="text-white flex items-center gap-2">
-                                        <History className="h-5 w-5 text-primary" />
-                                        Recent Activity
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <RecentActivityList history={history} />
-                                </CardContent>
-                            </Card>
-                        </div>
+                        {/* Activity Breakdown */}
+                        <Card className="bg-white/5 backdrop-blur-xl border-white/10 shadow-xl">
+                            <CardHeader>
+                                <CardTitle className="text-white flex items-center gap-2">
+                                    <PieChart className="h-5 w-5 text-primary" />
+                                    Breakdown
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="h-[200px] flex justify-center items-center">
+                                <ActivityBreakdownChart />
+                            </CardContent>
+                        </Card>
                     </div>
 
                     {/* Insights Section */}
@@ -442,7 +442,7 @@ export function AnalyticsPageEnhanced() {
                 </TabsContent>
 
                 <TabsContent value="detailed" className="space-y-6 mt-6">
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-2 gap-4">
                         <StatCard
                             title="Total Activities"
                             value={analyticsData.totalActivities.value}

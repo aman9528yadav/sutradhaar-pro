@@ -15,38 +15,38 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { useProfile } from '@/context/ProfileContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { cn } from '@/lib/utils';
 import { AddTransactionDialog } from './add-transaction-dialog';
 import { TransactionList } from './transaction-list';
 import { BudgetOverview } from './budget-overview';
 import { ManageAccountsDialog } from './manage-accounts-dialog';
+import { ManageCategoriesDialog } from './manage-categories-dialog';
 import { BudgetAnalytics } from './budget-analytics';
 import { BudgetGoals } from './budget-goals';
+import { BillReminders } from './bill-reminders';
 
-export function BudgetTrackerPage() {
+import { useRouter, useSearchParams } from 'next/navigation';
+
+interface BudgetTrackerPageProps {
+    initialTab?: string;
+}
+
+export function BudgetTrackerPage({ initialTab }: BudgetTrackerPageProps) {
     const { profile } = useProfile();
     const { budget } = profile;
     const [isAddTransactionOpen, setIsAddTransactionOpen] = useState(false);
     const [isManageAccountsOpen, setIsManageAccountsOpen] = useState(false);
+    const [isManageCategoriesOpen, setIsManageCategoriesOpen] = useState(false);
 
-    const handleExport = () => {
-        const headers = ['Date', 'Type', 'Amount', 'Category', 'Account', 'Description'];
-        const csvContent = [
-            headers.join(','),
-            ...budget.transactions.map(t => [
-                new Date(t.date).toLocaleDateString(),
-                t.type,
-                t.amount,
-                budget.categories.find(c => c.id === t.categoryId)?.name || 'Unknown',
-                budget.accounts.find(a => a.id === t.accountId)?.name || 'Unknown',
-                `"${t.description}"`
-            ].join(','))
-        ].join('\n');
+    const searchParams = useSearchParams();
+    const router = useRouter();
+    const currentTab = searchParams.get('tab') || initialTab || 'overview';
 
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = `budget_export_${new Date().toISOString().split('T')[0]}.csv`;
-        link.click();
+    const handleTabChange = (value: string) => {
+        const params = new URLSearchParams(searchParams.toString());
+        params.set('tab', value);
+        router.push(`?${params.toString()}`, { scroll: false });
     };
 
     const totalBalance = budget.accounts.reduce((acc, account) => acc + account.balance, 0);
@@ -141,7 +141,7 @@ export function BudgetTrackerPage() {
             </motion.div>
 
             {/* Actions */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <Button
                     size="lg"
                     className="w-full bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/20"
@@ -157,21 +157,44 @@ export function BudgetTrackerPage() {
                 >
                     <CreditCard className="mr-2 h-5 w-5" /> Manage Accounts
                 </Button>
+                <Button
+                    size="lg"
+                    variant="outline"
+                    className="w-full border-emerald-500/20 hover:bg-emerald-500/10"
+                    onClick={() => setIsManageCategoriesOpen(true)}
+                >
+                    <Target className="mr-2 h-5 w-5" /> Manage Categories
+                </Button>
             </div>
 
             {/* Tabs for different views */}
-            <Tabs defaultValue="overview" className="w-full">
-                <div className="flex items-center justify-between mb-4">
-                    <TabsList className="grid w-full max-w-md grid-cols-4 bg-muted/50 p-1">
-                        <TabsTrigger value="overview">Overview</TabsTrigger>
-                        <TabsTrigger value="transactions">History</TabsTrigger>
-                        <TabsTrigger value="goals">Goals</TabsTrigger>
-                        <TabsTrigger value="analytics">Analytics</TabsTrigger>
-                    </TabsList>
-
-                    <Button variant="outline" size="sm" onClick={handleExport} className="hidden md:flex">
-                        <Download className="mr-2 h-4 w-4" /> Export CSV
-                    </Button>
+            <Tabs value={currentTab} onValueChange={handleTabChange} className="w-full">
+                <div className="flex flex-col md:flex-row items-center justify-between mb-4 gap-4">
+                    <ScrollArea className="w-full whitespace-nowrap pb-2">
+                        <div className="flex space-x-2">
+                            {[
+                                { id: 'overview', label: 'Overview' },
+                                { id: 'transactions', label: 'History' },
+                                { id: 'goals', label: 'Goals' },
+                                { id: 'bills', label: 'Bills' },
+                                { id: 'analytics', label: 'Analytics' },
+                            ].map((tab) => (
+                                <button
+                                    key={tab.id}
+                                    onClick={() => handleTabChange(tab.id)}
+                                    className={cn(
+                                        "px-4 py-2 rounded-full text-sm font-medium transition-all duration-200",
+                                        currentTab === tab.id
+                                            ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/25"
+                                            : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
+                                    )}
+                                >
+                                    {tab.label}
+                                </button>
+                            ))}
+                        </div>
+                        <ScrollBar orientation="horizontal" className="invisible" />
+                    </ScrollArea>
                 </div>
 
                 <TabsContent value="overview" className="space-y-4 mt-0">
@@ -184,6 +207,10 @@ export function BudgetTrackerPage() {
 
                 <TabsContent value="goals" className="mt-0">
                     <BudgetGoals />
+                </TabsContent>
+
+                <TabsContent value="bills" className="mt-0">
+                    <BillReminders />
                 </TabsContent>
 
                 <TabsContent value="analytics" className="mt-0">
@@ -199,6 +226,11 @@ export function BudgetTrackerPage() {
             <ManageAccountsDialog
                 open={isManageAccountsOpen}
                 onOpenChange={setIsManageAccountsOpen}
+            />
+
+            <ManageCategoriesDialog
+                open={isManageCategoriesOpen}
+                onOpenChange={setIsManageCategoriesOpen}
             />
         </div>
     );

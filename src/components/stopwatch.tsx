@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Play, Pause, RotateCcw, Flag, Download, Copy, TrendingUp, TrendingDown, BarChart3 } from 'lucide-react';
+import { Play, Pause, RotateCcw, Flag, Download, Copy, TrendingUp, TrendingDown, BarChart3, Maximize, Minimize2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useToast } from '@/hooks/use-toast';
@@ -31,6 +31,7 @@ export function Stopwatch() {
   const [time, setTime] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
   const [laps, setLaps] = useState<number[]>([]);
+  const [isFullScreen, setIsFullScreen] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const lastLapTimeRef = useRef(0);
 
@@ -184,196 +185,297 @@ export function Stopwatch() {
   const { minutes: lMin, seconds: lSec, milliseconds: lMs } = formatTime(currentLapTime);
 
   return (
-    <Card className="bg-background/40 backdrop-blur-xl border-border/50 shadow-xl overflow-hidden">
-      <CardContent className="p-6 space-y-8">
-        {/* Display */}
-        <div className="relative flex flex-col items-center justify-center py-8">
-          {/* Ring Animation */}
-          <div className="absolute inset-0 flex items-center justify-center opacity-10 pointer-events-none">
-            <motion.div
-              animate={{ rotate: isRunning ? 360 : 0 }}
-              transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
-              className="w-64 h-64 rounded-full border-4 border-dashed border-primary"
-            />
-          </div>
-
-          <div className="text-center z-10">
-            <div className="flex items-baseline justify-center font-mono tabular-nums leading-none text-foreground">
-              {parseInt(hours) > 0 && (
-                <>
-                  <span className="text-5xl sm:text-7xl font-bold">{hours}</span>
-                  <span className="text-2xl sm:text-4xl text-muted-foreground mx-1">:</span>
-                </>
-              )}
-              <span className="text-5xl sm:text-7xl font-bold">{minutes}</span>
-              <span className="text-2xl sm:text-4xl text-muted-foreground mx-1">:</span>
-              <span className="text-5xl sm:text-7xl font-bold">{seconds}</span>
-              <span className="text-2xl sm:text-4xl text-muted-foreground mx-1">.</span>
-              <span className="text-3xl sm:text-5xl font-medium text-primary">{milliseconds}</span>
-            </div>
-            <div className="h-6 mt-2">
-              {laps.length > 0 && (
-                <p className="text-sm font-mono text-muted-foreground">
-                  Lap: {lMin}:{lSec}.{lMs}
-                </p>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Keyboard Shortcuts Hint */}
-        <div className="text-center text-xs text-muted-foreground">
-          <p>Shortcuts: <kbd className="px-1.5 py-0.5 bg-muted rounded">Space</kbd> Start/Pause • <kbd className="px-1.5 py-0.5 bg-muted rounded">L</kbd> Lap • <kbd className="px-1.5 py-0.5 bg-muted rounded">R</kbd> Reset</p>
-        </div>
-
-        {/* Controls */}
-        <div className="flex justify-center items-center gap-6">
-          <Button
-            variant="outline"
-            size="icon"
-            className="h-14 w-14 rounded-full border-2 hover:bg-accent hover:border-accent"
-            onClick={handleReset}
-            disabled={!isRunning && time === 0}
-          >
-            <RotateCcw className="h-6 w-6" />
-          </Button>
-
-          <Button
-            size="icon"
-            className={cn(
-              "h-20 w-20 rounded-full shadow-lg transition-all active:scale-95",
-              isRunning
-                ? "bg-red-500 hover:bg-red-600 shadow-red-500/25"
-                : "bg-green-500 hover:bg-green-600 shadow-green-500/25"
-            )}
-            onClick={handleStartPause}
-          >
-            {isRunning ? <Pause className="h-8 w-8 fill-current" /> : <Play className="h-8 w-8 fill-current ml-1" />}
-          </Button>
-
-          <Button
-            variant="outline"
-            size="icon"
-            className="h-14 w-14 rounded-full border-2 hover:bg-accent hover:border-accent"
-            onClick={handleLap}
-            disabled={!isRunning}
-          >
-            <Flag className="h-6 w-6" />
-          </Button>
-        </div>
-
-        {/* Lap Statistics */}
-        {lapStats && (
+    <>
+      <AnimatePresence>
+        {isFullScreen && (
           <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="grid grid-cols-3 gap-3"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] bg-black flex items-center justify-center overflow-hidden"
           >
-            <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-3 text-center">
-              <TrendingUp className="h-4 w-4 text-green-500 mx-auto mb-1" />
-              <p className="text-xs text-muted-foreground">Fastest</p>
-              <p className="text-sm font-mono font-semibold text-green-500">{formatTimeString(lapStats.fastest)}</p>
-            </div>
-            <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3 text-center">
-              <BarChart3 className="h-4 w-4 text-blue-500 mx-auto mb-1" />
-              <p className="text-xs text-muted-foreground">Average</p>
-              <p className="text-sm font-mono font-semibold text-blue-500">{formatTimeString(lapStats.average)}</p>
-            </div>
-            <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3 text-center">
-              <TrendingDown className="h-4 w-4 text-red-500 mx-auto mb-1" />
-              <p className="text-xs text-muted-foreground">Slowest</p>
-              <p className="text-sm font-mono font-semibold text-red-500">{formatTimeString(lapStats.slowest)}</p>
+            <style jsx global>{`
+              @import url('https://fonts.cdnfonts.com/css/seven-segment');
+              .font-digital {
+                font-family: 'Seven Segment', sans-serif;
+              }
+              .landscape-force {
+                width: 100vw;
+                height: 100vh;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+              }
+              @media (orientation: portrait) {
+                .landscape-force {
+                  transform: rotate(90deg);
+                  width: 100vh;
+                  height: 100vw;
+                }
+              }
+            `}</style>
+
+            <div className="landscape-force relative">
+              {/* Main Stopwatch Display */}
+              <div className="flex-1 flex items-center justify-center">
+                <div className="flex items-end gap-4 font-digital text-white leading-none select-none">
+                  {/* Hours : Minutes */}
+                  <div className="flex items-center text-[25vw] tracking-widest">
+                    {parseInt(hours) > 0 && (
+                      <>
+                        <span>{hours}</span>
+                        <span className="mx-2">:</span>
+                      </>
+                    )}
+                    <span>{minutes}</span>
+                    <span className="mx-2">:</span>
+                  </div>
+
+                  {/* Seconds (Smaller) */}
+                  <div className="text-[12vw] mb-[3vw] text-white/90">
+                    {seconds}
+                  </div>
+                </div>
+              </div>
+
+              {/* Bottom Controls */}
+              <div className="absolute bottom-8 w-full px-12 flex items-center justify-between">
+                {/* Play/Pause */}
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-16 w-24 rounded-xl border-white/10 bg-white/5 hover:bg-white/10 text-white hover:text-white hover:border-white/20 transition-all"
+                  onClick={handleStartPause}
+                >
+                  {isRunning ? <Pause className="h-8 w-8 fill-current" /> : <Play className="h-8 w-8 fill-current" />}
+                </Button>
+
+                {/* Reset */}
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-16 w-24 rounded-xl border-white/10 bg-white/5 hover:bg-white/10 text-white hover:text-white hover:border-white/20 transition-all"
+                  onClick={handleReset}
+                  disabled={isRunning}
+                >
+                  <RotateCcw className="h-8 w-8" />
+                </Button>
+
+                {/* Exit Full Screen */}
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-16 w-24 rounded-xl border-white/10 bg-white/5 hover:bg-white/10 text-white hover:text-white hover:border-white/20 transition-all"
+                  onClick={() => setIsFullScreen(false)}
+                >
+                  <Minimize2 className="h-8 w-8" />
+                </Button>
+              </div>
             </div>
           </motion.div>
         )}
+      </AnimatePresence>
 
-        {/* Export Buttons */}
-        {laps.length > 0 && (
-          <div className="flex gap-2">
+      <Card className="bg-background/40 backdrop-blur-xl border-border/50 shadow-xl overflow-hidden relative">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="absolute top-4 right-4 text-muted-foreground hover:text-primary z-10"
+          onClick={() => setIsFullScreen(true)}
+        >
+          <Maximize className="h-5 w-5" />
+        </Button>
+        <CardContent className="p-6 space-y-8">
+          {/* Display */}
+          <div className="relative flex flex-col items-center justify-center py-8">
+            {/* Ring Animation */}
+            <div className="absolute inset-0 flex items-center justify-center opacity-10 pointer-events-none">
+              <motion.div
+                animate={{ rotate: isRunning ? 360 : 0 }}
+                transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
+                className="w-64 h-64 rounded-full border-4 border-dashed border-primary"
+              />
+            </div>
+
+            <div className="text-center z-10">
+              <div className="flex items-baseline justify-center font-mono tabular-nums leading-none text-foreground">
+                {parseInt(hours) > 0 && (
+                  <>
+                    <span className="text-5xl sm:text-7xl font-bold">{hours}</span>
+                    <span className="text-2xl sm:text-4xl text-muted-foreground mx-1">:</span>
+                  </>
+                )}
+                <span className="text-5xl sm:text-7xl font-bold">{minutes}</span>
+                <span className="text-2xl sm:text-4xl text-muted-foreground mx-1">:</span>
+                <span className="text-5xl sm:text-7xl font-bold">{seconds}</span>
+                <span className="text-2xl sm:text-4xl text-muted-foreground mx-1">.</span>
+                <span className="text-3xl sm:text-5xl font-medium text-primary">{milliseconds}</span>
+              </div>
+              <div className="h-6 mt-2">
+                {laps.length > 0 && (
+                  <p className="text-sm font-mono text-muted-foreground">
+                    Lap: {lMin}:{lSec}.{lMs}
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Keyboard Shortcuts Hint */}
+          <div className="text-center text-xs text-muted-foreground">
+            <p>Shortcuts: <kbd className="px-1.5 py-0.5 bg-muted rounded">Space</kbd> Start/Pause • <kbd className="px-1.5 py-0.5 bg-muted rounded">L</kbd> Lap • <kbd className="px-1.5 py-0.5 bg-muted rounded">R</kbd> Reset</p>
+          </div>
+
+          {/* Controls */}
+          <div className="flex justify-center items-center gap-6">
             <Button
               variant="outline"
-              size="sm"
-              className="flex-1"
-              onClick={copyToClipboard}
+              size="icon"
+              className="h-14 w-14 rounded-full border-2 hover:bg-accent hover:border-accent"
+              onClick={handleReset}
+              disabled={!isRunning && time === 0}
             >
-              <Copy className="h-4 w-4 mr-2" />
-              Copy
+              <RotateCcw className="h-6 w-6" />
             </Button>
+
+            <Button
+              size="icon"
+              className={cn(
+                "h-20 w-20 rounded-full shadow-lg transition-all active:scale-95",
+                isRunning
+                  ? "bg-red-500 hover:bg-red-600 shadow-red-500/25"
+                  : "bg-green-500 hover:bg-green-600 shadow-green-500/25"
+              )}
+              onClick={handleStartPause}
+            >
+              {isRunning ? <Pause className="h-8 w-8 fill-current" /> : <Play className="h-8 w-8 fill-current ml-1" />}
+            </Button>
+
             <Button
               variant="outline"
-              size="sm"
-              className="flex-1"
-              onClick={exportToCSV}
+              size="icon"
+              className="h-14 w-14 rounded-full border-2 hover:bg-accent hover:border-accent"
+              onClick={handleLap}
+              disabled={!isRunning}
             >
-              <Download className="h-4 w-4 mr-2" />
-              Export CSV
+              <Flag className="h-6 w-6" />
             </Button>
           </div>
-        )}
 
-        {/* Laps */}
-        <AnimatePresence>
-          {laps.length > 0 && (
+          {/* Lap Statistics */}
+          {lapStats && (
             <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="grid grid-cols-3 gap-3"
             >
-              <div className="rounded-xl border border-border/50 bg-background/50 overflow-hidden">
-                <div className="grid grid-cols-3 px-4 py-2 text-xs font-medium text-muted-foreground bg-muted/50">
-                  <span>Lap</span>
-                  <span className="text-center">Lap Time</span>
-                  <span className="text-right">Total</span>
-                </div>
-                <ScrollArea className="h-48 w-full">
-                  <div className="divide-y divide-border/50">
-                    {laps.map((lap, index) => {
-                      const lapNum = laps.length - index;
-                      const { minutes, seconds, milliseconds } = formatTime(lap);
-
-                      // Calculate total time at this lap (sum from end to current index)
-                      const totalAtLap = laps.slice(index).reduce((sum, l) => sum + l, 0);
-                      const { hours: tH, minutes: tM, seconds: tS, milliseconds: tMs } = formatTime(totalAtLap);
-
-                      // Determine if this is fastest or slowest
-                      const isFastest = lapStats && lap === lapStats.fastest;
-                      const isSlowest = lapStats && lap === lapStats.slowest;
-
-                      return (
-                        <div
-                          key={index}
-                          className={cn(
-                            "grid grid-cols-3 px-4 py-3 text-sm font-mono hover:bg-accent/30 transition-colors",
-                            isFastest && "bg-green-500/5",
-                            isSlowest && "bg-red-500/5"
-                          )}
-                        >
-                          <span className="text-muted-foreground flex items-center gap-2">
-                            #{lapNum}
-                            {isFastest && <TrendingUp className="h-3 w-3 text-green-500" />}
-                            {isSlowest && <TrendingDown className="h-3 w-3 text-red-500" />}
-                          </span>
-                          <span className={cn(
-                            "text-center font-medium",
-                            isFastest && "text-green-500",
-                            isSlowest && "text-red-500",
-                            !isFastest && !isSlowest && "text-foreground"
-                          )}>
-                            {minutes}:{seconds}.{milliseconds}
-                          </span>
-                          <span className="text-right text-muted-foreground">
-                            {parseInt(tH) > 0 && `${tH}:`}{tM}:{tS}.{tMs}
-                          </span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </ScrollArea>
+              <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-3 text-center">
+                <TrendingUp className="h-4 w-4 text-green-500 mx-auto mb-1" />
+                <p className="text-xs text-muted-foreground">Fastest</p>
+                <p className="text-sm font-mono font-semibold text-green-500">{formatTimeString(lapStats.fastest)}</p>
+              </div>
+              <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3 text-center">
+                <BarChart3 className="h-4 w-4 text-blue-500 mx-auto mb-1" />
+                <p className="text-xs text-muted-foreground">Average</p>
+                <p className="text-sm font-mono font-semibold text-blue-500">{formatTimeString(lapStats.average)}</p>
+              </div>
+              <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3 text-center">
+                <TrendingDown className="h-4 w-4 text-red-500 mx-auto mb-1" />
+                <p className="text-xs text-muted-foreground">Slowest</p>
+                <p className="text-sm font-mono font-semibold text-red-500">{formatTimeString(lapStats.slowest)}</p>
               </div>
             </motion.div>
           )}
-        </AnimatePresence>
-      </CardContent>
-    </Card>
+
+          {/* Export Buttons */}
+          {laps.length > 0 && (
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1"
+                onClick={copyToClipboard}
+              >
+                <Copy className="h-4 w-4 mr-2" />
+                Copy
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1"
+                onClick={exportToCSV}
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Export CSV
+              </Button>
+            </div>
+          )}
+
+          {/* Laps */}
+          <AnimatePresence>
+            {laps.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+              >
+                <div className="rounded-xl border border-border/50 bg-background/50 overflow-hidden">
+                  <div className="grid grid-cols-3 px-4 py-2 text-xs font-medium text-muted-foreground bg-muted/50">
+                    <span>Lap</span>
+                    <span className="text-center">Lap Time</span>
+                    <span className="text-right">Total</span>
+                  </div>
+                  <ScrollArea className="h-48 w-full">
+                    <div className="divide-y divide-border/50">
+                      {laps.map((lap, index) => {
+                        const lapNum = laps.length - index;
+                        const { minutes, seconds, milliseconds } = formatTime(lap);
+
+                        // Calculate total time at this lap (sum from end to current index)
+                        const totalAtLap = laps.slice(index).reduce((sum, l) => sum + l, 0);
+                        const { hours: tH, minutes: tM, seconds: tS, milliseconds: tMs } = formatTime(totalAtLap);
+
+                        // Determine if this is fastest or slowest
+                        const isFastest = lapStats && lap === lapStats.fastest;
+                        const isSlowest = lapStats && lap === lapStats.slowest;
+
+                        return (
+                          <div
+                            key={index}
+                            className={cn(
+                              "grid grid-cols-3 px-4 py-3 text-sm font-mono hover:bg-accent/30 transition-colors",
+                              isFastest && "bg-green-500/5",
+                              isSlowest && "bg-red-500/5"
+                            )}
+                          >
+                            <span className="text-muted-foreground flex items-center gap-2">
+                              #{lapNum}
+                              {isFastest && <TrendingUp className="h-3 w-3 text-green-500" />}
+                              {isSlowest && <TrendingDown className="h-3 w-3 text-red-500" />}
+                            </span>
+                            <span className={cn(
+                              "text-center font-medium",
+                              isFastest && "text-green-500",
+                              isSlowest && "text-red-500",
+                              !isFastest && !isSlowest && "text-foreground"
+                            )}>
+                              {minutes}:{seconds}.{milliseconds}
+                            </span>
+                            <span className="text-right text-muted-foreground">
+                              {parseInt(tH) > 0 && `${tH}:`}{tM}:{tS}.{tMs}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </ScrollArea>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </CardContent>
+      </Card>
+    </>
   );
 }

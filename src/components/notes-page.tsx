@@ -26,13 +26,15 @@ import { NoteEditorDialog } from './note-editor-dialog';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+
+import { useSearchParams, useRouter } from 'next/navigation';
 
 type ViewType = 'notes' | 'favorites' | 'archive' | 'trash' | string; // string for tag views
 
@@ -42,8 +44,32 @@ export function NotesPage() {
     const [selectedNote, setSelectedNote] = useState<NoteItem | undefined>(undefined);
     const [isEditorOpen, setIsEditorOpen] = useState(false);
     const [currentView, setCurrentView] = useState<ViewType>('notes');
-    const [isSidebarOpen, setIsSidebarOpen] = useState(false); // For mobile
     const [layout, setLayout] = useState<'grid' | 'list'>('grid');
+
+    const searchParams = useSearchParams();
+    const router = useRouter();
+
+    // Open note from URL param
+    React.useEffect(() => {
+        const noteId = searchParams.get('id');
+        if (noteId && profile.notes) {
+            const note = profile.notes.find(n => n.id === noteId);
+            if (note) {
+                setSelectedNote(note);
+                setIsEditorOpen(true);
+            }
+        }
+    }, [searchParams, profile.notes]);
+
+    const handleEditorOpenChange = (open: boolean) => {
+        setIsEditorOpen(open);
+        if (!open) {
+            const params = new URLSearchParams(searchParams.toString());
+            params.delete('id');
+            router.replace(`?${params.toString()}`, { scroll: false });
+            setSelectedNote(undefined);
+        }
+    };
 
     // Extract all unique tags
     const allTags = useMemo(() => {
@@ -114,143 +140,107 @@ export function NotesPage() {
         }
     };
 
-    const NavItem = ({ view, icon: Icon, label, count }: { view: ViewType, icon: any, label: string, count?: number }) => (
-        <button
-            onClick={() => {
-                setCurrentView(view);
-                setIsSidebarOpen(false);
-            }}
-            className={cn(
-                "w-full flex items-center justify-between px-4 py-2.5 rounded-r-full text-sm font-medium transition-colors",
-                currentView === view
-                    ? "bg-primary/10 text-primary border-l-4 border-primary"
-                    : "text-muted-foreground hover:bg-accent hover:text-foreground border-l-4 border-transparent"
-            )}
-        >
-            <div className="flex items-center gap-3">
-                <Icon className={cn("h-4 w-4", currentView === view ? "fill-current" : "")} />
-                {label}
-            </div>
-            {count !== undefined && count > 0 && (
-                <span className="text-xs opacity-60">{count}</span>
-            )}
-        </button>
-    );
+    const tabs = [
+        { id: 'notes', label: 'Notes', icon: StickyNote },
+        { id: 'favorites', label: 'Favorites', icon: Star },
+        { id: 'archive', label: 'Archive', icon: Archive },
+        { id: 'trash', label: 'Trash', icon: Trash2 },
+        ...allTags.map(tag => ({ id: tag, label: tag, icon: Tag }))
+    ];
 
     return (
-        <div className="flex h-full bg-background/50 backdrop-blur-sm overflow-hidden rounded-xl border border-white/5 relative">
-            {/* Sidebar Backdrop */}
-            {isSidebarOpen && (
-                <div
-                    className="absolute inset-0 bg-black/60 backdrop-blur-sm z-40"
-                    onClick={() => setIsSidebarOpen(false)}
-                />
-            )}
-
-            {/* Sidebar */}
-            <div className={cn(
-                "absolute inset-y-0 left-0 z-50 w-64 bg-card/95 backdrop-blur-xl border-r border-white/5 transform transition-transform duration-200 ease-in-out shadow-2xl",
-                isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-            )}>
-                <div className="p-4 flex items-center justify-between">
-                    <span className="font-bold text-lg">Menu</span>
-                    <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(false)}>
-                        <X className="h-5 w-5" />
+        <div className="flex flex-col h-full bg-background/50 backdrop-blur-sm overflow-hidden rounded-xl border border-white/5 relative">
+            {/* Header */}
+            <div className="h-16 border-b border-white/5 flex items-center justify-between px-4 gap-4 bg-card/30 backdrop-blur-md shrink-0">
+                <div className="flex items-center gap-3 flex-1">
+                    <div className="relative flex-1 max-w-md">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                            placeholder={`Search in ${currentView === 'notes' ? 'notes' : currentView}...`}
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="pl-9 bg-black/10 border-transparent focus:bg-black/20 transition-all"
+                        />
+                    </div>
+                </div>
+                <div className="flex items-center gap-2">
+                    <Button onClick={handleCreateNote} className="shrink-0 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20">
+                        <Plus className="h-5 w-5 sm:mr-2" />
+                        <span className="hidden sm:inline">New Note</span>
                     </Button>
                 </div>
+            </div>
 
-                <div className="py-4 space-y-1">
-                    <NavItem view="notes" icon={StickyNote} label="Notes" count={profile.notes.filter(n => !n.isTrashed && !n.isArchived).length} />
-                    <NavItem view="favorites" icon={Star} label="Favorites" count={profile.notes.filter(n => !n.isTrashed && n.isFavorite).length} />
-                    <NavItem view="archive" icon={Archive} label="Archive" count={profile.notes.filter(n => !n.isTrashed && n.isArchived).length} />
-                    <NavItem view="trash" icon={Trash2} label="Trash" count={profile.notes.filter(n => n.isTrashed).length} />
-                </div>
+            {/* Tabs */}
+            <div className="border-b border-white/5 bg-card/20 backdrop-blur-sm shrink-0">
+                <ScrollArea className="w-full whitespace-nowrap">
+                    <div className="flex space-x-2 p-2">
+                        {tabs.map((tab) => (
+                            <button
+                                key={tab.id}
+                                onClick={() => setCurrentView(tab.id)}
+                                className={cn(
+                                    "flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200",
+                                    currentView === tab.id
+                                        ? "bg-primary text-primary-foreground shadow-lg shadow-primary/25"
+                                        : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
+                                )}
+                            >
+                                <tab.icon className="h-4 w-4" />
+                                {tab.label}
+                                {tab.id === 'notes' && (
+                                    <span className="ml-1 text-xs opacity-60">
+                                        {profile.notes.filter(n => !n.isTrashed && !n.isArchived).length}
+                                    </span>
+                                )}
+                            </button>
+                        ))}
+                    </div>
+                    <ScrollBar orientation="horizontal" className="invisible" />
+                </ScrollArea>
+            </div>
 
-                {allTags.length > 0 && (
-                    <div className="pt-4 mt-4 border-t border-white/5">
-                        <div className="px-4 pb-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                            Labels
+            {/* Notes Grid/List */}
+            <div className="flex-1 overflow-y-auto p-4 scrollbar-hide">
+                {filteredNotes.length === 0 ? (
+                    <div className="h-full flex flex-col items-center justify-center text-muted-foreground space-y-4">
+                        <div className="p-4 rounded-full bg-accent/50">
+                            {currentView === 'trash' ? <Trash2 className="h-8 w-8 opacity-50" /> :
+                                currentView === 'archive' ? <Archive className="h-8 w-8 opacity-50" /> :
+                                    currentView === 'favorites' ? <Star className="h-8 w-8 opacity-50" /> :
+                                        <StickyNote className="h-8 w-8 opacity-50" />}
                         </div>
-                        <ScrollArea className="h-[300px]">
-                            <div className="space-y-1">
-                                {allTags.map(tag => (
-                                    <NavItem key={tag} view={tag} icon={Tag} label={tag} />
-                                ))}
-                            </div>
-                        </ScrollArea>
+                        <p>No notes found in {currentView}</p>
+                    </div>
+                ) : (
+                    <div className="w-full px-4 pb-24 space-y-4">
+                        <AnimatePresence>
+                            {filteredNotes.map(note => (
+                                <motion.div
+                                    key={note.id}
+                                    layoutId={note.id}
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, scale: 0.95 }}
+                                    transition={{ duration: 0.2 }}
+                                >
+                                    <NoteCard
+                                        note={note}
+                                        onClick={() => handleEditNote(note)}
+                                        isTrashed={currentView === 'trash'}
+                                        onRestore={(e) => handleRestore(note, e)}
+                                        onDeleteForever={(e) => handleDeleteForever(note, e)}
+                                    />
+                                </motion.div>
+                            ))}
+                        </AnimatePresence>
                     </div>
                 )}
             </div>
 
-            {/* Main Content */}
-            <div className="flex-1 flex flex-col min-w-0">
-                {/* Header */}
-                <div className="h-16 border-b border-white/5 flex items-center justify-between px-4 gap-4 bg-card/30 backdrop-blur-md">
-                    <div className="flex items-center gap-3 flex-1">
-                        <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(true)}>
-                            <Menu className="h-5 w-5" />
-                        </Button>
-                        <div className="relative flex-1 max-w-md">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                            <Input
-                                placeholder={`Search in ${currentView === 'notes' ? 'notes' : currentView}...`}
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                className="pl-9 bg-black/10 border-transparent focus:bg-black/20 transition-all"
-                            />
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-
-                        <Button onClick={handleCreateNote} className="shrink-0 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20">
-                            <Plus className="h-5 w-5 sm:mr-2" />
-                            <span className="hidden sm:inline">New Note</span>
-                        </Button>
-                    </div>
-                </div>
-
-                {/* Notes Grid/List */}
-                <div className="flex-1 overflow-y-auto p-4 scrollbar-hide">
-                    {filteredNotes.length === 0 ? (
-                        <div className="h-full flex flex-col items-center justify-center text-muted-foreground space-y-4">
-                            <div className="p-4 rounded-full bg-accent/50">
-                                {currentView === 'trash' ? <Trash2 className="h-8 w-8 opacity-50" /> :
-                                    currentView === 'archive' ? <Archive className="h-8 w-8 opacity-50" /> :
-                                        currentView === 'favorites' ? <Star className="h-8 w-8 opacity-50" /> :
-                                            <StickyNote className="h-8 w-8 opacity-50" />}
-                            </div>
-                            <p>No notes found in {currentView}</p>
-                        </div>
-                    ) : (
-                        <div className="w-full px-4 pb-24 space-y-4">
-                            <AnimatePresence>
-                                {filteredNotes.map(note => (
-                                    <motion.div
-                                        key={note.id}
-                                        layoutId={note.id}
-                                        initial={{ opacity: 0, y: 20 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, scale: 0.95 }}
-                                        transition={{ duration: 0.2 }}
-                                    >
-                                        <NoteCard
-                                            note={note}
-                                            onClick={() => handleEditNote(note)}
-                                            isTrashed={currentView === 'trash'}
-                                            onRestore={(e) => handleRestore(note, e)}
-                                            onDeleteForever={(e) => handleDeleteForever(note, e)}
-                                        />
-                                    </motion.div>
-                                ))}
-                            </AnimatePresence>
-                        </div>
-                    )}
-                </div>
-            </div>
-
             <NoteEditorDialog
                 open={isEditorOpen}
-                onOpenChange={setIsEditorOpen}
+                onOpenChange={handleEditorOpenChange}
                 note={selectedNote}
             />
         </div>

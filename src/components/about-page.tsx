@@ -455,15 +455,30 @@ export function AboutPage() {
                     </CardHeader>
                     <CardContent className="space-y-2">
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                            <Button variant="ghost" className="w-full justify-center" size="sm">
+                            <Button
+                                variant="ghost"
+                                className="w-full justify-center"
+                                size="sm"
+                                onClick={() => window.open('https://aman9528.wixstudio.com/my-site-3/aman', '_blank', 'noopener,noreferrer')}
+                            >
                                 <Mail className="h-4 w-4 mr-2" />
                                 Contact Us
                             </Button>
-                            <Button variant="ghost" className="w-full justify-center" size="sm">
+                            <Button
+                                variant="ghost"
+                                className="w-full justify-center"
+                                size="sm"
+                                onClick={() => window.open('https://aman9528.wixstudio.com/my-site-3/aman', '_blank', 'noopener,noreferrer')}
+                            >
                                 <Flag className="h-4 w-4 mr-2" />
                                 Report Issue
                             </Button>
-                            <Button variant="ghost" className="w-full justify-center" size="sm">
+                            <Button
+                                variant="ghost"
+                                className="w-full justify-center"
+                                size="sm"
+                                onClick={() => window.open('https://aman9528.wixstudio.com/my-site-3/aman', '_blank', 'noopener,noreferrer')}
+                            >
                                 <Heart className="h-4 w-4 mr-2" />
                                 Give Feedback
                             </Button>

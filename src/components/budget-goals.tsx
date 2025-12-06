@@ -149,7 +149,7 @@ export function BudgetGoals() {
                                         <div>
                                             <h4 className="font-semibold text-lg">{goal.name}</h4>
                                             <p className="text-sm text-muted-foreground">
-                                                ₹{goal.currentAmount.toLocaleString()} / ₹{goal.targetAmount.toLocaleString()}
+                                                ₹{goal.currentAmount.toLocaleString('en-IN')} / ₹{goal.targetAmount.toLocaleString('en-IN')}
                                             </p>
                                         </div>
                                     </div>
@@ -167,7 +167,7 @@ export function BudgetGoals() {
                                     <div className="flex justify-between text-xs">
                                         <span className="text-emerald-400 font-medium">{progress.toFixed(0)}%</span>
                                         <span className="text-muted-foreground">
-                                            ₹{(goal.targetAmount - goal.currentAmount).toLocaleString()} left
+                                            ₹{(goal.targetAmount - goal.currentAmount).toLocaleString('en-IN')} left
                                         </span>
                                     </div>
                                     <Progress value={progress} className="h-2 bg-white/10" indicatorClassName="bg-emerald-500" />

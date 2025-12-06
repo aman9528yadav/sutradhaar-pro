@@ -55,6 +55,8 @@
     "firebase-admin": "^13.6.0",
     "framer-motion": "^11.3.19",
     "genkit": "^1.14.1",
+    "jspdf": "^3.0.4",
+    "jspdf-autotable": "^5.0.2",
     "lucide-react": "^0.475.0",
     "next": "^15.5.7",
     "next-themes": "^0.3.0",
