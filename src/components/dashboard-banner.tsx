@@ -10,9 +10,9 @@ import { AppUpdateBanner } from './app-update-banner';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const CountdownBox = ({ value, label }: { value: string; label: string }) => (
-  <div className="flex flex-col items-center justify-center bg-white/10 backdrop-blur-md rounded-lg p-2 min-w-[3rem] border border-white/10 shadow-sm">
-    <span className="text-xl font-bold text-white tabular-nums leading-none">{value}</span>
-    <span className="text-[10px] font-medium text-white/80 uppercase tracking-wider mt-1">{label}</span>
+  <div className="flex flex-col items-center justify-center bg-white/90 dark:bg-white/10 backdrop-blur-md rounded-lg p-2 min-w-[3rem] border border-white/20 dark:border-white/10 shadow-sm">
+    <span className="text-xl font-bold text-gray-900 dark:text-white tabular-nums leading-none">{value}</span>
+    <span className="text-[10px] font-medium text-gray-700 dark:text-white/80 uppercase tracking-wider mt-1">{label}</span>
   </div>
 );
 
@@ -74,32 +74,27 @@ export function DashboardBanner() {
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="relative overflow-hidden rounded-xl shadow-lg mb-6 group"
+            className="relative overflow-hidden rounded-xl shadow-lg mb-6 border-2 border-border bg-card"
           >
-            {/* Background Gradient & Effects */}
-            <div className="absolute inset-0 bg-gradient-to-br from-violet-600 via-indigo-600 to-purple-700 opacity-95" />
-            <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10" />
+            {/* Subtle accent line */}
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary via-purple-500 to-primary" />
 
-            {/* Decorative circles */}
-            <div className="absolute top-0 right-0 w-48 h-48 bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-            <div className="absolute bottom-0 left-0 w-32 h-32 bg-black/10 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2" />
-
-            <div className="relative p-6 flex flex-col gap-5 text-white">
+            <div className="relative p-6 flex flex-col gap-5">
 
               {/* Row 1: Title & Badge */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <h3 className="text-xl font-bold tracking-tight text-white leading-tight">
+                  <h3 className="text-xl font-bold tracking-tight text-foreground leading-tight">
                     {isTimerFinished ? "Update Live!" : "Update Incoming"}
                   </h3>
-                  <Badge variant="secondary" className="bg-white/20 hover:bg-white/30 text-white border-none backdrop-blur-md px-2.5 py-0.5 h-6">
+                  <Badge variant="secondary" className="bg-white/90 hover:bg-white dark:bg-white/25 dark:hover:bg-white/35 text-gray-900 dark:text-white border-none backdrop-blur-md px-2.5 py-0.5 h-6">
                     {category}
                   </Badge>
                 </div>
                 {/* Close Button */}
                 <button
                   onClick={() => setIsDismissed(true)}
-                  className="p-1.5 text-white/50 hover:text-white hover:bg-white/10 rounded-full transition-colors -mr-2 -mt-2"
+                  className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-accent rounded-full transition-colors -mr-2 -mt-2"
                 >
                   <X className="h-5 w-5" />
                 </button>
@@ -115,7 +110,7 @@ export function DashboardBanner() {
                     <CountdownBox value={String(timeLeft.seconds).padStart(2, '0')} label="SECS" />
                   </div>
                 ) : (
-                  <div className="flex items-center gap-2 px-6 py-3 bg-white/10 backdrop-blur-md rounded-xl border border-white/20 w-full justify-center">
+                  <div className="flex items-center gap-2 px-6 py-3 bg-accent backdrop-blur-md rounded-xl border border-border w-full justify-center">
                     <PartyPopper className="h-5 w-5 text-yellow-300" />
                     <span className="font-semibold">The update is now live!</span>
                   </div>
@@ -123,12 +118,12 @@ export function DashboardBanner() {
               </div>
 
               {/* Row 3: Icon & Content */}
-              <div className="flex items-start gap-4 bg-white/5 rounded-xl p-4 border border-white/10">
-                <div className="p-2.5 bg-white/10 backdrop-blur-sm rounded-lg border border-white/10 shadow-inner shrink-0">
-                  <Rocket className="h-5 w-5 text-white" />
+              <div className="flex items-start gap-4 bg-accent rounded-xl p-4 border border-border">
+                <div className="p-2.5 bg-primary/10 backdrop-blur-sm rounded-lg border border-border shadow-inner shrink-0">
+                  <Rocket className="h-5 w-5 text-primary" />
                 </div>
                 <div className="flex-1 space-y-3">
-                  <p className="text-sm text-indigo-100/90 leading-relaxed">
+                  <p className="text-sm text-foreground leading-relaxed font-medium">
                     {isTimerFinished
                       ? "We've just pushed some exciting new features and improvements. Check out the details to see what's new."
                       : "We're putting the finishing touches on a major update. Get ready for a smoother, faster experience."}
@@ -138,7 +133,7 @@ export function DashboardBanner() {
                     <Button
                       size="sm"
                       variant="secondary"
-                      className="h-8 text-xs bg-white text-indigo-600 hover:bg-indigo-50 font-semibold shadow-sm border-none"
+                      className="h-8 text-xs bg-primary text-primary-foreground hover:bg-primary/90 font-semibold shadow-sm border-none"
                       asChild
                     >
                       <Link href="/whats-new">

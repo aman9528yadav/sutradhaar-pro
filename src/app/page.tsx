@@ -59,6 +59,7 @@ import {
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { WelcomeDialog } from '@/components/welcome-dialog';
 import { motion, AnimatePresence } from 'framer-motion';
+import { PageTransition } from '@/components/page-transition';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
@@ -206,62 +207,98 @@ export default function DashboardPage() {
     <div className="w-full flex-1 flex flex-col h-screen overflow-hidden">
       <ModernSidebar activeTab={activeTab} onNavigate={handleNavigate} />
       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
-        <div className="flex-1 overflow-y-auto scrollbar-hide">
+        <div className="flex-1 overflow-y-auto scrollbar-hide scroll-smooth">
           <TabsContent value="dashboard" className="p-4 pb-24 space-y-6 mt-0 h-full">
-            {isPageLoading ? <DashboardSkeleton /> : <DashboardRevamped onNavigate={handleNavigate} />}
+            <PageTransition>
+              {isPageLoading ? <DashboardSkeleton /> : <DashboardRevamped onNavigate={handleNavigate} />}
+            </PageTransition>
           </TabsContent>
           <TabsContent value="tools" className="p-4 pb-24 mt-0 h-full">
-            <ToolsPage onToolSelect={handleNavigate} />
+            <PageTransition>
+              <ToolsPage onToolSelect={handleNavigate} />
+            </PageTransition>
           </TabsContent>
           <TabsContent value="profile" className="mt-0 h-full">
-            <ProfilePage onNavigate={handleNavigate} />
+            <PageTransition>
+              <ProfilePage onNavigate={handleNavigate} />
+            </PageTransition>
           </TabsContent>
           <TabsContent value="settings" className="p-4 pb-24 mt-0 h-full">
-            <SettingsPage />
+            <PageTransition>
+              <SettingsPage />
+            </PageTransition>
           </TabsContent>
 
           {/* Tool Pages */}
           <TabsContent value="converter" className="p-4 pb-24 mt-0 h-full">
-            <UnitConverter />
+            <PageTransition>
+              <UnitConverter />
+            </PageTransition>
           </TabsContent>
           <TabsContent value="calculator" className="p-4 pb-24 mt-0 h-full">
-            <CalculatorComponent onToggleFullScreen={() => setIsCalculatorFullScreen(true)} />
+            <PageTransition>
+              <CalculatorComponent onToggleFullScreen={() => setIsCalculatorFullScreen(true)} />
+            </PageTransition>
           </TabsContent>
           <TabsContent value="loan-calculator" className="p-4 pb-24 mt-0 h-full">
-            <LoanCalculator />
+            <PageTransition>
+              <LoanCalculator />
+            </PageTransition>
           </TabsContent>
           <TabsContent value="discount-calculator" className="p-4 pb-24 mt-0 h-full">
-            <DiscountCalculator />
+            <PageTransition>
+              <DiscountCalculator />
+            </PageTransition>
           </TabsContent>
           <TabsContent value="date-calculator" className="p-4 pb-24 mt-0 h-full">
-            <DateCalculator />
+            <PageTransition>
+              <DateCalculator />
+            </PageTransition>
           </TabsContent>
           <TabsContent value="timer" className="p-4 pb-24 mt-0 h-full">
-            <TimerComponent />
+            <PageTransition>
+              <TimerComponent />
+            </PageTransition>
           </TabsContent>
           <TabsContent value="stopwatch" className="p-4 pb-24 mt-0 h-full">
-            <StopwatchComponent />
+            <PageTransition>
+              <StopwatchComponent />
+            </PageTransition>
           </TabsContent>
           <TabsContent value="budget-tracker" className="p-4 pb-24 mt-0 h-full">
-            <BudgetTrackerPage />
+            <PageTransition>
+              <BudgetTrackerPage />
+            </PageTransition>
           </TabsContent>
           <TabsContent value="notes" className="p-4 pb-24 mt-0 h-full">
-            <NotesPage />
+            <PageTransition>
+              <NotesPage />
+            </PageTransition>
           </TabsContent>
           <TabsContent value="history" className="p-4 pb-24 mt-0 h-full">
-            <HistoryPage />
+            <PageTransition>
+              <HistoryPage />
+            </PageTransition>
           </TabsContent>
           <TabsContent value="analytics" className="p-4 pb-24 mt-0 h-full">
-            <AnalyticsPage />
+            <PageTransition>
+              <AnalyticsPage />
+            </PageTransition>
           </TabsContent>
           <TabsContent value="membership" className="p-4 pb-24 mt-0 h-full">
-            <MembershipPage />
+            <PageTransition>
+              <MembershipPage />
+            </PageTransition>
           </TabsContent>
           <TabsContent value="about" className="p-4 pb-24 mt-0 h-full">
-            <AboutPage />
+            <PageTransition>
+              <AboutPage />
+            </PageTransition>
           </TabsContent>
           <TabsContent value="todo" className="p-4 pb-24 mt-0 h-full">
-            <TodoPage />
+            <PageTransition>
+              <TodoPage />
+            </PageTransition>
           </TabsContent>
         </div>
 

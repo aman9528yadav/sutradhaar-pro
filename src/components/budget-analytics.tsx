@@ -171,7 +171,7 @@ export function BudgetAnalytics() {
             </Card>
 
             {/* Summary Cards - 2x2 Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4">
                 {/* Row 1: Income and Expense */}
                 <Card>
                     <CardHeader className="pb-3">
@@ -244,7 +244,7 @@ export function BudgetAnalytics() {
             </div>
 
             {/* Largest Transactions */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4">
                 <Card>
                     <CardHeader>
                         <CardTitle className="text-base flex items-center gap-2">

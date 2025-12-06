@@ -173,7 +173,7 @@ export function BillReminders() {
                 </Dialog>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4">
                 {billReminders.map(reminder => (
                     <Card key={reminder.id} className="border-white/10 hover:bg-white/5 transition-colors group">
                         <CardContent className="p-5 flex items-center justify-between">

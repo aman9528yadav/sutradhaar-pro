@@ -68,15 +68,35 @@ const ResultCard = ({ value, label, subLabel, delay = 0 }: { value: string | num
   </motion.div>
 );
 
-import { MuiDatePicker } from './mui-date-picker';
-
 const DatePickerButton = ({ date, setDate, label }: { date: Date | undefined; setDate: (date: Date | undefined) => void; label: string }) => (
-  <div className="w-full">
-    <MuiDatePicker
-      label={label}
-      value={date}
-      onChange={setDate}
-    />
+  <div className="w-full space-y-2">
+    <Label>{label}</Label>
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button
+          variant={"outline"}
+          className={cn(
+            "w-full h-12 justify-start text-left font-normal border-border bg-muted hover:bg-accent hover:text-accent-foreground rounded-xl",
+            !date && "text-muted-foreground"
+          )}
+        >
+          <CalendarIcon className="mr-2 h-4 w-4" />
+          {date ? format(date, "PPP") : <span>{label}</span>}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0 bg-card border-border" align="start">
+        <Calendar
+          mode="single"
+          selected={date}
+          onSelect={setDate}
+          initialFocus
+          captionLayout="dropdown-buttons"
+          fromYear={1900}
+          toYear={2100}
+          className="bg-card text-foreground rounded-md border-border"
+        />
+      </PopoverContent>
+    </Popover>
   </div>
 );
 

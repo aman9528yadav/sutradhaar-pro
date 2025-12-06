@@ -13,6 +13,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useProfile } from '@/context/ProfileContext';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 
 const TimeInput = ({ label, value, onChange, disabled, max = 59 }: { label: string; value: number; onChange: (value: number) => void; disabled: boolean; max?: number }) => (
     <div className="flex flex-col items-center space-y-2">
@@ -93,6 +94,17 @@ export function Timer() {
     const [savedTimers, setSavedTimers] = useState<SavedTimer[]>([]);
     const [timerName, setTimerName] = useState('');
     const [isFullScreen, setIsFullScreen] = useState(false);
+    const [isStartDialogOpen, setIsStartDialogOpen] = useState(false);
+
+    const onStartClick = () => {
+        setIsStartDialogOpen(true);
+    };
+
+    const onConfirmStart = () => {
+        setIsStartDialogOpen(false);
+        handleStart();
+        setIsFullScreen(true);
+    };
 
     // Load saved timers from localStorage
     useEffect(() => {
@@ -199,7 +211,7 @@ export function Timer() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[100] bg-black flex items-center justify-center overflow-hidden"
+                        className="fixed inset-0 z-[100] bg-background flex items-center justify-center overflow-hidden"
                     >
                         <style jsx global>{`
                             @import url('https://fonts.cdnfonts.com/css/seven-segment');
@@ -224,31 +236,21 @@ export function Timer() {
                         `}</style>
 
                         <div className="landscape-force relative">
-                            {/* Main Timer Display */}
-                            <div className="flex-1 flex items-center justify-center">
-                                <div className="flex items-end gap-4 font-digital text-white leading-none select-none">
-                                    {/* Hours : Minutes */}
-                                    <div className="flex items-center text-[25vw] tracking-widest">
-                                        {displayHours > 0 && (
-                                            <>
-                                                <span>{String(displayHours).padStart(2, '0')}</span>
-                                                <span className="animate-pulse mx-2">:</span>
-                                            </>
-                                        )}
-                                        <span>{String(displayMinutes).padStart(2, '0')}</span>
-                                        <span className="animate-pulse mx-2">:</span>
-                                    </div>
-
-                                    {/* Seconds (Smaller) */}
-                                    <div className="text-[12vw] mb-[3vw] text-white/90">
-                                        {String(displaySeconds).padStart(2, '0')}
-                                    </div>
-                                </div>
+                            <div className="flex justify-center items-center font-digital text-foreground text-[13vw] tracking-widest leading-none select-none">
+                                {displayHours > 0 && (
+                                    <>
+                                        <div className="w-[18vw] text-center tabular-nums">{String(displayHours).padStart(2, '0')}</div>
+                                        <div className="w-[4vw] text-center animate-pulse">:</div>
+                                    </>
+                                )}
+                                <div className="w-[18vw] text-center tabular-nums">{String(displayMinutes).padStart(2, '0')}</div>
+                                <div className="w-[4vw] text-center animate-pulse">:</div>
+                                <div className="w-[18vw] text-center tabular-nums">{String(displaySeconds).padStart(2, '0')}</div>
                             </div>
 
                             {/* Task Info */}
                             {isActive && selectedTaskId !== 'none' && (
-                                <div className="absolute top-8 text-xl font-sans text-white/30 whitespace-nowrap">
+                                <div className="absolute top-8 text-xl font-sans text-muted-foreground whitespace-nowrap">
                                     {profile.todos.find(t => t.id === selectedTaskId)?.text}
                                 </div>
                             )}
@@ -259,7 +261,7 @@ export function Timer() {
                                 <Button
                                     variant="outline"
                                     size="icon"
-                                    className="h-16 w-24 rounded-xl border-white/10 bg-white/5 hover:bg-white/10 text-white hover:text-white hover:border-white/20 transition-all"
+                                    className="h-16 w-24 rounded-xl border-border bg-secondary/50 hover:bg-secondary text-foreground hover:text-foreground hover:border-border/80 transition-all"
                                     onClick={handlePauseResume}
                                 >
                                     {isPaused || !isActive ? <Play className="h-8 w-8 fill-current" /> : <Pause className="h-8 w-8 fill-current" />}
@@ -269,7 +271,7 @@ export function Timer() {
                                 <Button
                                     variant="outline"
                                     size="icon"
-                                    className="h-16 w-24 rounded-xl border-white/10 bg-white/5 hover:bg-white/10 text-white hover:text-white hover:border-white/20 transition-all"
+                                    className="h-16 w-24 rounded-xl border-border bg-secondary/50 hover:bg-secondary text-foreground hover:text-foreground hover:border-border/80 transition-all"
                                     onClick={handleReset}
                                 >
                                     <RotateCcw className="h-8 w-8" />
@@ -279,7 +281,7 @@ export function Timer() {
                                 <Button
                                     variant="outline"
                                     size="icon"
-                                    className="h-16 w-24 rounded-xl border-white/10 bg-white/5 hover:bg-white/10 text-white hover:text-white hover:border-white/20 transition-all"
+                                    className="h-16 w-24 rounded-xl border-border bg-secondary/50 hover:bg-secondary text-foreground hover:text-foreground hover:border-border/80 transition-all"
                                     onClick={() => setIsFullScreen(false)}
                                 >
                                     <Minimize2 className="h-8 w-8" />
@@ -590,7 +592,7 @@ export function Timer() {
                             <Button
                                 size="lg"
                                 className="w-full h-14 text-lg rounded-xl shadow-lg shadow-primary/25 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
-                                onClick={handleStart}
+                                onClick={onStartClick}
                             >
                                 <Play className="mr-2 h-6 w-6 fill-current" /> Start Timer
                             </Button>
@@ -622,6 +624,56 @@ export function Timer() {
                     </div>
                 </CardContent>
             </Card>
+
+            <StartTimerDialog
+                open={isStartDialogOpen}
+                onOpenChange={setIsStartDialogOpen}
+                onConfirm={onConfirmStart}
+                hours={hours} setHours={setHours}
+                minutes={minutes} setMinutes={setMinutes}
+                seconds={seconds} setSeconds={setSeconds}
+            />
         </>
+    );
+}
+
+function StartTimerDialog({
+    open,
+    onOpenChange,
+    onConfirm,
+    hours,
+    setHours,
+    minutes,
+    setMinutes,
+    seconds,
+    setSeconds
+}: {
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
+    onConfirm: () => void;
+    hours: number; setHours: (v: number) => void;
+    minutes: number; setMinutes: (v: number) => void;
+    seconds: number; setSeconds: (v: number) => void;
+}) {
+    return (
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                    <DialogTitle>Set Timer Duration</DialogTitle>
+                </DialogHeader>
+                <div className="py-6 flex justify-center items-center gap-4">
+                    <TimeInput label="Hours" value={hours} onChange={setHours} disabled={false} max={99} />
+                    <span className="text-4xl font-bold text-muted-foreground pb-6">:</span>
+                    <TimeInput label="Minutes" value={minutes} onChange={setMinutes} disabled={false} />
+                    <span className="text-4xl font-bold text-muted-foreground pb-6">:</span>
+                    <TimeInput label="Seconds" value={seconds} onChange={setSeconds} disabled={false} />
+                </div>
+                <DialogFooter>
+                    <Button onClick={onConfirm} size="lg" className="w-full">
+                        <Play className="mr-2 h-4 w-4 fill-current" /> Start in Full Screen
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
     );
 }

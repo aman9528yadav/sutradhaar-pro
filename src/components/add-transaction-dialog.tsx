@@ -20,8 +20,14 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { MuiDatePicker } from './mui-date-picker';
-import { ArrowDownCircle, ArrowUpCircle, DollarSign, Repeat, Link } from 'lucide-react';
+import { ArrowDownCircle, ArrowUpCircle, DollarSign, Repeat, Link, Calendar as CalendarIcon } from 'lucide-react';
+import { format } from 'date-fns';
+import { Calendar } from '@/components/ui/calendar';
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from '@/components/ui/popover';
 import { useToast } from '@/hooks/use-toast';
 
 interface AddTransactionDialogProps {
@@ -230,11 +236,32 @@ export function AddTransactionDialog({ open, onOpenChange, transaction }: AddTra
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label className="text-sm font-semibold">Date *</Label>
-                                <MuiDatePicker
-                                    label="Transaction Date"
-                                    value={date}
-                                    onChange={(d) => d && setDate(d)}
-                                />
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                        <Button
+                                            variant={"outline"}
+                                            className={cn(
+                                                "w-full h-12 justify-start text-left font-normal border-input bg-background hover:bg-accent hover:text-accent-foreground",
+                                                !date && "text-muted-foreground"
+                                            )}
+                                        >
+                                            <CalendarIcon className="mr-2 h-4 w-4 opacity-50" />
+                                            {date ? format(date, "PPP") : <span>Pick a date</span>}
+                                        </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-auto p-0 bg-card border-border" align="start">
+                                        <Calendar
+                                            mode="single"
+                                            selected={date}
+                                            onSelect={(d) => d && setDate(d)}
+                                            initialFocus
+                                            captionLayout="dropdown-buttons"
+                                            fromYear={2000}
+                                            toYear={2100}
+                                            className="bg-card text-foreground rounded-md border-border"
+                                        />
+                                    </PopoverContent>
+                                </Popover>
                             </div>
                             <div className="space-y-2">
                                 <Label className="text-sm font-semibold flex items-center gap-2">

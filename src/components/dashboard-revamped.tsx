@@ -23,7 +23,6 @@ import {
     Plus,
     CheckCircle2,
     Rocket,
-    Download,
 } from 'lucide-react';
 import { useProfile } from '@/context/ProfileContext';
 import { useMaintenance } from '@/context/MaintenanceContext';
@@ -32,6 +31,7 @@ import dynamic from 'next/dynamic';
 import { quickAccessItems, moreAccessItems } from '@/lib/navigation-items';
 import Link from 'next/link';
 import { useUser } from '@clerk/nextjs';
+import { DashboardBanner } from './dashboard-banner';
 
 // Lazy load chart
 const WeeklySummaryChart = dynamic(() => import('@/components/weekly-summary-chart').then(mod => ({ default: mod.WeeklySummaryChart })), {
@@ -59,10 +59,17 @@ export function DashboardRevamped({ onNavigate }: { onNavigate: (tab: string) =>
     const [isFocusCompleted, setIsFocusCompleted] = useState(false);
 
     useEffect(() => {
-        const hour = new Date().getHours();
-        if (hour < 12) setGreeting('Good Morning');
-        else if (hour < 18) setGreeting('Good Afternoon');
-        else setGreeting('Good Evening');
+        const updateGreeting = () => {
+            const hour = new Date().getHours();
+            if (hour >= 5 && hour < 12) setGreeting('Good Morning');
+            else if (hour >= 12 && hour < 17) setGreeting('Good Afternoon');
+            else if (hour >= 17 && hour < 22) setGreeting('Good Evening');
+            else setGreeting('Good Night');
+        };
+
+        updateGreeting();
+        const interval = setInterval(updateGreeting, 60000); // Check every minute
+        return () => clearInterval(interval);
 
         const date = new Date();
         setDateString(date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }));
@@ -71,7 +78,6 @@ export function DashboardRevamped({ onNavigate }: { onNavigate: (tab: string) =>
     }, []);
 
     const { allTimeActivities = 0, todayActivities = 0, streak = 0 } = profile.stats || {};
-    const { appUpdate } = maintenanceConfig;
 
     const userQuickAccessItems = useMemo(() => {
         if (!profile.quickAccessOrder || profile.quickAccessOrder.length === 0) {
@@ -98,32 +104,13 @@ export function DashboardRevamped({ onNavigate }: { onNavigate: (tab: string) =>
 
     return (
         <div className="space-y-6 animate-in fade-in duration-500">
-            {appUpdate?.showBanner && (
-                <Card className="bg-gradient-to-r from-green-600/20 to-emerald-600/20 border-green-500/30">
-                    <CardContent className="p-4 flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                            <div className="p-3 bg-green-500/20 rounded-xl text-green-400">
-                                <Download className="w-6 h-6" />
-                            </div>
-                            <div>
-                                <h3 className="font-bold text-white">New Update Available!</h3>
-                                <p className="text-sm text-green-200/80">Version {appUpdate.version} is ready to download.</p>
-                            </div>
-                        </div>
-                        <Button className="bg-green-600 hover:bg-green-700 text-white" asChild>
-                            <a href={appUpdate.url} target="_blank" rel="noopener noreferrer">
-                                Download APK
-                            </a>
-                        </Button>
-                    </CardContent>
-                </Card>
-            )}
+            <DashboardBanner />
 
             {/* Header Section */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
                 <div>
                     <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-1">{dateString}</h2>
-                    <h1 className="text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-white/60">
+                    <h1 className="text-3xl md:text-4xl font-bold text-foreground">
                         {greeting}, {user?.firstName || profile.name || 'User'}
                     </h1>
                     <p className="text-muted-foreground mt-2 max-w-lg italic">"{quote}"</p>
@@ -132,48 +119,48 @@ export function DashboardRevamped({ onNavigate }: { onNavigate: (tab: string) =>
             </div>
 
             {/* Stats Row - 3 in one row */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-3 gap-4">
                 <motion.div whileHover={{ scale: 1.01 }} className="group">
-                    <Card className="bg-gradient-to-r from-blue-500/10 to-blue-600/5 border-blue-500/20 backdrop-blur-sm">
+                    <Card className="bg-card border-border">
                         <CardContent className="p-4 flex flex-col gap-3">
-                            <span className="text-sm font-medium text-blue-200/80">Total Activities</span>
-                            <div className="p-2 w-fit bg-blue-500/20 rounded-xl text-blue-400">
+                            <span className="text-sm font-medium text-muted-foreground">Total Activities</span>
+                            <div className="p-2 w-fit bg-primary/20 rounded-xl text-primary">
                                 <Star className="w-5 h-5" />
                             </div>
-                            <div className="text-2xl font-bold text-white">{allTimeActivities}</div>
+                            <div className="text-2xl font-bold text-foreground">{allTimeActivities}</div>
                         </CardContent>
                     </Card>
                 </motion.div>
 
                 <motion.div whileHover={{ scale: 1.01 }} className="group">
-                    <Card className="bg-gradient-to-r from-emerald-500/10 to-emerald-600/5 border-emerald-500/20 backdrop-blur-sm">
+                    <Card className="bg-card border-border">
                         <CardContent className="p-4 flex flex-col gap-3">
-                            <span className="text-sm font-medium text-emerald-200/80">Today's Activity</span>
+                            <span className="text-sm font-medium text-muted-foreground">Today's Activity</span>
                             <div className="p-2 w-fit bg-emerald-500/20 rounded-xl text-emerald-400">
                                 <Calendar className="w-5 h-5" />
                             </div>
-                            <div className="text-2xl font-bold text-white">{todayActivities}</div>
+                            <div className="text-2xl font-bold text-foreground">{todayActivities}</div>
                         </CardContent>
                     </Card>
                 </motion.div>
 
                 <motion.div whileHover={{ scale: 1.01 }} className="group">
-                    <Card className="bg-gradient-to-r from-orange-500/10 to-orange-600/5 border-orange-500/20 backdrop-blur-sm">
+                    <Card className="bg-card border-border">
                         <CardContent className="p-4 flex flex-col gap-3">
-                            <span className="text-sm font-medium text-orange-200/80">Current Streak</span>
+                            <span className="text-sm font-medium text-muted-foreground">Current Streak</span>
                             <div className="p-2 w-fit bg-orange-500/20 rounded-xl text-orange-400">
                                 <Flame className="w-5 h-5" />
                             </div>
-                            <div className="text-2xl font-bold text-white">{streak} <span className="text-sm font-normal text-white/50">days</span></div>
+                            <div className="text-2xl font-bold text-foreground">{streak} <span className="text-sm font-normal text-muted-foreground">days</span></div>
                         </CardContent>
                     </Card>
                 </motion.div>
             </div>
 
             {/* Financial & Task Summary */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4">
                 <motion.div whileHover={{ scale: 1.01 }} onClick={() => onNavigate('finance')} className="cursor-pointer">
-                    <Card className="bg-gradient-to-br from-emerald-900/20 to-teal-900/20 border-emerald-500/20">
+                    <Card className="bg-card border-border">
                         <CardContent className="p-4">
                             <div className="flex justify-between items-start mb-4">
                                 <div>
@@ -189,7 +176,7 @@ export function DashboardRevamped({ onNavigate }: { onNavigate: (tab: string) =>
                             <div className="space-y-2">
                                 <div className="flex justify-between text-sm">
                                     <span className="text-muted-foreground">Monthly Spending</span>
-                                    <span className="text-white">
+                                    <span className="text-foreground">
                                         ₹{profile.budget.transactions
                                             .filter(t => {
                                                 const d = new Date(t.date);
@@ -206,7 +193,7 @@ export function DashboardRevamped({ onNavigate }: { onNavigate: (tab: string) =>
                 </motion.div>
 
                 <motion.div whileHover={{ scale: 1.01 }} onClick={() => onNavigate('todo')} className="cursor-pointer">
-                    <Card className="bg-gradient-to-br from-indigo-900/20 to-blue-900/20 border-indigo-500/20">
+                    <Card className="bg-card border-border">
                         <CardContent className="p-4">
                             <div className="flex justify-between items-start mb-4">
                                 <div>
@@ -299,7 +286,7 @@ export function DashboardRevamped({ onNavigate }: { onNavigate: (tab: string) =>
                 </Card>
 
                 {/* Focus / Daily Goal Widget - Full Width */}
-                <Card className="w-full bg-gradient-to-br from-violet-600/20 to-purple-900/20 border-violet-500/30 backdrop-blur-sm">
+                <Card className="w-full bg-card border-border">
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                             <Target className="w-5 h-5 text-violet-400" />
@@ -307,7 +294,7 @@ export function DashboardRevamped({ onNavigate }: { onNavigate: (tab: string) =>
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        <div className="p-4 rounded-xl bg-white/5 border border-white/10 flex items-start gap-3">
+                        <div className="p-4 rounded-xl bg-accent border border-border flex items-start gap-3">
                             <button
                                 onClick={() => setIsFocusCompleted(!isFocusCompleted)}
                                 className={cn(
@@ -387,11 +374,11 @@ export function DashboardRevamped({ onNavigate }: { onNavigate: (tab: string) =>
                 </div>
 
                 {/* About Section */}
-                <Card className="bg-gradient-to-r from-slate-900 to-slate-800 border-white/10">
+                <Card className="bg-card border-border">
                     <CardContent className="p-6 flex flex-col gap-6">
                         <div className="flex items-center gap-4">
-                            <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center shadow-lg shadow-primary/20">
-                                <span className="text-xl font-bold text-white">S</span>
+                            <div className="h-12 w-12 rounded-2xl bg-primary flex items-center justify-center shadow-lg">
+                                <span className="text-xl font-bold text-primary-foreground">S</span>
                             </div>
                             <div>
                                 <h3 className="font-bold text-lg">Sutradhaar</h3>

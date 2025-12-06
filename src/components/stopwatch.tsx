@@ -67,6 +67,71 @@ export function Stopwatch() {
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, [isRunning, time]);
 
+  // Persistence Logic
+  useEffect(() => {
+    const savedState = localStorage.getItem('sutradhaar_stopwatch_state');
+    if (savedState) {
+      try {
+        const parsed = JSON.parse(savedState);
+        setLaps(parsed.laps || []);
+
+        if (parsed.isRunning) {
+          // Calculate time passed since last saved
+          const elapsed = Date.now() - parsed.lastUpdated;
+          // If it was running, the effective time is stored time + elapsed real time
+          // Actually, based on our logic:
+          // When running, we save: { time: accumTimeAtStart, lastUpdated: timestampAtStart, isRunning: true }
+          // restored time = parsed.time + (transient elapsed?)
+          // Wait, let's look at saving logic first.
+
+          // If we save ONLY on status change:
+          // Start: time=X, updated=Now.
+          // user closes. Reopens.
+          // NewTime = X + (Now - updated). 
+          // This matches exactly.
+          setTime(parsed.time + elapsed);
+          setIsRunning(true);
+        } else {
+          setTime(parsed.time);
+          setIsRunning(false);
+        }
+      } catch (e) {
+        console.error("Failed to load stopwatch state", e);
+      }
+    }
+  }, []);
+
+  // Save state on significant changes
+  useEffect(() => {
+    const stateToSave = {
+      time, // This is current accumulated time
+      isRunning,
+      laps,
+      lastUpdated: Date.now()
+    };
+    localStorage.setItem('sutradhaar_stopwatch_state', JSON.stringify(stateToSave));
+  }, [isRunning, laps]); // We don't track 'time' here to avoid 10ms writes. We rely on start/stop timestamps.
+  // HOWEVER: If user resets, time becomes 0. We need to save that. 'isRunning' captures reset (true->false)?
+  // handleReset sets isRunning(false), sets time(0). 
+  // Dependency [isRunning] will trigger (true->false).
+  // But subsequent Reset from Stopped (0->0) won't trigger if isRunning doesn't change.
+  // We should add a specific trigger or include 'time' but debounced? 
+  // Or better: manual save in handleReset? A simpler way is to depend on 'time' BUT throttle it?
+  // No, actually handleReset sets isRunning=false. If it was already false, effect won't run.
+  // But handleReset changes 'laps' too (clears them). So if we have laps, it triggers.
+  // If we have 0 laps and reset? Time 0->0. No change.
+  // If we have time > 0 and stopped. Reset -> time=0. isRunning false->false.
+  // Effect WON'T run. State in localstorage remains {time: >0}. 
+  // reload -> Restore >0. Resets not saved.
+
+  // FIX: We need to ensure we save when time changes significantly (like reset to 0) or laps or running state.
+  // But we can't depend on 'time' generally.
+  // We can wrap handleReset to manually save or force an update.
+  // Or just use a separate effect for Reset?
+  // Or simple trick: Add a version/counter for saves?
+
+  // Let's modify handleReset to clear storage or force save.
+
   useEffect(() => {
     if (isRunning) {
       const startTime = Date.now() - time;
@@ -82,6 +147,9 @@ export function Stopwatch() {
   }, [isRunning]);
 
   const handleStartPause = () => {
+    if (!isRunning && time === 0) {
+      setIsFullScreen(true);
+    }
     setIsRunning(!isRunning);
   };
 
@@ -90,6 +158,7 @@ export function Stopwatch() {
     setTime(0);
     setLaps([]);
     lastLapTimeRef.current = 0;
+    localStorage.removeItem('sutradhaar_stopwatch_state');
   };
 
   const handleLap = () => {
@@ -192,7 +261,7 @@ export function Stopwatch() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] bg-black flex items-center justify-center overflow-hidden"
+            className="fixed inset-0 z-[100] bg-background flex items-center justify-center overflow-hidden"
           >
             <style jsx global>{`
               @import url('https://fonts.cdnfonts.com/css/seven-segment');
@@ -218,25 +287,16 @@ export function Stopwatch() {
 
             <div className="landscape-force relative">
               {/* Main Stopwatch Display */}
-              <div className="flex-1 flex items-center justify-center">
-                <div className="flex items-end gap-4 font-digital text-white leading-none select-none">
-                  {/* Hours : Minutes */}
-                  <div className="flex items-center text-[25vw] tracking-widest">
-                    {parseInt(hours) > 0 && (
-                      <>
-                        <span>{hours}</span>
-                        <span className="mx-2">:</span>
-                      </>
-                    )}
-                    <span>{minutes}</span>
-                    <span className="mx-2">:</span>
-                  </div>
-
-                  {/* Seconds (Smaller) */}
-                  <div className="text-[12vw] mb-[3vw] text-white/90">
-                    {seconds}
-                  </div>
-                </div>
+              <div className="flex justify-center items-center font-digital text-foreground text-[13vw] tracking-widest leading-none select-none">
+                {parseInt(hours) > 0 && (
+                  <>
+                    <div className="w-[18vw] text-center tabular-nums">{hours}</div>
+                    <div className="w-[4vw] text-center">:</div>
+                  </>
+                )}
+                <div className="w-[18vw] text-center tabular-nums">{minutes}</div>
+                <div className="w-[4vw] text-center">:</div>
+                <div className="w-[18vw] text-center tabular-nums">{seconds}</div>
               </div>
 
               {/* Bottom Controls */}
@@ -245,7 +305,7 @@ export function Stopwatch() {
                 <Button
                   variant="outline"
                   size="icon"
-                  className="h-16 w-24 rounded-xl border-white/10 bg-white/5 hover:bg-white/10 text-white hover:text-white hover:border-white/20 transition-all"
+                  className="h-16 w-24 rounded-xl border-border bg-secondary/50 hover:bg-secondary text-foreground hover:text-foreground hover:border-border/80 transition-all"
                   onClick={handleStartPause}
                 >
                   {isRunning ? <Pause className="h-8 w-8 fill-current" /> : <Play className="h-8 w-8 fill-current" />}
@@ -255,7 +315,7 @@ export function Stopwatch() {
                 <Button
                   variant="outline"
                   size="icon"
-                  className="h-16 w-24 rounded-xl border-white/10 bg-white/5 hover:bg-white/10 text-white hover:text-white hover:border-white/20 transition-all"
+                  className="h-16 w-24 rounded-xl border-border bg-secondary/50 hover:bg-secondary text-foreground hover:text-foreground hover:border-border/80 transition-all"
                   onClick={handleReset}
                   disabled={isRunning}
                 >
@@ -266,7 +326,7 @@ export function Stopwatch() {
                 <Button
                   variant="outline"
                   size="icon"
-                  className="h-16 w-24 rounded-xl border-white/10 bg-white/5 hover:bg-white/10 text-white hover:text-white hover:border-white/20 transition-all"
+                  className="h-16 w-24 rounded-xl border-border bg-secondary/50 hover:bg-secondary text-foreground hover:text-foreground hover:border-border/80 transition-all"
                   onClick={() => setIsFullScreen(false)}
                 >
                   <Minimize2 className="h-8 w-8" />

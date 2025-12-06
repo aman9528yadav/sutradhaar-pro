@@ -22,9 +22,9 @@ import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 
 const CountdownBox = ({ value, label }: { value: string; label: string }) => (
-  <div className="flex flex-col items-center justify-center bg-white/10 backdrop-blur-md rounded-xl p-2 md:p-3 min-w-[3.5rem] md:min-w-[4rem] border border-white/10 shadow-lg">
-    <span className="text-2xl md:text-3xl font-bold text-white tabular-nums leading-none">{value}</span>
-    <span className="text-[9px] md:text-[10px] font-semibold text-white/70 uppercase tracking-wider mt-1">{label}</span>
+  <div className="flex flex-col items-center justify-center bg-white/90 dark:bg-white/10 backdrop-blur-md rounded-xl p-2 md:p-3 min-w-[3.5rem] md:min-w-[4rem] border border-white/20 dark:border-white/10 shadow-lg">
+    <span className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white tabular-nums leading-none">{value}</span>
+    <span className="text-[9px] md:text-[10px] font-semibold text-gray-700 dark:text-white/70 uppercase tracking-wider mt-1">{label}</span>
   </div>
 );
 
@@ -85,23 +85,23 @@ export function WhatsNewPage() {
           animate={{ opacity: 1, y: 0 }}
           className="relative overflow-hidden rounded-3xl shadow-2xl"
         >
-          <div className="absolute inset-0 bg-gradient-to-br from-violet-600 via-indigo-600 to-purple-700" />
+          <div className="absolute inset-0 bg-gradient-to-br from-indigo-200 via-purple-200 to-blue-200 dark:from-violet-600 dark:via-indigo-600 dark:to-purple-700" />
           <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20" />
 
           {/* Decorative Elements */}
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-          <div className="absolute bottom-0 left-0 w-48 h-48 bg-black/10 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2" />
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 dark:bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+          <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 dark:bg-black/10 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2" />
 
-          <div className="relative p-6 md:p-12 text-center text-white space-y-8">
+          <div className="relative p-6 md:p-12 text-center space-y-8">
             <div className="space-y-4">
-              <Badge className="bg-white/20 hover:bg-white/30 text-white border-none backdrop-blur-md px-3 py-1 text-sm">
+              <Badge className="bg-white/90 hover:bg-white dark:bg-white/20 dark:hover:bg-white/30 text-gray-900 dark:text-white border-none backdrop-blur-md px-3 py-1 text-sm">
                 <Sparkles className="w-3 h-3 mr-2" />
                 Next Major Update
               </Badge>
-              <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight">
+              <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight text-gray-900 dark:text-white">
                 Coming Soon
               </h1>
-              <p className="text-base md:text-lg text-indigo-100 max-w-2xl mx-auto leading-relaxed">
+              <p className="text-base md:text-lg text-gray-900 dark:text-indigo-100 max-w-2xl mx-auto leading-relaxed font-medium">
                 We're working hard on the next release. Get ready for new features, performance improvements, and a smoother experience.
               </p>
             </div>
@@ -114,17 +114,17 @@ export function WhatsNewPage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl mx-auto text-left mt-8">
-              <div className="bg-white/10 backdrop-blur-md rounded-xl p-5 border border-white/10">
-                <div className="flex items-center gap-2 mb-2 text-indigo-200 font-semibold text-sm uppercase tracking-wider">
+              <div className="bg-white/20 dark:bg-white/10 backdrop-blur-md rounded-xl p-5 border border-white/25 dark:border-white/10">
+                <div className="flex items-center gap-2 mb-2 text-gray-900 dark:text-indigo-200 font-semibold text-sm uppercase tracking-wider">
                   <Zap className="w-4 h-4" /> Focus Area
                 </div>
-                <div className="text-xl font-bold">{category}</div>
+                <div className="text-xl font-bold text-gray-900 dark:text-white">{category}</div>
               </div>
-              <div className="bg-white/10 backdrop-blur-md rounded-xl p-5 border border-white/10">
-                <div className="flex items-center gap-2 mb-2 text-indigo-200 font-semibold text-sm uppercase tracking-wider">
+              <div className="bg-white/20 dark:bg-white/10 backdrop-blur-md rounded-xl p-5 border border-white/25 dark:border-white/10">
+                <div className="flex items-center gap-2 mb-2 text-gray-900 dark:text-indigo-200 font-semibold text-sm uppercase tracking-wider">
                   <Rocket className="w-4 h-4" /> Sneak Peek
                 </div>
-                <p className="text-sm leading-relaxed whitespace-pre-line opacity-90">
+                <p className="text-sm leading-relaxed whitespace-pre-line text-gray-900 dark:text-white/90 font-medium">
                   {upcomingFeatureDetails}
                 </p>
               </div>

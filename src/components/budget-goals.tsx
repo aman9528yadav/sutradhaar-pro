@@ -106,7 +106,7 @@ export function BudgetGoals() {
                 </Dialog>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4">
                 {goals.map(goal => {
                     const progress = (goal.currentAmount / goal.targetAmount) * 100;
                     const isEditing = editingGoal?.id === goal.id;

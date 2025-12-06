@@ -41,7 +41,7 @@ export default function RootLayout({
         <meta name="theme-color" content="#f1f5f9" />
         <link rel="dns-prefetch" href="https://comic-clam-51.clerk.accounts.dev" />
       </head>
-      <body className="theme-sutradhaar" suppressHydrationWarning>
+      <body suppressHydrationWarning>
         <ClerkProvider publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}>
           <ThemeProvider
             attribute="class"

@@ -418,7 +418,7 @@ export function GlobalSearchBar() {
             {/* Search Button in Header - Icon Only */}
             <button
                 onClick={() => setIsOpen(true)}
-                className="p-2 rounded-lg hover:bg-white/10 transition-colors text-white/60 hover:text-white"
+                className="p-2 rounded-lg hover:bg-accent transition-colors text-muted-foreground hover:text-foreground"
                 aria-label="Search (Cmd+K)"
             >
                 <Search className="h-5 w-5" />
@@ -438,17 +438,17 @@ export function GlobalSearchBar() {
                     />
 
                     {/* Search Panel */}
-                    <div className="relative w-full max-w-2xl bg-slate-900 rounded-2xl shadow-2xl border border-white/10 overflow-hidden">
+                    <div className="relative w-full max-w-2xl bg-background border-border rounded-2xl shadow-2xl border overflow-hidden">
                         {/* Search Input */}
-                        <div className="flex items-center gap-3 p-4 border-b border-white/10">
-                            <Search className="h-5 w-5 text-white/40" />
+                        <div className="flex items-center gap-3 p-4 border-b border-border">
+                            <Search className="h-5 w-5 text-muted-foreground" />
                             <Input
                                 ref={inputRef}
                                 type="text"
                                 value={query}
                                 onChange={(e) => setQuery(e.target.value)}
                                 placeholder="Search everything..."
-                                className="flex-1 bg-transparent border-none text-white placeholder:text-white/40 focus-visible:ring-0 focus-visible:ring-offset-0 text-lg"
+                                className="flex-1 bg-transparent border-none text-foreground placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0 text-lg"
                                 autoFocus
                             />
                             {query && (
@@ -457,9 +457,9 @@ export function GlobalSearchBar() {
                                         setQuery('');
                                         setResults([]);
                                     }}
-                                    className="p-1 hover:bg-white/10 rounded-lg transition-colors"
+                                    className="p-1 hover:bg-accent rounded-lg transition-colors"
                                 >
-                                    <X className="h-4 w-4 text-white/40" />
+                                    <X className="h-4 w-4 text-muted-foreground" />
                                 </button>
                             )}
                         </div>
@@ -472,77 +472,77 @@ export function GlobalSearchBar() {
                                         key={idx}
                                         onClick={result.action}
                                         className={cn(
-                                            "w-full flex items-center gap-3 p-4 hover:bg-white/5 transition-colors border-b border-white/5 text-left",
-                                            selectedIndex === idx && "bg-white/10"
+                                            "w-full flex items-center gap-3 p-4 hover:bg-accent transition-colors border-b border-border text-left",
+                                            selectedIndex === idx && "bg-accent"
                                         )}
                                     >
                                         <div className="flex-shrink-0">
                                             {result.icon}
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <div className="text-sm font-medium text-white truncate">
+                                            <div className="text-sm font-medium text-foreground truncate">
                                                 {result.title}
                                             </div>
-                                            <div className="text-xs text-white/50 truncate">
+                                            <div className="text-xs text-muted-foreground truncate">
                                                 {result.description}
                                             </div>
                                         </div>
-                                        <ArrowRight className="h-4 w-4 text-white/30 flex-shrink-0" />
+                                        <ArrowRight className="h-4 w-4 text-muted-foreground/50 flex-shrink-0" />
                                     </button>
                                 ))}
                             </div>
                         ) : query ? (
-                            <div className="p-8 text-center text-white/40">
+                            <div className="p-8 text-center text-muted-foreground">
                                 <Search className="h-12 w-12 mx-auto mb-3 opacity-20" />
                                 <p className="text-sm">No results found</p>
                                 <p className="text-xs mt-1">Try searching for conversions, history, budget, notes, or todos</p>
                             </div>
                         ) : (
                             <div className="p-8">
-                                <div className="text-xs text-white/40 mb-4">Quick Actions</div>
+                                <div className="text-xs text-muted-foreground mb-4">Quick Actions</div>
                                 <div className="grid grid-cols-2 gap-3">
                                     <button
                                         onClick={() => {
                                             router.push('/converter');
                                             setIsOpen(false);
                                         }}
-                                        className="flex items-center gap-2 p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors text-left"
+                                        className="flex items-center gap-2 p-3 rounded-lg bg-accent/50 hover:bg-accent transition-colors text-left"
                                     >
                                         <Calculator className="h-4 w-4 text-blue-400" />
-                                        <span className="text-sm text-white">Converter</span>
+                                        <span className="text-sm text-foreground">Converter</span>
                                     </button>
                                     <button
                                         onClick={() => {
                                             router.push('/history');
                                             setIsOpen(false);
                                         }}
-                                        className="flex items-center gap-2 p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors text-left"
+                                        className="flex items-center gap-2 p-3 rounded-lg bg-accent/50 hover:bg-accent transition-colors text-left"
                                     >
                                         <History className="h-4 w-4 text-green-400" />
-                                        <span className="text-sm text-white">History</span>
+                                        <span className="text-sm text-foreground">History</span>
                                     </button>
                                     <button
                                         onClick={() => {
                                             router.push('/budget');
                                             setIsOpen(false);
                                         }}
-                                        className="flex items-center gap-2 p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors text-left"
+                                        className="flex items-center gap-2 p-3 rounded-lg bg-accent/50 hover:bg-accent transition-colors text-left"
                                     >
                                         <DollarSign className="h-4 w-4 text-yellow-400" />
-                                        <span className="text-sm text-white">Budget</span>
+                                        <span className="text-sm text-foreground">Budget</span>
                                     </button>
                                     <button
                                         onClick={() => {
                                             router.push('/notes');
                                             setIsOpen(false);
                                         }}
-                                        className="flex items-center gap-2 p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors text-left"
+                                        className="flex items-center gap-2 p-3 rounded-lg bg-accent/50 hover:bg-accent transition-colors text-left"
                                     >
                                         <StickyNote className="h-4 w-4 text-orange-400" />
-                                        <span className="text-sm text-white">Notes</span>
+                                        <span className="text-sm text-foreground">Notes</span>
                                     </button>
                                 </div>
-                                <div className="mt-6 text-xs text-white/30 space-y-1">
+                                <div className="mt-6 text-xs text-muted-foreground/70 space-y-1">
                                     <p>💡 Try: "5 km to m" for quick conversion</p>
                                     <p>💡 Try: "100 usd to inr" for currency</p>
                                     <p>💡 Try: "5 feet 10 inches" for auto-detect</p>
@@ -551,16 +551,16 @@ export function GlobalSearchBar() {
                         )}
 
                         {/* Footer */}
-                        <div className="flex items-center justify-between px-4 py-2 bg-white/5 border-t border-white/10 text-xs text-white/40">
+                        <div className="flex items-center justify-between px-4 py-2 bg-accent/50 border-t border-border text-xs text-muted-foreground">
                             <div className="flex items-center gap-4">
                                 <span className="flex items-center gap-1">
-                                    <kbd className="px-1.5 py-0.5 bg-white/10 rounded">↑↓</kbd> Navigate
+                                    <kbd className="px-1.5 py-0.5 bg-accent rounded">↑↓</kbd> Navigate
                                 </span>
                                 <span className="flex items-center gap-1">
-                                    <kbd className="px-1.5 py-0.5 bg-white/10 rounded">↵</kbd> Select
+                                    <kbd className="px-1.5 py-0.5 bg-accent rounded">↵</kbd> Select
                                 </span>
                                 <span className="flex items-center gap-1">
-                                    <kbd className="px-1.5 py-0.5 bg-white/10 rounded">esc</kbd> Close
+                                    <kbd className="px-1.5 py-0.5 bg-accent rounded">esc</kbd> Close
                                 </span>
                             </div>
                         </div>

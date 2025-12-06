@@ -47,37 +47,44 @@ export function DiscountCalculator() {
         <div className="space-y-6 pb-24">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-white">Discount Calculator</h1>
-                    <p className="text-sm text-white/60">Calculate final price with multiple discounts and tax</p>
+                    <h1 className="text-2xl font-bold text-foreground">Discount Calculator</h1>
+                    <p className="text-sm text-muted-foreground">Calculate final price with multiple discounts and tax</p>
                 </div>
             </div>
 
             <div className="flex flex-col gap-6 max-w-md mx-auto">
                 {/* Input Card */}
-                <Card className="bg-white/5 border-white/10 backdrop-blur-xl h-fit">
+                <Card className="bg-card border-border h-fit">
                     <CardHeader>
-                        <CardTitle className="text-white">Price Details</CardTitle>
+                        <CardTitle>Price Details</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-6">
                         {/* Original Price */}
                         <div className="space-y-3">
-                            <Label className="text-white">Original Price</Label>
+                            <Label>Original Price</Label>
                             <div className="relative">
-                                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
+                                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                 <Input
                                     type="number"
                                     value={originalPrice}
                                     onChange={(e) => setOriginalPrice(Number(e.target.value))}
-                                    className="pl-9 bg-white/5 border-white/10 text-white text-lg font-bold"
+                                    className="pl-9 text-lg font-bold"
                                 />
                             </div>
                         </div>
 
                         {/* Discount 1 */}
                         <div className="space-y-3">
-                            <div className="flex justify-between">
-                                <Label className="text-white">Discount (%)</Label>
-                                <span className="text-primary font-bold">{discount1}%</span>
+                            <div className="flex justify-between items-center">
+                                <Label>Discount (%)</Label>
+                                <Input
+                                    type="number"
+                                    min="0"
+                                    max="100"
+                                    value={discount1}
+                                    onChange={(e) => setDiscount1(Math.min(100, Math.max(0, Number(e.target.value))))}
+                                    className="w-20 h-8 text-right font-bold text-primary border-primary/20 bg-primary/5"
+                                />
                             </div>
                             <Slider
                                 value={[discount1]}
@@ -89,10 +96,17 @@ export function DiscountCalculator() {
                         </div>
 
                         {/* Discount 2 (Optional) */}
-                        <div className="space-y-3 pt-2 border-t border-white/5">
+                        <div className="space-y-3 pt-4 border-t border-border">
                             <div className="flex justify-between items-center">
-                                <Label className="text-white">Extra Discount (%)</Label>
-                                <span className="text-orange-400 font-bold">{discount2}%</span>
+                                <Label>Extra Discount (%)</Label>
+                                <Input
+                                    type="number"
+                                    min="0"
+                                    max="100"
+                                    value={discount2}
+                                    onChange={(e) => setDiscount2(Math.min(100, Math.max(0, Number(e.target.value))))}
+                                    className="w-20 h-8 text-right font-bold text-orange-500 border-orange-500/20 bg-orange-500/5"
+                                />
                             </div>
                             <Slider
                                 value={[discount2]}
@@ -104,10 +118,17 @@ export function DiscountCalculator() {
                         </div>
 
                         {/* Tax */}
-                        <div className="space-y-3 pt-2 border-t border-white/5">
+                        <div className="space-y-3 pt-4 border-t border-border">
                             <div className="flex justify-between items-center">
-                                <Label className="text-white">Tax / VAT (%)</Label>
-                                <span className="text-rose-400 font-bold">{taxRate}%</span>
+                                <Label>Tax / VAT (%)</Label>
+                                <Input
+                                    type="number"
+                                    min="0"
+                                    max="100"
+                                    value={taxRate}
+                                    onChange={(e) => setTaxRate(Math.min(100, Math.max(0, Number(e.target.value))))}
+                                    className="w-20 h-8 text-right font-bold text-rose-500 border-rose-500/20 bg-rose-500/5"
+                                />
                             </div>
                             <Slider
                                 value={[taxRate]}
@@ -122,17 +143,17 @@ export function DiscountCalculator() {
 
                 {/* Result Card */}
                 <div className="space-y-4">
-                    <Card className="bg-gradient-to-br from-emerald-500/20 to-emerald-500/5 border-emerald-500/20 backdrop-blur-xl overflow-hidden relative">
-                        <div className="absolute top-0 right-0 p-4 opacity-10">
-                            <Tag className="h-32 w-32 text-white" />
+                    <Card className="bg-card border-border overflow-hidden relative">
+                        <div className="absolute top-0 right-0 p-4 opacity-5">
+                            <Tag className="h-32 w-32 text-foreground" />
                         </div>
                         <CardContent className="p-8 flex flex-col items-center justify-center text-center min-h-[200px]">
-                            <p className="text-white/60 mb-2 font-medium uppercase tracking-wider text-sm">Final Price</p>
-                            <h2 className="text-6xl font-bold text-white mb-4 tracking-tight">
+                            <p className="text-muted-foreground mb-2 font-medium uppercase tracking-wider text-sm">Final Price</p>
+                            <h2 className="text-6xl font-bold text-foreground mb-4 tracking-tight">
                                 {finalPrice.toLocaleString()}
                             </h2>
                             {taxAmount > 0 && (
-                                <p className="text-white/40 text-sm flex items-center gap-1">
+                                <p className="text-muted-foreground text-sm flex items-center gap-1">
                                     (Includes {taxAmount.toLocaleString()} tax)
                                 </p>
                             )}
@@ -140,16 +161,16 @@ export function DiscountCalculator() {
                     </Card>
 
                     <div className="grid grid-cols-2 gap-4">
-                        <Card className="bg-white/5 border-white/10 backdrop-blur-xl">
+                        <Card className="bg-card border-border">
                             <CardContent className="p-4">
-                                <p className="text-white/40 text-xs uppercase tracking-wider mb-1">You Save</p>
-                                <p className="text-2xl font-bold text-emerald-400">{totalSavings.toLocaleString()}</p>
+                                <p className="text-muted-foreground text-xs uppercase tracking-wider mb-1">You Save</p>
+                                <p className="text-2xl font-bold text-emerald-500">{totalSavings.toLocaleString()}</p>
                             </CardContent>
                         </Card>
-                        <Card className="bg-white/5 border-white/10 backdrop-blur-xl">
+                        <Card className="bg-card border-border">
                             <CardContent className="p-4">
-                                <p className="text-white/40 text-xs uppercase tracking-wider mb-1">Effective Rate</p>
-                                <p className="text-2xl font-bold text-orange-400">
+                                <p className="text-muted-foreground text-xs uppercase tracking-wider mb-1">Effective Rate</p>
+                                <p className="text-2xl font-bold text-orange-500">
                                     {Math.round((totalSavings / originalPrice) * 100)}%
                                 </p>
                             </CardContent>

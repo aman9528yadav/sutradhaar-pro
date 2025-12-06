@@ -406,14 +406,14 @@ export function UnitConverter() {
     const unitDetails = availableUnits.find(u => u.name === value);
     return (
       <Select value={value} onValueChange={onChange}>
-        <SelectTrigger className="w-full bg-black/20 border-white/10 text-white backdrop-blur-sm h-12 rounded-xl focus:ring-white/20">
+        <SelectTrigger className="w-full bg-muted border-border backdrop-blur-sm h-12 rounded-xl">
           <SelectValue>
             {unitDetails ? `${unitDetails.name} (${unitDetails.symbol})` : label}
           </SelectValue>
         </SelectTrigger>
-        <SelectContent className="bg-slate-900 border-white/10 text-white">
+        <SelectContent className="bg-background border-border max-h-[300px]">
           {availableUnits.map((unit) => (
-            <SelectItem key={unit.name} value={unit.name} className="focus:bg-white/10 focus:text-white">
+            <SelectItem key={unit.name} value={unit.name} className="focus:bg-accent">
               {`${unit.name} (${unit.symbol})`}
             </SelectItem>
           ))}
@@ -428,43 +428,43 @@ export function UnitConverter() {
 
   return (
     <div className="space-y-6 w-full max-w-md mx-auto pb-20">
-      <Card className="bg-white/10 backdrop-blur-xl border-white/20 shadow-2xl rounded-3xl overflow-hidden relative">
+      <Card className="overflow-hidden border-2">
         {/* Glow Effects */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-1 bg-gradient-to-r from-transparent via-white/50 to-transparent opacity-50" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
 
         <CardContent className="p-6 space-y-8">
           {/* Top Controls: Region & Category */}
           <div className="flex gap-3">
             <div className="w-1/3">
               <Select value={region} onValueChange={setRegion}>
-                <SelectTrigger className="w-full bg-black/20 border-white/10 text-white h-10 rounded-xl focus:ring-white/20">
+                <SelectTrigger className="w-full bg-muted border-border h-10 rounded-xl">
                   <SelectValue placeholder="Region" />
                 </SelectTrigger>
-                <SelectContent className="bg-slate-900 border-white/10 text-white">
-                  <SelectItem value="International" className="focus:bg-white/10">International</SelectItem>
-                  <SelectItem value="Local" className="focus:bg-white/10">Local (Indian)</SelectItem>
+                <SelectContent className="bg-background border-border">
+                  <SelectItem value="International" className="focus:bg-accent">International</SelectItem>
+                  <SelectItem value="Local" className="focus:bg-accent">Local (Indian)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="flex-1">
               <Select value={category} onValueChange={handleCategoryChange}>
-                <SelectTrigger className="w-full bg-black/20 border-white/10 text-white h-10 rounded-xl focus:ring-white/20">
+                <SelectTrigger className="w-full bg-muted border-border h-10 rounded-xl">
                   <div className="flex items-center gap-2 truncate">
                     {React.createElement(activeCategory.icon, { className: 'h-4 w-4 shrink-0' })}
                     <span className="truncate">{category}</span>
                   </div>
                 </SelectTrigger>
-                <SelectContent className="bg-slate-900 border-white/10 text-white max-h-[300px]">
+                <SelectContent className="bg-background border-border max-h-[300px]">
                   {CATEGORIES.map((cat) => {
                     const isPremiumCategory = premiumCategories.includes(cat.name);
                     return (
-                      <SelectItem key={cat.name} value={cat.name} disabled={isPremiumCategory && !isPremium} className="focus:bg-white/10">
+                      <SelectItem key={cat.name} value={cat.name} disabled={isPremiumCategory && !isPremium} className="focus:bg-accent">
                         <div className="flex items-center justify-between w-full gap-2">
                           <div className="flex items-center gap-2">
                             <cat.icon className="h-4 w-4" />
                             <span>{cat.name}</span>
                           </div>
-                          {isPremiumCategory && !isPremium && <Lock className="h-3 w-3 text-white/40" />}
+                          {isPremiumCategory && !isPremium && <Lock className="h-3 w-3 text-muted-foreground" />}
                         </div>
                       </SelectItem>
                     )
@@ -477,7 +477,7 @@ export function UnitConverter() {
           {/* NEW: Precision Control */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label className="text-xs text-white/60 flex items-center gap-2">
+              <Label className="text-xs text-muted-foreground flex items-center gap-2">
                 <Settings2 className="h-3 w-3" />
                 Precision: {precision} decimals
               </Label>
@@ -498,7 +498,7 @@ export function UnitConverter() {
               variant="outline"
               size="sm"
               onClick={() => setShowQuickConversions(!showQuickConversions)}
-              className="flex-1 bg-transparent border-white/20 text-white hover:bg-white/10 rounded-xl"
+              className="flex-1 bg-transparent border-border hover:bg-accent rounded-xl"
             >
               <Zap className="h-3 w-3 mr-1" />
               Quick
@@ -507,7 +507,7 @@ export function UnitConverter() {
               variant="outline"
               size="sm"
               onClick={() => setShowSmartSuggestions(!showSmartSuggestions)}
-              className="flex-1 bg-transparent border-white/20 text-white hover:bg-white/10 rounded-xl"
+              className="flex-1 bg-transparent border-border hover:bg-accent rounded-xl"
             >
               <Lightbulb className="h-3 w-3 mr-1" />
               Suggest
@@ -516,7 +516,7 @@ export function UnitConverter() {
               variant="outline"
               size="sm"
               onClick={handleAutoDetect}
-              className="flex-1 bg-transparent border-white/20 text-white hover:bg-white/10 rounded-xl"
+              className="flex-1 bg-transparent border-border hover:bg-accent rounded-xl"
             >
               <Sparkles className="h-3 w-3 mr-1" />
               Detect
@@ -532,13 +532,13 @@ export function UnitConverter() {
                   variant="outline"
                   size="sm"
                   onClick={() => loadQuickConversion(quick)}
-                  className="bg-white/5 border-white/10 text-white hover:bg-white/10 rounded-lg h-auto py-2 flex flex-col items-start"
+                  className="bg-accent border-border hover:bg-accent/80 rounded-lg h-auto py-2 flex flex-col items-start"
                 >
                   <div className="flex items-center gap-1 text-xs">
                     <span>{quick.icon}</span>
                     <span className="font-semibold">{quick.label}</span>
                   </div>
-                  <span className="text-[10px] text-white/50">{quick.description}</span>
+                  <span className="text-[10px] text-muted-foreground">{quick.description}</span>
                 </Button>
               ))}
             </div>
@@ -547,7 +547,7 @@ export function UnitConverter() {
           {/* NEW: Smart Suggestions Panel */}
           {showSmartSuggestions && smartSuggestions.length > 0 && (
             <div className="space-y-2">
-              <Label className="text-xs text-white/60">Suggested for {category}</Label>
+              <Label className="text-xs text-muted-foreground">Suggested for {category}</Label>
               <div className="space-y-1">
                 {smartSuggestions.map((suggestion, idx) => (
                   <Button
@@ -555,11 +555,11 @@ export function UnitConverter() {
                     variant="outline"
                     size="sm"
                     onClick={() => applySuggestion(suggestion)}
-                    className="w-full bg-white/5 border-white/10 text-white hover:bg-white/10 rounded-lg justify-start"
+                    className="w-full bg-accent border-border hover:bg-accent/80 rounded-lg justify-start"
                   >
                     <span className="mr-2">{suggestion.icon}</span>
                     <span className="text-xs">{suggestion.fromUnit} → {suggestion.toUnit}</span>
-                    <span className="ml-auto text-[10px] text-white/50">{suggestion.reason}</span>
+                    <span className="ml-auto text-[10px] text-muted-foreground">{suggestion.reason}</span>
                   </Button>
                 ))}
               </div>
@@ -577,9 +577,9 @@ export function UnitConverter() {
             {/* From Section */}
             <div className="space-y-2">
               <div className="flex justify-between items-center px-1">
-                <label className="text-xs font-medium text-white/50">From</label>
+                <label className="text-xs font-medium text-muted-foreground">From</label>
                 {fromUnitDetails?.isStandard && (
-                  <span className="text-[10px] bg-white/10 text-white/80 px-2 py-0.5 rounded-full flex items-center gap-1">
+                  <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full flex items-center gap-1">
                     <Info className="h-3 w-3" /> Standard
                   </span>
                 )}
@@ -589,7 +589,7 @@ export function UnitConverter() {
                   type="number"
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
-                  className="flex-1 text-3xl font-bold h-14 px-4 border-white/10 bg-black/20 text-white placeholder:text-white/20 focus-visible:ring-white/20 rounded-xl"
+                  className="flex-1 text-3xl font-bold h-14 px-4 border-border bg-muted placeholder:text-muted-foreground rounded-xl"
                   placeholder="0"
                 />
                 <div className="w-[40%]">
@@ -603,7 +603,7 @@ export function UnitConverter() {
               <Button
                 variant="outline"
                 size="icon"
-                className="rounded-full bg-slate-900 border-white/20 text-white hover:bg-slate-800 hover:text-white h-10 w-10 shadow-lg shadow-black/50 transition-transform hover:scale-110 active:scale-95"
+                className="rounded-full bg-card border-border hover:bg-accent h-10 w-10 shadow-lg transition-transform hover:scale-110 active:scale-95"
                 onClick={handleSwap}
               >
                 <ArrowRightLeft className="h-4 w-4" />
@@ -613,19 +613,19 @@ export function UnitConverter() {
             {/* To Section */}
             <div className="space-y-2">
               <div className="flex justify-between items-center px-1">
-                <label className="text-xs font-medium text-white/50">To</label>
+                <label className="text-xs font-medium text-muted-foreground">To</label>
                 <div className="flex gap-1">
-                  <Button variant="ghost" size="icon" className="h-8 w-8 text-white/40 hover:text-white hover:bg-white/10 rounded-full" onClick={handleCopy}>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-accent rounded-full" onClick={handleCopy}>
                     <Copy className="h-4 w-4" />
                   </Button>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 text-white/40 hover:text-white hover:bg-white/10 rounded-full" onClick={handleFavoriteToggle}>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-accent rounded-full" onClick={handleFavoriteToggle}>
                     <Star className={cn("h-4 w-4", isFavorited && "fill-current text-yellow-400 text-yellow-400")} />
                   </Button>
                 </div>
               </div>
               <div className="flex gap-3 items-center">
-                <div className="flex-1 h-14 px-4 flex items-center bg-white/5 border border-white/10 rounded-xl overflow-hidden">
-                  <span className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white to-white/60 truncate">
+                <div className="flex-1 h-14 px-4 flex items-center bg-muted border border-border rounded-xl overflow-hidden">
+                  <span className="text-3xl font-bold text-foreground truncate">
                     {result ? formatIndianNumber(parseFloat(result)) : '0'}
                   </span>
                 </div>
@@ -639,7 +639,7 @@ export function UnitConverter() {
           {/* Conversion Info */}
           {conversionInfo && (
             <div className="text-center">
-              <span className="inline-block px-3 py-1 rounded-full bg-white/5 text-xs text-white/60 border border-white/5">
+              <span className="inline-block px-3 py-1 rounded-full bg-accent text-xs text-muted-foreground border border-border">
                 {conversionInfo}
               </span>
             </div>
@@ -652,7 +652,7 @@ export function UnitConverter() {
                 <span className="text-2xl">{realWorldComp.icon}</span>
                 <div className="flex-1">
                   <div className="text-xs text-purple-400 font-semibold">Real-World Comparison</div>
-                  <div className="text-sm text-white/80">{realWorldComp.comparison}</div>
+                  <div className="text-sm text-foreground">{realWorldComp.comparison}</div>
                 </div>
               </div>
             </div>
@@ -660,9 +660,9 @@ export function UnitConverter() {
 
           {/* NEW: Visual Comparison */}
           {visualScale.length > 0 && showVisualComparison && (
-            <div className="bg-white/5 border border-white/10 rounded-xl p-4">
+            <div className="bg-accent/50 border border-border rounded-xl p-4">
               <div className="flex items-center justify-between mb-3">
-                <Label className="text-xs text-white/60 flex items-center gap-2">
+                <Label className="text-xs text-muted-foreground flex items-center gap-2">
                   <BarChart3 className="h-3 w-3" />
                   Visual Comparison
                 </Label>
@@ -671,10 +671,10 @@ export function UnitConverter() {
                 {visualScale.map((scale, idx) => (
                   <div key={idx} className="space-y-1">
                     <div className="flex justify-between text-xs">
-                      <span className="text-white/70">{scale.label}</span>
-                      <span className="text-white/50">{scale.percentage.toFixed(1)}%</span>
+                      <span className="text-foreground">{scale.label}</span>
+                      <span className="text-muted-foreground">{scale.percentage.toFixed(1)}%</span>
                     </div>
-                    <div className="h-6 bg-white/5 rounded-full overflow-hidden">
+                    <div className="h-6 bg-muted rounded-full overflow-hidden">
                       <div
                         className="h-full rounded-full transition-all duration-500"
                         style={{
@@ -706,7 +706,7 @@ export function UnitConverter() {
               variant="outline"
               size="sm"
               onClick={() => setShowFormula(!showFormula)}
-              className="bg-transparent border-white/20 text-white hover:bg-white/10 hover:text-white rounded-xl"
+              className="bg-transparent border-border text-foreground hover:bg-accent rounded-xl"
             >
               <Info className='h-4 w-4 mr-1' />
               Formula
@@ -715,7 +715,7 @@ export function UnitConverter() {
               variant="outline"
               size="sm"
               onClick={() => setShowAllConversions(!showAllConversions)}
-              className="bg-transparent border-white/20 text-white hover:bg-white/10 hover:text-white rounded-xl"
+              className="bg-transparent border-border text-foreground hover:bg-accent rounded-xl"
             >
               {showAllConversions ? <ChevronUp className='h-4 w-4 mr-1' /> : <ChevronDown className='h-4 w-4 mr-1' />}
               All
@@ -724,7 +724,7 @@ export function UnitConverter() {
               variant="outline"
               size="sm"
               onClick={() => setShowVisualComparison(!showVisualComparison)}
-              className="bg-transparent border-white/20 text-white hover:bg-white/10 hover:text-white rounded-xl"
+              className="bg-transparent border-border text-foreground hover:bg-accent rounded-xl"
             >
               <BarChart3 className='h-4 w-4 mr-1' />
               Chart
@@ -732,7 +732,7 @@ export function UnitConverter() {
             <Button
               size="sm"
               onClick={handleAddToHistory}
-              className="bg-white text-black hover:bg-white/90 rounded-xl font-semibold shadow-lg shadow-white/10"
+              className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl font-semibold shadow-lg"
             >
               <Power className='h-4 w-4 mr-1' />
               Save
@@ -745,12 +745,12 @@ export function UnitConverter() {
               <CollapsibleContent>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between mb-2">
-                    <Label className="text-xs text-white/60">All Conversions</Label>
+                    <Label className="text-xs text-muted-foreground">All Conversions</Label>
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={copyAllConversions}
-                      className="h-7 text-xs text-white/60 hover:text-white"
+                      className="h-7 text-xs text-muted-foreground hover:text-foreground"
                     >
                       <Copy className="h-3 w-3 mr-1" />
                       Copy All
@@ -761,15 +761,15 @@ export function UnitConverter() {
                       <div
                         key={idx}
                         className={cn(
-                          "p-3 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-colors",
+                          "p-3 rounded-lg bg-accent border border-border hover:bg-accent/80 transition-colors",
                           conversion.isStandard && "border-blue-500/30 bg-blue-500/5"
                         )}
                       >
-                        <div className="text-xs text-white/50 mb-1">{conversion.unit}</div>
-                        <div className="text-lg font-bold text-white truncate">
+                        <div className="text-xs text-muted-foreground mb-1">{conversion.unit}</div>
+                        <div className="text-lg font-bold text-foreground truncate">
                           {formatIndianNumber(conversion.value)}
                         </div>
-                        <div className="text-xs text-white/40">{conversion.symbol}</div>
+                        <div className="text-xs text-muted-foreground/70">{conversion.symbol}</div>
                       </div>
                     ))}
                   </div>
@@ -785,24 +785,24 @@ export function UnitConverter() {
       {conversionHistory.length > 0 && (
         <div className="space-y-3">
           <div className="flex justify-between items-center px-2">
-            <h3 className="text-sm font-medium text-white/60 flex items-center gap-2">
+            <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
               <History className='h-4 w-4' />
               Recent
             </h3>
-            <Button asChild variant="link" className="text-white/60 hover:text-white text-xs h-auto p-0">
+            <Button asChild variant="link" className="text-muted-foreground hover:text-foreground text-xs h-auto p-0">
               <Link href="/history">View All</Link>
             </Button>
           </div>
           <div className="space-y-2">
             {conversionHistory.map((item) => (
-              <div key={item.id} className="p-3 rounded-xl bg-white/5 border border-white/5 flex justify-between items-center group hover:bg-white/10 transition-colors">
-                <div className='flex items-center text-sm text-white/80'>
+              <div key={item.id} className="p-3 rounded-xl bg-accent border border-border flex justify-between items-center group hover:bg-accent/80 transition-colors">
+                <div className='flex items-center text-sm text-foreground'>
                   <span>{`${item.fromValue} ${item.fromUnit.split(' ')[0]}`}</span>
-                  <ArrowRightLeft className="h-3 w-3 mx-2 text-white/40" />
-                  <span className="font-semibold text-white">{`${item.toValue} ${item.toUnit.split(' ')[0]}`}</span>
+                  <ArrowRightLeft className="h-3 w-3 mx-2 text-muted-foreground" />
+                  <span className="font-semibold text-foreground">{`${item.toValue} ${item.toUnit.split(' ')[0]}`}</span>
                 </div>
                 <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Button variant="ghost" size="icon" className="h-8 w-8 text-white/40 hover:text-white hover:bg-white/10 rounded-full" onClick={() => handleRestoreHistory(item)}>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-accent rounded-full" onClick={() => handleRestoreHistory(item)}>
                     <Undo2 className="h-4 w-4" />
                   </Button>
                 </div>

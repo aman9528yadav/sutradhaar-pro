@@ -19,9 +19,17 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { MuiDatePicker } from './mui-date-picker';
-import { Plus, X, ListTodo } from 'lucide-react';
+
+import { Plus, X, ListTodo, Calendar as CalendarIcon } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
+import { Calendar } from '@/components/ui/calendar';
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from '@/components/ui/popover';
 
 interface AddTodoDialogProps {
     open: boolean;
@@ -133,11 +141,33 @@ export function AddTodoDialog({ open, onOpenChange, todo }: AddTodoDialogProps) 
                         </div>
 
                         <div className="space-y-2">
-                            <MuiDatePicker
-                                label="Due Date"
-                                value={dueDate}
-                                onChange={setDueDate}
-                            />
+                            <Label>Due Date</Label>
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button
+                                        variant={"outline"}
+                                        className={cn(
+                                            "w-full pl-3 text-left font-normal border-input bg-background hover:bg-accent hover:text-accent-foreground",
+                                            !dueDate && "text-muted-foreground"
+                                        )}
+                                    >
+                                        {dueDate ? format(dueDate, "PPP") : <span>Due Date</span>}
+                                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0 bg-card border-border" align="start">
+                                    <Calendar
+                                        mode="single"
+                                        selected={dueDate}
+                                        onSelect={setDueDate}
+                                        initialFocus
+                                        captionLayout="dropdown-buttons"
+                                        fromYear={2000}
+                                        toYear={2100}
+                                        className="bg-card text-foreground rounded-md border-border"
+                                    />
+                                </PopoverContent>
+                            </Popover>
                         </div>
                     </div>
 
