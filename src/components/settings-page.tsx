@@ -181,7 +181,7 @@ export function SettingsPage() {
   const { profile, setProfile, deleteAllUserData } = useProfile();
 
   const { user } = useAuth(); // Firebase user
-  const { maintenanceConfig, setMaintenanceConfig } = useMaintenance();
+  const { maintenanceConfig, setMaintenanceConfig, isDevMode, setDevMode } = useMaintenance();
 
   const router = useRouter();
   const { theme, setTheme } = useTheme();
@@ -314,15 +314,15 @@ export function SettingsPage() {
   const isPremium = profile.membership === 'premium' || profile.membership === 'owner';
 
   const handleDevModeChange = (checked: boolean) => {
-    if (checked && !maintenanceConfig.isDevMode) {
+    if (checked && !isDevMode) {
       if (isOwner) {
-        setMaintenanceConfig(p => ({ ...p, isDevMode: true }));
+        setDevMode(true);
         toast({ title: 'Developer Mode Enabled' });
       } else {
         setIsPasswordDialogOpen(true);
       }
     } else {
-      setMaintenanceConfig(p => ({ ...p, isDevMode: checked }));
+      setDevMode(checked);
       if (!checked) {
         toast({ title: 'Developer Mode Disabled' });
       }
@@ -331,7 +331,7 @@ export function SettingsPage() {
 
   const handlePasswordSubmit = () => {
     if (password === (maintenanceConfig.devPassword || 'aman')) {
-      setMaintenanceConfig(p => ({ ...p, isDevMode: true }));
+      setDevMode(true);
       toast({ title: 'Developer Mode Enabled' });
       router.push('/dev');
     } else {
@@ -342,7 +342,7 @@ export function SettingsPage() {
   };
 
   const handleOpenDevPanelClick = () => {
-    if (maintenanceConfig.isDevMode) {
+    if (isDevMode) {
       router.push('/dev');
     } else {
       setIsPasswordDialogOpen(true);
@@ -350,7 +350,7 @@ export function SettingsPage() {
   };
 
   const handleVersionClick = () => {
-    if (maintenanceConfig.isDevMode) return;
+    if (isDevMode) return;
 
     if (versionClickTimerRef.current) {
       clearTimeout(versionClickTimerRef.current);
@@ -361,7 +361,7 @@ export function SettingsPage() {
 
     if (newClickCount >= 7) {
       if (isOwner) {
-        setMaintenanceConfig(p => ({ ...p, isDevMode: true }));
+        setDevMode(true);
         toast({ title: 'Developer Mode Enabled' });
       } else {
         setIsPasswordDialogOpen(true);

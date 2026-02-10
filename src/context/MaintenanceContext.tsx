@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { rtdb } from '@/lib/firebase';
 import type { Icon as LucideIcon } from 'lucide-react';
 import { DashboardSkeleton } from '@/components/dashboard-skeleton';
+import { useProfile } from './ProfileContext';
 
 
 export type UpdateItem = {
@@ -103,7 +104,6 @@ export type ToastNotificationConfig = {
 export type MaintenanceConfig = {
     globalMaintenance: boolean;
     pageMaintenance: { [key: string]: boolean };
-    isDevMode: boolean;
     devPassword?: string;
     dashboardBanner: {
         show: boolean;
@@ -147,7 +147,6 @@ const MaintenanceContext = createContext<MaintenanceContextType | undefined>(und
 const defaultMaintenanceConfig: MaintenanceConfig = {
     globalMaintenance: false,
     pageMaintenance: {},
-    isDevMode: false,
     devPassword: 'aman',
     dashboardBanner: {
         show: true,
@@ -273,8 +272,15 @@ const sanitizePathForKey = (path: string) => {
 
 export const MaintenanceProvider = ({ children }: { children: ReactNode }) => {
     const [isLoading, setIsLoading] = useState(true);
+    const [isDevMode, setIsDevModeLocal] = useState(false);
     const [maintenanceConfig, setMaintenanceConfigState] = useState<MaintenanceConfig>(defaultMaintenanceConfig);
     const configRef = React.useMemo(() => rtdb ? ref(rtdb, 'config/main') : null, []);
+
+    // Load isDevMode from localStorage on mount
+    useEffect(() => {
+        const saved = localStorage.getItem('sutradhaar_dev_mode');
+        if (saved === 'true') setIsDevModeLocal(true);
+    }, []);
 
     const updateConfigInDb = async (config: MaintenanceConfig) => {
         if (!configRef) return;
@@ -342,7 +348,13 @@ export const MaintenanceProvider = ({ children }: { children: ReactNode }) => {
                     featureFlags: { ...defaultMaintenanceConfig.featureFlags, ...(dbConfig.featureFlags || {}) },
                     noteSavedToast: { ...defaultMaintenanceConfig.noteSavedToast, ...(dbConfig.noteSavedToast || {}) },
                 };
-                setMaintenanceConfigState(mergedConfig);
+                const mergedConfigStr = JSON.stringify(mergedConfig);
+                // ONLY update state if the remote config is actually different from what we have
+                // This prevents local edits from being overwritten by the "echo" from Firebase
+                if (mergedConfigStr !== lastConfigSyncedRef.current) {
+                    lastConfigSyncedRef.current = mergedConfigStr;
+                    setMaintenanceConfigState(mergedConfig);
+                }
             } else {
                 // If no config exists, create it with default values
                 updateConfigInDb(defaultMaintenanceConfig);
@@ -382,11 +394,12 @@ export const MaintenanceProvider = ({ children }: { children: ReactNode }) => {
 
 
     const setDevMode = React.useCallback((isDev: boolean) => {
-        setMaintenanceConfig(prev => ({ ...prev, isDevMode: isDev }));
+        setIsDevModeLocal(isDev);
+        localStorage.setItem('sutradhaar_dev_mode', isDev ? 'true' : 'false');
     }, []);
 
     const contextValue = React.useMemo(() => ({
-        isDevMode: maintenanceConfig.isDevMode,
+        isDevMode,
         setDevMode,
         maintenanceConfig,
         setMaintenanceConfig,
@@ -411,10 +424,16 @@ export const useMaintenance = () => {
 export const MaintenanceWrapper = ({ children }: { children: ReactNode }) => {
     const { maintenanceConfig, isDevMode, isLoading } = useMaintenance();
     const { user } = useAuth();
+    const { profile } = useProfile();
     const router = useRouter();
     const pathname = usePathname();
 
-    const isOwner = user?.email?.toLowerCase() === 'amanyadavyadav9458@gmail.com'.toLowerCase();
+    const isOwner = React.useMemo(() => {
+        const ownerEmail = 'amanyadavyadav9458@gmail.com'.toLowerCase();
+        const userEmail = user?.email?.toLowerCase() || '';
+        const profileEmail = profile.email?.toLowerCase() || '';
+        return userEmail === ownerEmail || profileEmail === ownerEmail || profile.membership === 'owner';
+    }, [user, profile.email, profile.membership]);
 
     useEffect(() => {
         if (isLoading) return;
@@ -424,8 +443,11 @@ export const MaintenanceWrapper = ({ children }: { children: ReactNode }) => {
         const sanitizedPath = sanitizePathForKey(pathname);
         const isUnderPageMaintenance = maintenanceConfig.pageMaintenance?.[sanitizedPath];
 
-        // The dev panel should always be accessible to the developer
-        if ((isDevMode || isOwner) && pathname.startsWith('/dev')) {
+        // The owner/developer bypasses maintenance on all pages
+        if (isDevMode || isOwner) {
+            if (isMaintenancePage && !pathname.startsWith('/dev')) {
+                router.replace('/');
+            }
             return;
         }
 
@@ -438,7 +460,7 @@ export const MaintenanceWrapper = ({ children }: { children: ReactNode }) => {
                 router.replace('/');
             }
         }
-    }, [maintenanceConfig, isDevMode, pathname, router, isLoading]);
+    }, [maintenanceConfig, isDevMode, isOwner, pathname, router, isLoading]);
 
     if (isLoading) {
         return <DashboardSkeleton />;

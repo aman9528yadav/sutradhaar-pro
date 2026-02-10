@@ -30,7 +30,7 @@ import { DevPasswordDialog } from './dev-password-dialog';
 import { useRef } from 'react';
 
 export function Header() {
-  const { isDevMode } = useMaintenance();
+  const { isDevMode, setDevMode } = useMaintenance();
   const [clickCount, setClickCount] = useState(0);
   const [isDevDialogOpen, setIsDevDialogOpen] = useState(false);
   const clickTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -56,7 +56,15 @@ export function Header() {
     setClickCount(newClickCount);
 
     if (newClickCount >= 7) {
-      setIsDevDialogOpen(true);
+      const ownerEmail = 'amanyadavyadav9458@gmail.com'.toLowerCase();
+      const isOwner = user?.email?.toLowerCase() === ownerEmail || profile.membership === 'owner';
+
+      if (isOwner) {
+        setDevMode(true);
+        toast({ title: 'Developer Mode Enabled' });
+      } else {
+        setIsDevDialogOpen(true);
+      }
       setClickCount(0);
     } else {
       clickTimerRef.current = setTimeout(() => {
