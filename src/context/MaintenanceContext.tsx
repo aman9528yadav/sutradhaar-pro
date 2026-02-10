@@ -274,7 +274,7 @@ const sanitizePathForKey = (path: string) => {
 export const MaintenanceProvider = ({ children }: { children: ReactNode }) => {
     const [isLoading, setIsLoading] = useState(true);
     const [maintenanceConfig, setMaintenanceConfigState] = useState<MaintenanceConfig>(defaultMaintenanceConfig);
-    const configRef = rtdb ? ref(rtdb, 'config/main') : null;
+    const configRef = React.useMemo(() => rtdb ? ref(rtdb, 'config/main') : null, []);
 
     const updateConfigInDb = async (config: MaintenanceConfig) => {
         if (!configRef) return;
@@ -285,13 +285,24 @@ export const MaintenanceProvider = ({ children }: { children: ReactNode }) => {
         }
     };
 
-    const setMaintenanceConfig = (value: React.SetStateAction<MaintenanceConfig>) => {
+    const setMaintenanceConfig = React.useCallback((value: React.SetStateAction<MaintenanceConfig>) => {
         setMaintenanceConfigState(prevConfig => {
             const newConfig = typeof value === 'function' ? value(prevConfig) : value;
-            updateConfigInDb(newConfig);
             return newConfig;
         });
-    }
+    }, []);
+
+    // Side effect to sync with DB when config changes LOCALLY
+    // We use a ref to track the last synced config to avoid loops with onValue
+    const lastConfigSyncedRef = useRef<string>('');
+
+    useEffect(() => {
+        const configStr = JSON.stringify(maintenanceConfig);
+        if (configStr !== lastConfigSyncedRef.current) {
+            updateConfigInDb(maintenanceConfig);
+            lastConfigSyncedRef.current = configStr;
+        }
+    }, [maintenanceConfig]);
 
     useEffect(() => {
         if (!configRef) {
@@ -370,18 +381,20 @@ export const MaintenanceProvider = ({ children }: { children: ReactNode }) => {
     }, [maintenanceConfig]);
 
 
-    const setDevMode = (isDev: boolean) => {
+    const setDevMode = React.useCallback((isDev: boolean) => {
         setMaintenanceConfig(prev => ({ ...prev, isDevMode: isDev }));
-    };
+    }, []);
+
+    const contextValue = React.useMemo(() => ({
+        isDevMode: maintenanceConfig.isDevMode,
+        setDevMode,
+        maintenanceConfig,
+        setMaintenanceConfig,
+        isLoading
+    }), [maintenanceConfig, isDevMode, setDevMode, isLoading]);
 
     return (
-        <MaintenanceContext.Provider value={{
-            isDevMode: maintenanceConfig.isDevMode,
-            setDevMode,
-            maintenanceConfig,
-            setMaintenanceConfig,
-            isLoading
-        }}>
+        <MaintenanceContext.Provider value={contextValue}>
             {children}
         </MaintenanceContext.Provider>
     );

@@ -18,7 +18,12 @@ export function DevShortcutHandler() {
     const pathname = usePathname();
     const router = useRouter();
 
-    const isOwner = user?.email === 'amanyadavyadav9458@gmail.com' || profile.email === 'amanyadavyadav9458@gmail.com';
+    const isOwner = React.useMemo(() => {
+        const ownerEmail = 'amanyadavyadav9458@gmail.com'.toLowerCase();
+        const userEmail = user?.email?.toLowerCase() || '';
+        const profileEmail = profile.email?.toLowerCase() || '';
+        return userEmail === ownerEmail || profileEmail === ownerEmail || profile.membership === 'owner';
+    }, [user, profile.email, profile.membership]);
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
