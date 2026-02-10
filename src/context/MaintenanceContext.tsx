@@ -149,7 +149,7 @@ const defaultMaintenanceConfig: MaintenanceConfig = {
     pageMaintenance: {},
     devPassword: 'aman',
     dashboardBanner: {
-        show: true,
+        show: false,
         targetDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
         category: 'Bug Fix',
         upcomingFeatureDetails: '1. bug fix\n2. may be some feature not working',
