@@ -44,10 +44,10 @@ export default function RootLayout({
       <body suppressHydrationWarning>
         <ThemeProvider
           attribute="class"
-          defaultTheme="light"
+          defaultTheme="theme-arctic"
           enableSystem={false}
           disableTransitionOnChange
-          themes={['light', 'dark', 'theme-sutradhaar', 'theme-midnight', 'theme-nebula', 'theme-emerald', 'theme-slate', 'custom']}
+          themes={['light', 'dark', 'theme-sutradhaar', 'theme-midnight', 'theme-nebula', 'theme-emerald', 'theme-slate', 'theme-arctic', 'theme-lavender', 'custom']}
         >
           <AuthProvider>
             <MaintenanceProvider>
