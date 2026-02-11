@@ -23,11 +23,29 @@ import {
     Clock,
     Bold,
     Italic,
+    Underline,
+    Strikethrough,
     List,
     CheckSquare,
     Heading,
     ArrowLeft,
-    Save
+    Save,
+    Quote,
+    Code,
+    Link,
+    Image,
+    Table,
+    Minus,
+    Hash,
+    AlignLeft,
+    AlignCenter,
+    AlignRight,
+    AlignJustify,
+    IndentIncrease,
+    IndentDecrease,
+    Undo,
+    Redo,
+    Plus
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
@@ -70,6 +88,8 @@ export function NoteEditorDialog({ open, onOpenChange, note }: NoteEditorDialogP
     const [isTrashed, setIsTrashed] = useState(false);
     const [tags, setTags] = useState<string[]>([]);
     const [tagInput, setTagInput] = useState('');
+    const [fontSize, setFontSize] = useState(16); // Base font size in pixels
+    const [textAlignment, setTextAlignment] = useState('left'); // left, center, right, justify
 
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -85,6 +105,8 @@ export function NoteEditorDialog({ open, onOpenChange, note }: NoteEditorDialogP
             setIsTrashed(note?.isTrashed || false);
             setTags(note?.tags || []);
             setTagInput('');
+            setFontSize(16);
+            setTextAlignment('left');
         }
     }, [open, note]);
 
@@ -154,22 +176,108 @@ export function NoteEditorDialog({ open, onOpenChange, note }: NoteEditorDialogP
         setTags(tags.filter(t => t !== tagToRemove));
     };
 
-    const insertText = (before: string, after: string = '') => {
+    const insertText = (before: string, after: string = '', placeholder: string = '') => {
         const textarea = textareaRef.current;
         if (!textarea) return;
 
         const start = textarea.selectionStart;
         const end = textarea.selectionEnd;
         const selectedText = content.substring(start, end);
-        const newText = content.substring(0, start) + before + selectedText + after + content.substring(end);
+        const replacementText = selectedText || placeholder;
+        const newText = content.substring(0, start) + before + replacementText + after + content.substring(end);
 
         setContent(newText);
 
         // Restore focus and selection
         setTimeout(() => {
             textarea.focus();
-            textarea.setSelectionRange(start + before.length, end + before.length);
+            const newCursorPos = start + before.length + replacementText.length;
+            textarea.setSelectionRange(newCursorPos, newCursorPos);
         }, 0);
+    };
+
+    const formatText = (formatType: string) => {
+        const textarea = textareaRef.current;
+        if (!textarea) return;
+
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const selectedText = content.substring(start, end);
+
+        if (!selectedText) return;
+
+        let before = '';
+        let after = '';
+
+        switch (formatType) {
+            case 'bold':
+                before = '**';
+                after = '**';
+                break;
+            case 'italic':
+                before = '*';
+                after = '*';
+                break;
+            case 'underline':
+                before = '__';
+                after = '__';
+                break;
+            case 'strikethrough':
+                before = '~~';
+                after = '~~';
+                break;
+            case 'code':
+                before = '`';
+                after = '`';
+                break;
+            case 'codeBlock':
+                before = '\n```\n';
+                after = '\n```\n';
+                break;
+            case 'heading':
+                before = '# ';
+                break;
+            case 'subheading':
+                before = '## ';
+                break;
+            case 'list':
+                before = '- ';
+                break;
+            case 'numberedList':
+                before = '1. ';
+                break;
+            case 'quote':
+                before = '> ';
+                break;
+            case 'link':
+                before = '[';
+                after = ']()';
+                break;
+            default:
+                return;
+        }
+
+        const newText = content.substring(0, start) + before + selectedText + after + content.substring(end);
+        setContent(newText);
+
+        // Set cursor position after the inserted text
+        setTimeout(() => {
+            textarea.focus();
+            const newCursorPos = start + before.length + selectedText.length;
+            textarea.setSelectionRange(newCursorPos, newCursorPos);
+        }, 0);
+    };
+
+    const increaseFontSize = () => {
+        setFontSize(prev => Math.min(prev + 2, 24));
+    };
+
+    const decreaseFontSize = () => {
+        setFontSize(prev => Math.max(prev - 2, 12));
+    };
+
+    const applyAlignment = (alignment: string) => {
+        setTextAlignment(alignment);
     };
 
     const currentColorObj = colors.find(c => c.class === color) || colors[0];
@@ -182,7 +290,7 @@ export function NoteEditorDialog({ open, onOpenChange, note }: NoteEditorDialogP
             <DialogContent className={cn(
                 "w-full h-[100dvh] max-w-full p-0 gap-0 border-0 shadow-none flex flex-col", // Full screen mobile layout
                 color,
-                "sm:h-auto sm:max-w-[600px] sm:rounded-xl sm:border sm:shadow-2xl sm:max-h-[85vh]" // Desktop adjustments
+                "sm:h-auto sm:max-w-[800px] sm:rounded-xl sm:border sm:shadow-2xl sm:max-h-[90vh]" // Desktop adjustments
             )}>
                 {/* Mobile Header */}
                 <div className="flex items-center justify-between p-4 border-b border-black/5 bg-black/5 backdrop-blur-sm shrink-0">
@@ -225,7 +333,7 @@ export function NoteEditorDialog({ open, onOpenChange, note }: NoteEditorDialogP
                     </div>
                 </div>
 
-                <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
+                <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4" style={{ fontSize: `${fontSize}px` }}>
                     {/* Tags Display */}
                     {tags.length > 0 && (
                         <div className="flex flex-wrap gap-2">
@@ -253,36 +361,120 @@ export function NoteEditorDialog({ open, onOpenChange, note }: NoteEditorDialogP
                         ref={textareaRef}
                         value={content}
                         onChange={(e) => setContent(e.target.value)}
-                        placeholder="Start typing..."
+                        placeholder="Start typing... Use formatting toolbar for rich text"
                         className="min-h-[50vh] resize-none border-none shadow-none focus-visible:ring-0 px-0 bg-transparent text-lg leading-relaxed"
+                        style={{ textAlign: textAlignment }}
                     />
                 </div>
 
-                {/* Formatting Toolbar (Mobile Friendly) */}
+                {/* Advanced Formatting Toolbar */}
                 <div className="shrink-0 p-2 border-t border-black/5 bg-black/5 backdrop-blur-sm overflow-x-auto">
-                    <div className="flex items-center gap-2 min-w-max px-2">
-                        <Button variant="ghost" size="icon" onClick={() => insertText('**', '**')} title="Bold">
-                            <Bold className="h-5 w-5" />
-                        </Button>
-                        <Button variant="ghost" size="icon" onClick={() => insertText('*', '*')} title="Italic">
-                            <Italic className="h-5 w-5" />
-                        </Button>
-                        <Button variant="ghost" size="icon" onClick={() => insertText('# ', '')} title="Heading">
-                            <Heading className="h-5 w-5" />
-                        </Button>
-                        <Button variant="ghost" size="icon" onClick={() => insertText('- ', '')} title="List">
-                            <List className="h-5 w-5" />
-                        </Button>
-                        <Button variant="ghost" size="icon" onClick={() => insertText('[ ] ', '')} title="Checklist">
-                            <CheckSquare className="h-5 w-5" />
-                        </Button>
+                    <div className="flex items-center gap-1 min-w-max px-2">
+                        {/* Text Formatting */}
+                        <div className="flex gap-1">
+                            <Button variant="ghost" size="icon" onClick={() => formatText('bold')} title="Bold">
+                                <Bold className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" onClick={() => formatText('italic')} title="Italic">
+                                <Italic className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" onClick={() => formatText('underline')} title="Underline">
+                                <Underline className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" onClick={() => formatText('strikethrough')} title="Strikethrough">
+                                <Strikethrough className="h-4 w-4" />
+                            </Button>
+                        </div>
+
+                        <div className="w-px h-6 bg-black/10 mx-1" />
+
+                        {/* Alignment */}
+                        <div className="flex gap-1">
+                            <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                onClick={() => applyAlignment('left')} 
+                                title="Align Left"
+                                className={textAlignment === 'left' ? "bg-accent" : ""}
+                            >
+                                <AlignLeft className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                onClick={() => applyAlignment('center')} 
+                                title="Align Center"
+                                className={textAlignment === 'center' ? "bg-accent" : ""}
+                            >
+                                <AlignCenter className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                onClick={() => applyAlignment('right')} 
+                                title="Align Right"
+                                className={textAlignment === 'right' ? "bg-accent" : ""}
+                            >
+                                <AlignRight className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                onClick={() => applyAlignment('justify')} 
+                                title="Justify"
+                                className={textAlignment === 'justify' ? "bg-accent" : ""}
+                            >
+                                <AlignJustify className="h-4 w-4" />
+                            </Button>
+                        </div>
+
+                        <div className="w-px h-6 bg-black/10 mx-1" />
+
+                        {/* Font Size */}
+                        <div className="flex items-center gap-1">
+                            <Button variant="ghost" size="icon" onClick={decreaseFontSize} title="Decrease Font Size">
+                                <Minus className="h-4 w-4" />
+                            </Button>
+                            <span className="text-xs w-8 text-center">{fontSize}px</span>
+                            <Button variant="ghost" size="icon" onClick={increaseFontSize} title="Increase Font Size">
+                                <Plus className="h-4 w-4" />
+                            </Button>
+                        </div>
+
+                        <div className="w-px h-6 bg-black/10 mx-1" />
+
+                        {/* Structure Formatting */}
+                        <div className="flex gap-1">
+                            <Button variant="ghost" size="icon" onClick={() => formatText('heading')} title="Heading">
+                                <Heading className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" onClick={() => formatText('list')} title="Bullet List">
+                                <List className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" onClick={() => formatText('numberedList')} title="Numbered List">
+                                <Hash className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" onClick={() => formatText('quote')} title="Quote">
+                                <Quote className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" onClick={() => formatText('code')} title="Inline Code">
+                                <Code className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" onClick={() => formatText('codeBlock')} title="Code Block">
+                                <Code className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" onClick={() => formatText('link')} title="Insert Link">
+                                <Link className="h-4 w-4" />
+                            </Button>
+                        </div>
+
                         <div className="w-px h-6 bg-black/10 mx-1" />
 
                         {/* Color Picker Trigger */}
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" size="icon" title="Color">
-                                    <Palette className="h-5 w-5" />
+                                    <Palette className="h-4 w-4" />
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="center" className="p-2 grid grid-cols-5 gap-2 mb-2">
@@ -305,7 +497,7 @@ export function NoteEditorDialog({ open, onOpenChange, note }: NoteEditorDialogP
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" size="icon" title="Tags">
-                                    <Tag className="h-5 w-5" />
+                                    <Tag className="h-4 w-4" />
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="center" className="p-3 w-64 mb-2">
@@ -325,14 +517,8 @@ export function NoteEditorDialog({ open, onOpenChange, note }: NoteEditorDialogP
 
                         <div className="flex-1" />
 
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={handleTrash}
-                            className="text-destructive hover:bg-destructive/10"
-                            title="Delete"
-                        >
-                            <Trash2 className="h-5 w-5" />
+                        <Button variant="ghost" size="icon" onClick={handleTrash} className="text-destructive hover:bg-destructive/10" title="Delete">
+                            <Trash2 className="h-4 w-4" />
                         </Button>
                     </div>
                 </div>

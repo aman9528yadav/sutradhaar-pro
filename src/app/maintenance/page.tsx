@@ -109,9 +109,6 @@ export default function MaintenancePage() {
 
   const isTimerFinished = timeLeft.days <= 0 && timeLeft.hours <= 0 && timeLeft.minutes <= 0 && timeLeft.seconds <= 0;
 
-  // Ensure we have a valid target date
-  const validTargetDate = maintenanceTargetDate || new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString();
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-2xl mx-auto px-4">
