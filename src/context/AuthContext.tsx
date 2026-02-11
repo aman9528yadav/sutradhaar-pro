@@ -66,16 +66,39 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       throw error;
     }
     const provider = new GoogleAuthProvider();
+    // Add prompt to select account
+    provider.setCustomParameters({
+      prompt: 'select_account'
+    });
     try {
-      await signInWithPopup(firebaseAuth, provider);
+      const result = await signInWithPopup(firebaseAuth, provider);
+      // Google accounts are automatically verified
+      toast({
+        title: "Welcome!",
+        description: "Successfully signed in with Google.",
+      });
       router.push('/');
     } catch (error: any) {
       console.error("Google Sign In Error", error);
+      let errorMessage = error.message;
+
+      // Provide more specific error messages
+      if (error.code === 'auth/popup-closed-by-user') {
+        errorMessage = "Sign-in popup was closed. Please try again.";
+      } else if (error.code === 'auth/popup-blocked') {
+        errorMessage = "Popup was blocked by your browser. Please allow popups for this site.";
+      } else if (error.code === 'auth/cancelled-popup-request') {
+        errorMessage = "Sign-in was cancelled. Please try again.";
+      } else if (error.code === 'auth/unauthorized-domain') {
+        errorMessage = "This domain is not authorized for Google sign-in. Please contact support.";
+      }
+
       toast({
         title: "Sign In Failed",
-        description: error.message,
+        description: errorMessage,
         variant: "destructive"
       });
+      throw error;
     }
   };
 
@@ -91,13 +114,45 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
     try {
       const result = await signInWithEmailAndPassword(firebaseAuth, email, pass);
+
+      // Check if email is verified
+      if (!result.user.emailVerified) {
+        toast({
+          title: "Email Not Verified",
+          description: "Please verify your email before logging in. Check your inbox for the verification link.",
+          variant: "destructive"
+        });
+        // Redirect to verification page
+        router.push(`/verify-email?email=${result.user.email}`);
+        return null;
+      }
+
+      toast({
+        title: "Welcome Back!",
+        description: "Successfully logged in.",
+      });
       router.push('/');
       return result.user;
     } catch (error: any) {
       console.error("Email Sign In Error", error);
+      let errorMessage = error.message;
+
+      // Provide more specific error messages
+      if (error.code === 'auth/user-not-found') {
+        errorMessage = "No account found with this email. Please sign up first.";
+      } else if (error.code === 'auth/wrong-password') {
+        errorMessage = "Incorrect password. Please try again.";
+      } else if (error.code === 'auth/invalid-email') {
+        errorMessage = "Invalid email address format.";
+      } else if (error.code === 'auth/user-disabled') {
+        errorMessage = "This account has been disabled. Please contact support.";
+      } else if (error.code === 'auth/too-many-requests') {
+        errorMessage = "Too many failed login attempts. Please try again later.";
+      }
+
       toast({
         title: "Login Failed",
-        description: error.message,
+        description: errorMessage,
         variant: "destructive"
       });
       throw error;
@@ -123,7 +178,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         await sendEmailVerification(result.user);
         toast({
           title: "Account Created",
-          description: "A verification email has been sent to your inbox.",
+          description: "A verification email has been sent to your inbox. Please verify before logging in.",
         });
         router.push(`/verify-email?email=${result.user.email}`);
       } else {
@@ -131,9 +186,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     } catch (error: any) {
       console.error("Sign Up Error", error);
+      let errorMessage = error.message;
+
+      // Provide more specific error messages
+      if (error.code === 'auth/email-already-in-use') {
+        errorMessage = "An account with this email already exists. Please login instead.";
+      } else if (error.code === 'auth/weak-password') {
+        errorMessage = "Password is too weak. Please use at least 6 characters.";
+      } else if (error.code === 'auth/invalid-email') {
+        errorMessage = "Invalid email address format.";
+      } else if (error.code === 'auth/operation-not-allowed') {
+        errorMessage = "Email/password accounts are not enabled. Please contact support.";
+      }
+
       toast({
         title: "Sign Up Failed",
-        description: error.message,
+        description: errorMessage,
         variant: "destructive"
       });
       throw error;
