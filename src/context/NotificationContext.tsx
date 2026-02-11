@@ -45,6 +45,28 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [profile.settings.enableNotifications]);
 
+  // Check if Do Not Disturb mode is active
+  const isDoNotDisturbActive = useCallback(() => {
+    if (!profile.settings.doNotDisturbHours?.enabled) return false;
+    
+    const now = new Date();
+    const currentTime = now.getHours() * 60 + now.getMinutes();
+    
+    const [startHour, startMinute] = profile.settings.doNotDisturbHours.start?.split(':').map(Number) || [22, 0];
+    const [endHour, endMinute] = profile.settings.doNotDisturbHours.end?.split(':').map(Number) || [7, 0];
+    
+    const startTime = startHour * 60 + startMinute;
+    const endTime = endHour * 60 + endMinute;
+    
+    if (startTime <= endTime) {
+      // Same day range (e.g. 9 AM to 9 PM)
+      return currentTime >= startTime && currentTime <= endTime;
+    } else {
+      // Overnight range (e.g. 10 PM to 7 AM)
+      return currentTime >= startTime || currentTime <= endTime;
+    }
+  }, [profile.settings.doNotDisturbHours]);
+
   useEffect(() => {
     if (!profile.settings.enableNotifications) return;
     try {
@@ -57,6 +79,24 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
 
   const addNotification = useCallback((notification: Omit<Notification, 'id' | 'read'>) => {
     if (!profile.settings.enableNotifications) return;
+    
+    // Check if Do Not Disturb is active
+    if (isDoNotDisturbActive()) {
+      return; // Don't show notification during Do Not Disturb hours
+    }
+    
+    // Check notification category settings
+    const notificationType = notification.title.toLowerCase();
+    if (notificationType.includes('reminder') && profile.settings.notificationCategories?.reminders === false) {
+      return;
+    }
+    if (notificationType.includes('update') && profile.settings.notificationCategories?.updates === false) {
+      return;
+    }
+    if (notificationType.includes('achievement') && profile.settings.notificationCategories?.achievements === false) {
+      return;
+    }
+    
     setNotifications(prev => {
         const alreadyExists = prev.some(n => n.timestamp === notification.timestamp);
         if (alreadyExists) {
@@ -71,9 +111,17 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
             const audio = new Audio('/sound/new-notification-09-352705.mp3');
             audio.play().catch(e => console.error("Failed to play notification sound.", e));
         }
+        
+        // If email notifications are enabled, send an email notification
+        if (profile.settings.enableEmailNotifications) {
+          // In a real app, this would trigger an email notification
+          // For now, we'll just log it
+          console.log('Sending email notification:', newNotification);
+        }
+        
         return [newNotification, ...prev].slice(0, 20); // Keep last 20
     });
-  }, [profile.settings.enableNotifications, profile.settings.enableSounds]);
+  }, [profile.settings.enableNotifications, profile.settings.enableSounds, profile.settings.notificationCategories, profile.settings.enableEmailNotifications, isDoNotDisturbActive]);
 
   const markAllAsRead = useCallback(() => {
     setNotifications(prev => {

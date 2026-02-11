@@ -23,3 +23,37 @@ export function formatIndianNumber(num: number): string {
   const res = otherNumbers.replace(/\B(?=(\d{2})+(?!\d))/g, ',') + lastThree;
   return res.split('.')[0] + afterPoint;
 }
+
+// App lock timeout functionality
+let appLockTimer: NodeJS.Timeout | null = null;
+
+export function setupAppLockTimeout(timeoutMinutes: number, onLock: () => void) {
+  if (appLockTimer) {
+    clearTimeout(appLockTimer);
+  }
+  
+  if (timeoutMinutes > 0) {
+    appLockTimer = setTimeout(() => {
+      onLock();
+    }, timeoutMinutes * 60 * 1000); // Convert minutes to milliseconds
+  }
+}
+
+export function resetAppLockTimer(timeoutMinutes: number, onLock: () => void) {
+  if (appLockTimer) {
+    clearTimeout(appLockTimer);
+  }
+  
+  if (timeoutMinutes > 0) {
+    appLockTimer = setTimeout(() => {
+      onLock();
+    }, timeoutMinutes * 60 * 1000);
+  }
+}
+
+export function clearAppLockTimer() {
+  if (appLockTimer) {
+    clearTimeout(appLockTimer);
+    appLockTimer = null;
+  }
+}

@@ -485,4 +485,68 @@ body {
   :root .text-cyan-100 {
     color: hsl(190 60% 35%) !important;
   }
+
+  /* Accessibility enhancements */
+  :root {
+    --text-scale-factor: 1;
+    --animation-duration: var(--duration-300, 0.3s);
+    --animation-iteration-count: infinite;
+  }
+
+  /* Text scaling */
+  html {
+    font-size: calc(1rem * var(--text-scale-factor, 1));
+  }
+
+  .high-contrast-mode {
+    /* Enhance contrast ratios */
+    --foreground: 0 0% 0%;
+    --background: 0 0% 100%;
+    --primary: 0 0% 0%;
+    --border: 0 0% 0%;
+    --muted-foreground: 0 0% 0%;
+    
+    /* Increase border thickness for visibility */
+    border-width: 2px !important;
+  }
+
+  .high-contrast-mode * {
+    border-color: hsl(var(--border)) !important;
+  }
+
+  /* Reduce motion for users with vestibular disorders */
+  .reduce-motion *,
+  .reduce-motion *::before,
+  .reduce-motion *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  /* High contrast mode specific adjustments */
+  .high-contrast-mode .bg-background {
+    background-color: white !important;
+  }
+
+  .high-contrast-mode .text-foreground {
+    color: black !important;
+  }
+
+  .high-contrast-mode .border {
+    border-width: 2px !important;
+  }
+
+  /* Private browsing mode - hide sensitive information */
+  .private-browsing .recent-item,
+  .private-browsing .history-item,
+  .private-browsing .recent-history,
+  .private-browsing .last-used,
+  .private-browsing .recent-conversion,
+  .private-browsing .recent-calculation {
+    display: none !important;
+  }
+
+  .private-browsing .sensitive-data {
+    visibility: hidden !important;
+  }
 }

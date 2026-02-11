@@ -138,6 +138,29 @@ export type UserSettings = {
   enableSounds: boolean;
   notePassword?: string;
   lastBackupDate?: string;
+  // New privacy and security settings
+  enableBiometricAuth?: boolean;
+  appLockTimeout?: number; // in minutes
+  privateBrowsingMode?: boolean;
+  
+  // New accessibility settings
+  textSizeScale?: number; // scale factor for text
+  highContrastMode?: boolean;
+  reduceMotion?: boolean;
+  
+  // New notification settings
+  notificationCategories?: {
+    reminders?: boolean;
+    updates?: boolean;
+    achievements?: boolean;
+  };
+  doNotDisturbHours?: {
+    enabled?: boolean;
+    start?: string; // HH:MM format
+    end?: string; // HH:MM format
+  };
+  reminderFrequency?: 'daily' | 'weekly' | 'monthly';
+  enableEmailNotifications?: boolean;
 };
 
 export type Membership = 'guest' | 'member' | 'premium' | 'owner';
@@ -315,6 +338,25 @@ const defaultSettings: UserSettings = {
   enableSounds: true,
   notePassword: '',
   lastBackupDate: '',
+  // Default values for new settings
+  enableBiometricAuth: false,
+  appLockTimeout: 5, // 5 minutes
+  privateBrowsingMode: false,
+  textSizeScale: 1, // Normal size
+  highContrastMode: false,
+  reduceMotion: false,
+  notificationCategories: {
+    reminders: true,
+    updates: true,
+    achievements: true,
+  },
+  doNotDisturbHours: {
+    enabled: false,
+    start: '22:00',
+    end: '07:00',
+  },
+  reminderFrequency: 'daily',
+  enableEmailNotifications: false,
 };
 
 const defaultDashboardWidgets: DashboardWidgetItem[] = [

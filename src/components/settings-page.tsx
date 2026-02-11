@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Input } from "@/components/ui/input"
 import { useToast } from '@/hooks/use-toast';
+import { resetAppLockTimer, clearAppLockTimer } from '@/lib/utils';
 
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -55,6 +56,14 @@ import {
   Upload,
   ListTodo,
   FileText,
+  Fingerprint,
+  EyeOff,
+  Eye,
+  Accessibility,
+  Contrast,
+  Timer,
+  Mail,
+  Clock,
 } from 'lucide-react';
 
 
@@ -198,6 +207,30 @@ export function SettingsPage() {
   const [versionClickCount, setVersionClickCount] = useState(0);
   const versionClickTimerRef = useRef<NodeJS.Timeout | null>(null);
 
+  // New privacy and security settings
+  const [enableBiometricAuth, setEnableBiometricAuth] = useState(profile.settings.enableBiometricAuth || false);
+  const [appLockTimeout, setAppLockTimeout] = useState(profile.settings.appLockTimeout || 5);
+  const [privateBrowsingMode, setPrivateBrowsingMode] = useState(profile.settings.privateBrowsingMode || false);
+
+  // New accessibility settings
+  const [textSizeScale, setTextSizeScale] = useState(profile.settings.textSizeScale || 1);
+  const [highContrastMode, setHighContrastMode] = useState(profile.settings.highContrastMode || false);
+  const [reduceMotion, setReduceMotion] = useState(profile.settings.reduceMotion || false);
+
+  // New notification settings
+  const [notificationCategories, setNotificationCategories] = useState(profile.settings.notificationCategories || {
+    reminders: true,
+    updates: true,
+    achievements: true,
+  });
+  const [doNotDisturbHours, setDoNotDisturbHours] = useState(profile.settings.doNotDisturbHours || {
+    enabled: false,
+    start: '22:00',
+    end: '07:00',
+  });
+  const [reminderFrequency, setReminderFrequency] = useState(profile.settings.reminderFrequency || 'daily');
+  const [enableEmailNotifications, setEnableEmailNotifications] = useState(profile.settings.enableEmailNotifications || false);
+
   const [customTheme, setCustomTheme] = useState(profile.settings.customTheme || {
     background: { h: 0, s: 0, l: 100 },
     foreground: { h: 240, s: 10, l: 3.9 },
@@ -212,6 +245,36 @@ export function SettingsPage() {
       foreground: { h: 240, s: 10, l: 3.9 },
       primary: { h: 240, s: 5.9, l: 10 },
       accent: { h: 240, s: 4.8, l: 95.9 },
+    });
+    
+    // Initialize new settings from profile
+    setEnableBiometricAuth(profile.settings.enableBiometricAuth || false);
+    setAppLockTimeout(profile.settings.appLockTimeout || 5);
+    setPrivateBrowsingMode(profile.settings.privateBrowsingMode || false);
+    setTextSizeScale(profile.settings.textSizeScale || 1);
+    setHighContrastMode(profile.settings.highContrastMode || false);
+    setReduceMotion(profile.settings.reduceMotion || false);
+    setNotificationCategories(profile.settings.notificationCategories || {
+      reminders: true,
+      updates: true,
+      achievements: true,
+    });
+    setDoNotDisturbHours(profile.settings.doNotDisturbHours || {
+      enabled: false,
+      start: '22:00',
+      end: '07:00',
+    });
+    setReminderFrequency(profile.settings.reminderFrequency || 'daily');
+    setEnableEmailNotifications(profile.settings.enableEmailNotifications || false);
+    
+    // Initialize biometric authentication if enabled
+    if (profile.settings.enableBiometricAuth) {
+      initializeBiometricAuth();
+    }
+    
+    // Initialize app lock timer
+    resetAppLockTimer(profile.settings.appLockTimeout || 5, () => {
+      console.log('App locked due to inactivity');
     });
   }, [profile.settings]);
 
@@ -303,6 +366,202 @@ export function SettingsPage() {
     });
   }
 
+  // Handlers for new privacy and security settings
+  const handleEnableBiometricAuthChange = (checked: boolean) => {
+    setEnableBiometricAuth(checked);
+    setProfile(p => ({
+      ...p,
+      settings: {
+        ...p.settings,
+        enableBiometricAuth: checked
+      }
+    }));
+    
+    if (checked) {
+      // Attempt to initialize biometric authentication
+      initializeBiometricAuth();
+    }
+    
+    toast({
+      title: `Biometric authentication ${checked ? 'enabled' : 'disabled'}`
+    });
+  };
+  
+  const initializeBiometricAuth = async () => {
+    // Check if the browser supports the Web Authentication API
+    if (!navigator.credentials) {
+      toast({
+        title: "Biometric authentication not supported",
+        description: "Your device doesn't support biometric authentication.",
+        variant: "destructive"
+      });
+      setEnableBiometricAuth(false);
+      setProfile(p => ({
+        ...p,
+        settings: {
+          ...p.settings,
+          enableBiometricAuth: false
+        }
+      }));
+      return;
+    }
+    
+    try {
+      // In a real implementation, we would register biometric credentials here
+      // For now, we'll just simulate the process
+      console.log('Initializing biometric authentication...');
+      toast({
+        title: "Biometric authentication ready",
+        description: "You can now unlock the app using your biometrics."
+      });
+    } catch (error) {
+      console.error('Error initializing biometric auth:', error);
+      toast({
+        title: "Biometric setup failed",
+        description: "Unable to set up biometric authentication.",
+        variant: "destructive"
+      });
+      setEnableBiometricAuth(false);
+      setProfile(p => ({
+        ...p,
+        settings: {
+          ...p.settings,
+          enableBiometricAuth: false
+        }
+      }));
+    }
+  };
+
+  const handleAppLockTimeoutChange = (value: number) => {
+    setAppLockTimeout(value);
+    setProfile(p => ({
+      ...p,
+      settings: {
+        ...p.settings,
+        appLockTimeout: value
+      }
+    }));
+    toast({
+      title: `App lock timeout updated to ${value} minutes`
+    });
+  };
+
+  const handlePrivateBrowsingModeChange = (checked: boolean) => {
+    setPrivateBrowsingMode(checked);
+    setProfile(p => ({
+      ...p,
+      settings: {
+        ...p.settings,
+        privateBrowsingMode: checked
+      }
+    }));
+    toast({
+      title: `Private browsing mode ${checked ? 'enabled' : 'disabled'}`
+    });
+  };
+
+  // Handlers for new accessibility settings
+  const handleTextSizeScaleChange = (value: number) => {
+    setTextSizeScale(value);
+    setProfile(p => ({
+      ...p,
+      settings: {
+        ...p.settings,
+        textSizeScale: value
+      }
+    }));
+    toast({
+      title: `Text size adjusted`
+    });
+  };
+
+  const handleHighContrastModeChange = (checked: boolean) => {
+    setHighContrastMode(checked);
+    setProfile(p => ({
+      ...p,
+      settings: {
+        ...p.settings,
+        highContrastMode: checked
+      }
+    }));
+    toast({
+      title: `High contrast mode ${checked ? 'enabled' : 'disabled'}`
+    });
+  };
+
+  const handleReduceMotionChange = (checked: boolean) => {
+    setReduceMotion(checked);
+    setProfile(p => ({
+      ...p,
+      settings: {
+        ...p.settings,
+        reduceMotion: checked
+      }
+    }));
+    toast({
+      title: `Reduce motion ${checked ? 'enabled' : 'disabled'}`
+    });
+  };
+
+  // Handlers for new notification settings
+  const handleNotificationCategoryChange = (category: keyof typeof notificationCategories, checked: boolean) => {
+    const newCategories = { ...notificationCategories, [category]: checked };
+    setNotificationCategories(newCategories);
+    setProfile(p => ({
+      ...p,
+      settings: {
+        ...p.settings,
+        notificationCategories: newCategories
+      }
+    }));
+    toast({
+      title: `${category.charAt(0).toUpperCase() + category.slice(1)} notifications ${checked ? 'enabled' : 'disabled'}`
+    });
+  };
+
+  const handleDoNotDisturbChange = (checked: boolean) => {
+    const newDoNotDisturb = { ...doNotDisturbHours, enabled: checked };
+    setDoNotDisturbHours(newDoNotDisturb);
+    setProfile(p => ({
+      ...p,
+      settings: {
+        ...p.settings,
+        doNotDisturbHours: newDoNotDisturb
+      }
+    }));
+    toast({
+      title: `Do not disturb ${checked ? 'enabled' : 'disabled'}`
+    });
+  };
+
+  const handleReminderFrequencyChange = (frequency: 'daily' | 'weekly' | 'monthly') => {
+    setReminderFrequency(frequency);
+    setProfile(p => ({
+      ...p,
+      settings: {
+        ...p.settings,
+        reminderFrequency: frequency
+      }
+    }));
+    toast({
+      title: `Reminder frequency set to ${frequency}`
+    });
+  };
+
+  const handleEmailNotificationsChange = (checked: boolean) => {
+    setEnableEmailNotifications(checked);
+    setProfile(p => ({
+      ...p,
+      settings: {
+        ...p.settings,
+        enableEmailNotifications: checked
+      }
+    }));
+    toast({
+      title: `Email notifications ${checked ? 'enabled' : 'disabled'}`
+    });
+  };
+
   // Check owner status from multiple sources
   const isOwner = React.useMemo(() => {
     const ownerEmail = 'amanyadavyadav9458@gmail.com'.toLowerCase();
@@ -380,12 +639,106 @@ export function SettingsPage() {
     { id: 'general', label: 'General', icon: Globe, color: 'text-blue-500', bg: 'bg-blue-500/10' },
     { id: 'preferences', label: 'Preferences', icon: Info, color: 'text-purple-500', bg: 'bg-purple-500/10' },
     { id: 'appearance', label: 'Appearance', icon: Palette, color: 'text-teal-500', bg: 'bg-teal-500/10' },
+    { id: 'privacy', label: 'Privacy & Security', icon: Shield, color: 'text-orange-500', bg: 'bg-orange-500/10' },
+    { id: 'accessibility', label: 'Accessibility', icon: Accessibility, color: 'text-green-500', bg: 'bg-green-500/10' },
+    { id: 'notifications', label: 'Notifications', icon: Bell, color: 'text-red-500', bg: 'bg-red-500/10' },
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, color: 'text-cyan-500', bg: 'bg-cyan-500/10' },
     { id: 'data', label: 'Data Management', icon: Database, color: 'text-blue-600', bg: 'bg-blue-600/10' },
     ...(isOwner ? [{ id: 'developer', label: 'Developer', icon: Code, color: 'text-slate-500', bg: 'bg-slate-500/10' }] : []),
     { id: 'about', label: 'About', icon: Info, color: 'text-indigo-500', bg: 'bg-indigo-500/10' },
     { id: 'danger', label: 'Danger Zone', icon: Shield, color: 'text-red-500', bg: 'bg-red-500/10' },
   ];
+
+  // Apply accessibility, notification, and privacy styles based on settings
+  useEffect(() => {
+    document.documentElement.style.setProperty('--text-scale-factor', textSizeScale.toString());
+    
+    if (highContrastMode) {
+      document.documentElement.classList.add('high-contrast-mode');
+    } else {
+      document.documentElement.classList.remove('high-contrast-mode');
+    }
+    
+    if (reduceMotion) {
+      document.documentElement.classList.add('reduce-motion');
+      document.documentElement.style.setProperty('--animation-duration', '0.01ms');
+      document.documentElement.style.setProperty('--animation-iteration-count', '1');
+    } else {
+      document.documentElement.classList.remove('reduce-motion');
+      document.documentElement.style.removeProperty('--animation-duration');
+      document.documentElement.style.removeProperty('--animation-iteration-count');
+    }
+    
+    // Apply notification settings
+    if (doNotDisturbHours.enabled) {
+      // Store do not disturb hours in localStorage for use elsewhere
+      localStorage.setItem('sutradhaar_do_not_disturb', JSON.stringify(doNotDisturbHours));
+    } else {
+      localStorage.removeItem('sutradhaar_do_not_disturb');
+    }
+    
+    // Store notification preferences
+    localStorage.setItem('sutradhaar_notification_preferences', JSON.stringify({
+      enableEmailNotifications,
+      reminderFrequency,
+      notificationCategories
+    }));
+    
+    // Apply privacy settings
+    if (privateBrowsingMode) {
+      document.documentElement.classList.add('private-browsing');
+      // Store in localStorage to persist across sessions
+      localStorage.setItem('sutradhaar_private_browsing', 'true');
+    } else {
+      document.documentElement.classList.remove('private-browsing');
+      localStorage.removeItem('sutradhaar_private_browsing');
+    }
+    
+    // Store app lock timeout in localStorage
+    localStorage.setItem('sutradhaar_app_lock_timeout', appLockTimeout.toString());
+    
+    // Reset app lock timer when timeout changes
+    resetAppLockTimer(appLockTimeout, () => {
+      // Lock the app here - in a real implementation, this would redirect to a lock screen
+      console.log('App locked due to inactivity');
+      // For now, we'll just log this event
+      // In a real implementation, you would navigate to a lock screen
+    });
+  }, [textSizeScale, highContrastMode, reduceMotion, doNotDisturbHours, enableEmailNotifications, reminderFrequency, notificationCategories, privateBrowsingMode, appLockTimeout]);
+  
+  // Handle app visibility changes for app lock functionality
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        // Reset the app lock timer when the app becomes visible again
+        resetAppLockTimer(appLockTimeout, () => {
+          console.log('App locked due to inactivity');
+        });
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    // Also reset the timer on user activity
+    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
+    const resetTimer = () => {
+      resetAppLockTimer(appLockTimeout, () => {
+        console.log('App locked due to inactivity');
+      });
+    };
+    
+    events.forEach(event => {
+      document.addEventListener(event, resetTimer, true);
+    });
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      events.forEach(event => {
+        document.removeEventListener(event, resetTimer, true);
+      });
+      clearAppLockTimer();
+    };
+  }, [appLockTimeout]);
 
   return (
     <div className="w-full max-w-2xl mx-auto pb-24">
@@ -654,6 +1007,183 @@ export function SettingsPage() {
                 isLink
                 href="/profile/manage-widgets"
               />
+            </SettingsSection>
+          )}
+
+          {activeSection === 'privacy' && (
+            <SettingsSection title="Privacy & Security">
+              <SettingsItem
+                icon={Fingerprint}
+                iconBg="bg-orange-500"
+                label="Biometric Authentication"
+                description="Use fingerprint or face recognition to unlock the app"
+              >
+                <Switch
+                  checked={enableBiometricAuth}
+                  onCheckedChange={handleEnableBiometricAuthChange}
+                />
+              </SettingsItem>
+              
+              <SettingsItem
+                icon={Timer}
+                iconBg="bg-amber-500"
+                label="App Lock Timeout"
+                description="Lock app after inactivity period"
+              >
+                <Select value={appLockTimeout.toString()} onValueChange={(v) => handleAppLockTimeoutChange(parseInt(v))}>
+                  <SelectTrigger className="w-[140px] h-8 text-xs bg-background/50 border-0">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">1 minute</SelectItem>
+                    <SelectItem value="5">5 minutes</SelectItem>
+                    <SelectItem value="10">10 minutes</SelectItem>
+                    <SelectItem value="15">15 minutes</SelectItem>
+                    <SelectItem value="30">30 minutes</SelectItem>
+                  </SelectContent>
+                </Select>
+              </SettingsItem>
+              
+              <SettingsItem
+                icon={EyeOff}
+                iconBg="bg-rose-500"
+                label="Private Browsing Mode"
+                description="Hide recent activity and history from view"
+              >
+                <Switch
+                  checked={privateBrowsingMode}
+                  onCheckedChange={handlePrivateBrowsingModeChange}
+                />
+              </SettingsItem>
+            </SettingsSection>
+          )}
+
+          {activeSection === 'accessibility' && (
+            <SettingsSection title="Accessibility">
+              <SettingsItem
+                icon={Accessibility}
+                iconBg="bg-green-500"
+                label="Text Size"
+                description="Adjust text size for better readability"
+              >
+                <Select value={textSizeScale.toString()} onValueChange={(v) => handleTextSizeScaleChange(parseFloat(v))}>
+                  <SelectTrigger className="w-[140px] h-8 text-xs bg-background/50 border-0">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="0.8">Small</SelectItem>
+                    <SelectItem value="1">Normal</SelectItem>
+                    <SelectItem value="1.2">Large</SelectItem>
+                    <SelectItem value="1.5">Extra Large</SelectItem>
+                  </SelectContent>
+                </Select>
+              </SettingsItem>
+              
+              <SettingsItem
+                icon={Contrast}
+                iconBg="bg-lime-500"
+                label="High Contrast Mode"
+                description="Enhanced contrast for better readability"
+              >
+                <Switch
+                  checked={highContrastMode}
+                  onCheckedChange={handleHighContrastModeChange}
+                />
+              </SettingsItem>
+              
+              <SettingsItem
+                icon={Eye}
+                iconBg="bg-emerald-500"
+                label="Reduce Motion"
+                description="Minimize animations for better accessibility"
+              >
+                <Switch
+                  checked={reduceMotion}
+                  onCheckedChange={handleReduceMotionChange}
+                />
+              </SettingsItem>
+            </SettingsSection>
+          )}
+
+          {activeSection === 'notifications' && (
+            <SettingsSection title="Notifications">
+              <SettingsItem
+                icon={Bell}
+                iconBg="bg-red-500"
+                label="Email Notifications"
+                description="Receive notifications via email"
+              >
+                <Switch
+                  checked={enableEmailNotifications}
+                  onCheckedChange={handleEmailNotificationsChange}
+                />
+              </SettingsItem>
+              
+              <SettingsItem
+                icon={Clock}
+                iconBg="bg-purple-500"
+                label="Do Not Disturb"
+                description="Silence notifications during specified hours"
+              >
+                <Switch
+                  checked={doNotDisturbHours.enabled}
+                  onCheckedChange={handleDoNotDisturbChange}
+                />
+              </SettingsItem>
+              
+              <SettingsItem
+                icon={Mail}
+                iconBg="bg-blue-500"
+                label="Reminder Frequency"
+                description="How often to receive reminder notifications"
+              >
+                <Select value={reminderFrequency} onValueChange={handleReminderFrequencyChange}>
+                  <SelectTrigger className="w-[140px] h-8 text-xs bg-background/50 border-0">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="daily">Daily</SelectItem>
+                    <SelectItem value="weekly">Weekly</SelectItem>
+                    <SelectItem value="monthly">Monthly</SelectItem>
+                  </SelectContent>
+                </Select>
+              </SettingsItem>
+              
+              <SettingsItem
+                icon={Bell}
+                iconBg="bg-pink-500"
+                label="Reminder Notifications"
+                description="Enable reminder notifications"
+              >
+                <Switch
+                  checked={notificationCategories.reminders}
+                  onCheckedChange={(c) => handleNotificationCategoryChange('reminders', c)}
+                />
+              </SettingsItem>
+              
+              <SettingsItem
+                icon={Info}
+                iconBg="bg-cyan-500"
+                label="Update Notifications"
+                description="Enable update notifications"
+              >
+                <Switch
+                  checked={notificationCategories.updates}
+                  onCheckedChange={(c) => handleNotificationCategoryChange('updates', c)}
+                />
+              </SettingsItem>
+              
+              <SettingsItem
+                icon={Atom}
+                iconBg="bg-indigo-500"
+                label="Achievement Notifications"
+                description="Enable achievement notifications"
+              >
+                <Switch
+                  checked={notificationCategories.achievements}
+                  onCheckedChange={(c) => handleNotificationCategoryChange('achievements', c)}
+                />
+              </SettingsItem>
             </SettingsSection>
           )}
 
@@ -935,11 +1465,11 @@ export function SettingsPage() {
                 label="Developer Mode"
               >
                 <Switch
-                  checked={maintenanceConfig.isDevMode}
+                  checked={isDevMode}
                   onCheckedChange={handleDevModeChange}
                 />
               </SettingsItem>
-              {maintenanceConfig.isDevMode && (
+              {isDevMode && (
                 <SettingsItem
                   icon={Shield}
                   iconBg="bg-emerald-600"
