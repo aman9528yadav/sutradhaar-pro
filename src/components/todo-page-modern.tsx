@@ -29,23 +29,23 @@ import { Separator } from '@/components/ui/separator';
 
 import { useSearchParams, useRouter } from 'next/navigation';
 
-export function TodoPage() {
-    const { profile, updateTodo, deleteTodo } = useProfile();
+export function TodoPageModern() {
+    const { profile, addTodo, updateTodo, deleteTodo } = useProfile();
     const [searchQuery, setSearchQuery] = useState('');
-    const [filter, setFilter] = useState<'all' | 'active' | 'completed' | 'today' | 'week' | 'overdue'>('all');
+    const [filter, setFilter] = useState<'all' | 'active' | 'completed' | 'overdue' | 'today'>('all');
     const [priorityFilter, setPriorityFilter] = useState<'all' | 'high' | 'medium' | 'low'>('all');
-    const [categoryFilter, setCategoryFilter] = useState<string>('all');
-    const [sortBy, setSortBy] = useState<'priority' | 'dueDate' | 'created'>('priority');
-    const [selectedTodo, setSelectedTodo] = useState<TodoItem | undefined>(undefined);
+    const [categoryFilter, setCategoryFilter] = useState('all');
+    const [sortBy, setSortBy] = useState<'priority' | 'dueDate' | 'created'>('created');
     const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [selectedTodo, setSelectedTodo] = useState<TodoItem | undefined>(undefined);
 
     const searchParams = useSearchParams();
     const router = useRouter();
 
-    // Open todo from URL param
-    React.useEffect(() => {
+    // Check for edit mode from URL
+    useEffect(() => {
         const todoId = searchParams.get('id');
-        if (todoId && profile.todos) {
+        if (todoId) {
             const todo = profile.todos.find(t => t.id === todoId);
             if (todo) {
                 setSelectedTodo(todo);
@@ -80,6 +80,23 @@ export function TodoPage() {
         return { total, completed, active, overdue, today, completionRate };
     }, [profile.todos]);
 
+    // Productivity metrics
+    const productivityMetrics = useMemo(() => {
+        const completedToday = profile.todos.filter(t => 
+            t.completed && t.completedAt && isToday(new Date(t.completedAt))
+        ).length;
+        
+        const streak = profile.todos.filter(t => 
+            t.completed && t.completedAt && 
+            differenceInDays(new Date(), new Date(t.completedAt)) <= 7
+        ).length;
+        
+        const focusScore = stats.total > 0 ? 
+            Math.min(100, (stats.completed / stats.total) * 100 + (streak * 2)) : 0;
+        
+        return { completedToday, streak, focusScore };
+    }, [profile.todos, stats]);
+
     const uniqueCategories = useMemo(() => {
         const categories = new Set<string>();
         profile.todos.forEach(todo => {
@@ -89,31 +106,43 @@ export function TodoPage() {
     }, [profile.todos]);
 
     const filteredTodos = useMemo(() => {
-        return profile.todos
-            .filter(todo => {
-                const matchesSearch = todo.text.toLowerCase().includes(searchQuery.toLowerCase());
+        let filtered = [...profile.todos];
 
-                const matchesFilter = (() => {
-                    switch (filter) {
-                        case 'all': return true;
-                        case 'active': return !todo.completed;
-                        case 'completed': return todo.completed;
-                        case 'today': return !todo.completed && todo.dueDate && isToday(new Date(todo.dueDate));
-                        case 'week': return !todo.completed && todo.dueDate && isThisWeek(new Date(todo.dueDate));
-                        case 'overdue': return !todo.completed && todo.dueDate && isPast(new Date(todo.dueDate)) && !isToday(new Date(todo.dueDate));
-                        default: return true;
-                    }
-                })();
+        // Apply filters
+        if (filter === 'active') {
+            filtered = filtered.filter(t => !t.completed);
+        } else if (filter === 'completed') {
+            filtered = filtered.filter(t => t.completed);
+        } else if (filter === 'overdue') {
+            filtered = filtered.filter(t =>
+                !t.completed && t.dueDate && isPast(new Date(t.dueDate)) && !isToday(new Date(t.dueDate))
+            );
+        } else if (filter === 'today') {
+            filtered = filtered.filter(t =>
+                !t.completed && t.dueDate && isToday(new Date(t.dueDate))
+            );
+        }
 
-                const matchesPriority = priorityFilter === 'all' || todo.priority === priorityFilter;
-                const matchesCategory = categoryFilter === 'all' || todo.category === categoryFilter;
+        // Apply priority filter
+        if (priorityFilter !== 'all') {
+            filtered = filtered.filter(t => t.priority === priorityFilter);
+        }
 
-                return matchesSearch && matchesFilter && matchesPriority && matchesCategory;
-            })
+        // Apply category filter
+        if (categoryFilter !== 'all') {
+            filtered = filtered.filter(t => t.category === categoryFilter);
+        }
+
+        // Apply search
+        if (searchQuery.trim()) {
+            filtered = filtered.filter(t =>
+                t.text.toLowerCase().includes(searchQuery.toLowerCase())
+            );
+        }
+
+        // Apply sorting
+        return filtered
             .sort((a, b) => {
-                // Always put completed items at the bottom
-                if (a.completed !== b.completed) return a.completed ? 1 : -1;
-
                 switch (sortBy) {
                     case 'priority':
                         const priorityOrder = { high: 0, medium: 1, low: 2 };
@@ -184,23 +213,6 @@ export function TodoPage() {
         }
     };
 
-    // Productivity metrics
-    const productivityMetrics = useMemo(() => {
-        const completedToday = profile.todos.filter(t => 
-            t.completed && t.completedAt && isToday(new Date(t.completedAt))
-        ).length;
-        
-        const streak = profile.todos.filter(t => 
-            t.completed && t.completedAt && 
-            differenceInDays(new Date(), new Date(t.completedAt)) <= 7
-        ).length;
-        
-        const focusScore = stats.total > 0 ? 
-            Math.min(100, (stats.completed / stats.total) * 100 + (streak * 2)) : 0;
-        
-        return { completedToday, streak, focusScore };
-    }, [profile.todos, stats]);
-
     return (
         <div className="space-y-6 h-full flex flex-col pb-20">
             {/* Header Section */}
@@ -222,80 +234,60 @@ export function TodoPage() {
             {/* Productivity Dashboard */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Card className="bg-gradient-to-br from-indigo-500/10 to-purple-500/10 border-indigo-500/20">
-                    <CardContent className="p-4">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm text-muted-foreground flex items-center gap-1">
-                                    <Target className="w-4 h-4" /> Today's Progress
-                                </p>
-                                <p className="text-2xl font-bold text-indigo-500 mt-1">{stats.today}/{stats.active}</p>
+                    <CardContent className="p-5">
+                        <div className="flex items-start justify-between gap-4">
+                            <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <Target className="w-4 h-4 text-indigo-500" />
+                                    <p className="text-sm font-medium text-muted-foreground">Today's Progress</p>
+                                </div>
+                                <p className="text-2xl font-bold text-indigo-500">{stats.today}/{stats.active}</p>
                                 <p className="text-xs text-muted-foreground mt-1">tasks due today</p>
                             </div>
-                            <div className="p-2 rounded-full bg-indigo-500/20">
-                                <Sunrise className="h-5 w-5 text-indigo-500" />
+                            <div className="p-3 rounded-full bg-indigo-500/20 flex-shrink-0">
+                                <Sunrise className="h-6 w-6 text-indigo-500" />
                             </div>
                         </div>
                     </CardContent>
                 </Card>
                 
                 <Card className="bg-gradient-to-br from-emerald-500/10 to-teal-500/10 border-emerald-500/20">
-                    <CardContent className="p-4">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm text-muted-foreground flex items-center gap-1">
-                                    <Trophy className="w-4 h-4" /> Completion Rate
-                                </p>
-                                <p className="text-2xl font-bold text-emerald-500 mt-1">{stats.completionRate.toFixed(0)}%</p>
+                    <CardContent className="p-5">
+                        <div className="flex items-start justify-between gap-4">
+                            <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <Trophy className="w-4 h-4 text-emerald-500" />
+                                    <p className="text-sm font-medium text-muted-foreground">Completion Rate</p>
+                                </div>
+                                <p className="text-2xl font-bold text-emerald-500">{stats.completionRate.toFixed(0)}%</p>
                                 <p className="text-xs text-muted-foreground mt-1">of all tasks</p>
                             </div>
-                            <div className="p-2 rounded-full bg-emerald-500/20">
-                                <Award className="h-5 w-5 text-emerald-500" />
+                            <div className="p-3 rounded-full bg-emerald-500/20 flex-shrink-0">
+                                <Award className="h-6 w-6 text-emerald-500" />
                             </div>
                         </div>
                     </CardContent>
                 </Card>
                 
                 <Card className="bg-gradient-to-br from-amber-500/10 to-orange-500/10 border-amber-500/20">
-                    <CardContent className="p-4">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm text-muted-foreground flex items-center gap-1">
-                                    <Brain className="w-4 h-4" /> Focus Score
-                                </p>
-                                <p className="text-2xl font-bold text-amber-500 mt-1">{productivityMetrics.focusScore.toFixed(0)}</p>
+                    <CardContent className="p-5">
+                        <div className="flex items-start justify-between gap-4">
+                            <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <Brain className="w-4 h-4 text-amber-500" />
+                                    <p className="text-sm font-medium text-muted-foreground">Focus Score</p>
+                                </div>
+                                <p className="text-2xl font-bold text-amber-500">{productivityMetrics.focusScore.toFixed(0)}</p>
                                 <p className="text-xs text-muted-foreground mt-1">productivity level</p>
                             </div>
-                            <div className="p-2 rounded-full bg-amber-500/20">
-                                <Zap className="h-5 w-5 text-amber-500" />
+                            <div className="p-3 rounded-full bg-amber-500/20 flex-shrink-0">
+                                <Zap className="h-6 w-6 text-amber-500" />
                             </div>
                         </div>
                     </CardContent>
                 </Card>
             </div>
 
-                <Card className="border-white/5">
-                    <CardContent className="p-4">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-xs text-muted-foreground">Completed</p>
-                                <p className="text-2xl font-bold text-emerald-500">{stats.completed}</p>
-                            </div>
-                            <CheckCheck className="h-8 w-8 text-emerald-500 opacity-50" />
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <Card className="border-white/5">
-                    <CardContent className="p-4">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-xs text-muted-foreground">Overdue</p>
-                                <p className="text-2xl font-bold text-red-500">{stats.overdue}</p>
-                            </div>
-                            <TrendingUp className="h-8 w-8 text-red-500 opacity-50" />
-                        </div>
-                    </CardContent>
-                </Card>
             {/* Smart Filters */}
             <Card className="bg-card/50 border-white/10">
                 <CardHeader className="pb-3">
@@ -373,100 +365,6 @@ export function TodoPage() {
                         <Plus className="mr-2 h-4 w-4" /> New Task
                     </Button>
                 </div>
-
-                {/* Filters */}
-                <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                    {(['all', 'active', 'completed', 'today', 'week', 'overdue'] as const).map((f) => (
-                        <Button
-                            key={f}
-                            variant={filter === f ? "default" : "outline"}
-                            size="sm"
-                            onClick={() => setFilter(f)}
-                            className="capitalize rounded-full px-4 shrink-0"
-                        >
-                            {f === 'week' ? 'This Week' : f}
-                            {f === 'today' && stats.today > 0 && (
-                                <Badge variant="secondary" className="ml-2 px-1.5 py-0.5 text-xs">{stats.today}</Badge>
-                            )}
-                            {f === 'overdue' && stats.overdue > 0 && (
-                                <Badge variant="destructive" className="ml-2 px-1.5 py-0.5 text-xs">{stats.overdue}</Badge>
-                            )}
-                        </Button>
-                    ))}
-                </div>
-
-                {/* Priority Filter and Sort */}
-                <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="outline" size="sm" className="gap-2 shrink-0">
-                                <Filter className="h-4 w-4" />
-                                Priority: {priorityFilter === 'all' ? 'All' : priorityFilter}
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                            <DropdownMenuItem onClick={() => setPriorityFilter('all')}>All</DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => setPriorityFilter('high')}>High</DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => setPriorityFilter('medium')}>Medium</DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => setPriorityFilter('low')}>Low</DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-
-                    {uniqueCategories.length > 0 && (
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="outline" size="sm" className="gap-2 shrink-0">
-                                    <Tag className="h-4 w-4" />
-                                    Category: {categoryFilter === 'all' ? 'All' : categoryFilter}
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent>
-                                <DropdownMenuItem onClick={() => setCategoryFilter('all')}>All</DropdownMenuItem>
-                                {uniqueCategories.map(cat => (
-                                    <DropdownMenuItem key={cat} onClick={() => setCategoryFilter(cat)}>{cat}</DropdownMenuItem>
-                                ))}
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                    )}
-
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="outline" size="sm" className="gap-2 shrink-0">
-                                <SortAsc className="h-4 w-4" />
-                                Sort: {sortBy === 'dueDate' ? 'Due Date' : sortBy === 'created' ? 'Created' : 'Priority'}
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                            <DropdownMenuItem onClick={() => setSortBy('priority')}>Priority</DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => setSortBy('dueDate')}>Due Date</DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => setSortBy('created')}>Created Date</DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-
-                    {stats.active > 0 && (
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="sm" className="shrink-0">
-                                    <MoreVertical className="h-4 w-4" />
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                <DropdownMenuLabel>Bulk Actions</DropdownMenuLabel>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem onClick={handleCompleteAll}>
-                                    <CheckCheck className="mr-2 h-4 w-4" />
-                                    Complete All Active
-                                </DropdownMenuItem>
-                                {stats.completed > 0 && (
-                                    <DropdownMenuItem onClick={handleDeleteCompleted} className="text-destructive">
-                                        <Trash2 className="mr-2 h-4 w-4" />
-                                        Delete Completed
-                                    </DropdownMenuItem>
-                                )}
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                    )}
-                </div>
             </div>
 
             {/* Todo List */}
@@ -480,7 +378,7 @@ export function TodoPage() {
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.95 }}
                             className={cn(
-                                "group flex items-center gap-3 p-4 rounded-xl border border-white/5 bg-card/50 transition-all hover:bg-card/80 hover:shadow-md",
+                                "group flex items-center gap-3 p-4 rounded-xl border border-white/10 bg-card/50 transition-all hover:bg-card/80 hover:shadow-md",
                                 todo.completed && "opacity-60 bg-card/30",
                                 todo.starred && "border-yellow-500/30 bg-yellow-500/5"
                             )}

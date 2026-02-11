@@ -22,9 +22,9 @@ import { Input } from "@/components/ui/input"
 import { format } from 'date-fns';
 
 const CountdownBox = ({ value, label }: { value: string; label: string }) => (
-  <div className="bg-card rounded-lg p-3 w-20 flex flex-col items-center shadow-inner">
+  <div className="bg-gradient-to-br from-primary/10 to-primary/5 rounded-xl p-4 w-20 flex flex-col items-center shadow-lg border border-primary/20">
     <span className="text-3xl font-bold text-primary">{value}</span>
-    <span className="text-xs text-muted-foreground">{label}</span>
+    <span className="text-xs text-muted-foreground mt-1">{label}</span>
   </div>
 );
 
@@ -47,29 +47,38 @@ const calculateTimeLeft = (targetDate: string): Countdown => {
 export default function MaintenancePage() {
   const router = useRouter();
   const { maintenanceConfig, setDevMode } = useMaintenance();
-  const { maintenanceTargetDate, maintenanceMessage, maintenanceCards } = maintenanceConfig;
+  const { maintenanceTargetDate, maintenanceMessage, maintenanceCards } = maintenanceConfig || {};
   const { toast } = useToast();
   
   const [clickCount, setClickCount] = useState(0);
   const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
   const [password, setPassword] = useState('');
-  const [timeLeft, setTimeLeft] = useState<Countdown>(calculateTimeLeft(maintenanceTargetDate));
+  
+  // Ensure we have a valid target date
+  const validTargetDate = maintenanceTargetDate || new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString();
+  
+  // Set default values if config is not loaded
+  const defaultMessage = maintenanceMessage || "We're currently performing scheduled maintenance to improve our services. We're working as quickly as possible to restore service.";
+  const defaultCards = maintenanceCards || [
+    { title: "Minimal Downtime", description: "We're working as quickly as possible to restore service." },
+    { title: "Better Experience", description: "Coming back with improved features and performance." }
+  ];
+  
+  const [timeLeft, setTimeLeft] = useState<Countdown>(calculateTimeLeft(validTargetDate));
   
   useEffect(() => {
-    if (maintenanceTargetDate) {
-        setTimeLeft(calculateTimeLeft(maintenanceTargetDate));
+    // Update initial time left
+    if (validTargetDate) {
+      setTimeLeft(calculateTimeLeft(validTargetDate));
     }
-  }, [maintenanceTargetDate]);
-
-
-  useEffect(() => {
+    
+    // Set up interval to update timer every second
     const timer = setInterval(() => {
-      setTimeLeft(calculateTimeLeft(maintenanceTargetDate));
+      setTimeLeft(calculateTimeLeft(validTargetDate));
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [maintenanceTargetDate]);
-
+  }, [validTargetDate]);
 
   const handleIconClick = () => {
     const newClickCount = clickCount + 1;
@@ -86,7 +95,8 @@ export default function MaintenancePage() {
   };
 
   const handlePasswordSubmit = () => {
-    if (password === (maintenanceConfig.devPassword || 'aman')) {
+    const devPassword = maintenanceConfig?.devPassword || 'aman';
+    if (password === devPassword) {
       setDevMode(true);
       toast({ title: 'Developer Mode Enabled' });
       router.push('/dev');
@@ -99,70 +109,113 @@ export default function MaintenancePage() {
 
   const isTimerFinished = timeLeft.days <= 0 && timeLeft.hours <= 0 && timeLeft.minutes <= 0 && timeLeft.seconds <= 0;
 
+  // Ensure we have a valid target date
+  const validTargetDate = maintenanceTargetDate || new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString();
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-background text-foreground p-4">
-      <div className="w-full max-w-md mx-auto">
-        <div className="text-center space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-background to-muted flex flex-col items-center justify-center p-4">
+      <div className="w-full max-w-2xl mx-auto px-4">
+        <div className="text-center space-y-8">
+          {/* Main icon */}
           <div className="flex justify-center">
-            <div className="bg-accent/70 p-4 rounded-full" onClick={handleIconClick}>
-              <Wrench className="h-8 w-8 text-primary" />
+            <div 
+              className="bg-gradient-to-r from-primary/20 to-secondary/20 p-6 rounded-full shadow-xl cursor-pointer"
+              onClick={handleIconClick}
+            >
+              {isTimerFinished ? (
+                <PartyPopper className="h-16 w-16 text-primary" />
+              ) : (
+                <Wrench className="h-16 w-16 text-primary" />
+              )}
             </div>
           </div>
 
-          <div className="space-y-2">
-            <h1 className="text-4xl font-bold">{isTimerFinished ? "We're Back!" : "We'll Be Back Soon!"}</h1>
-            <p className="text-muted-foreground">
-             {isTimerFinished ? "The maintenance is complete. The app is now back online." : "The app is currently undergoing scheduled maintenance. We expect to be back online in:"}
+          {/* Title and message */}
+          <div className="space-y-4">
+            <h1 className="text-4xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">
+              {isTimerFinished ? "We're Back Online!" : "Undergoing Maintenance"}
+            </h1>
+            <p className="text-lg text-muted-foreground max-w-md mx-auto">
+              {isTimerFinished 
+                ? "The maintenance is complete. The app is now back online with exciting new features!" 
+                : defaultMessage}
             </p>
           </div>
 
-          {isTimerFinished ? (
-             <div className="flex justify-center gap-3 p-4 bg-accent rounded-lg text-primary font-semibold">
-                <PartyPopper className="h-6 w-6" />
-                <span>We're back online! Thanks for your patience.</span>
+          {/* Countdown timer */}
+          {!isTimerFinished ? (
+            <div className="space-y-6">
+              <div className="flex justify-center gap-4 flex-wrap">
+                <CountdownBox value={String(timeLeft.days)} label="DAYS" />
+                <CountdownBox value={String(timeLeft.hours).padStart(2, '0')} label="HOURS" />
+                <CountdownBox value={String(timeLeft.minutes).padStart(2, '0')} label="MINUTES" />
+                <CountdownBox value={String(timeLeft.seconds).padStart(2, '0')} label="SECONDS" />
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Estimated completion: {format(new Date(validTargetDate), 'PPP p')}
+              </p>
             </div>
           ) : (
-             <div className="space-y-3">
-                <div className="flex justify-center gap-3">
-                    <CountdownBox value={String(timeLeft.days)} label="DAYS" />
-                    <CountdownBox value={String(timeLeft.hours).padStart(2, '0')} label="HOURS" />
-                    <CountdownBox value={String(timeLeft.minutes).padStart(2, '0')} label="MINUTES"/>
-                    <CountdownBox value={String(timeLeft.seconds).padStart(2, '0')} label="SECONDS" />
-                </div>
-                <p className="text-sm text-muted-foreground">
-                    (Estimated: {format(new Date(maintenanceTargetDate), 'PPP p')})
-                </p>
-             </div>
+            <div className="flex justify-center gap-3 p-4 bg-gradient-to-r from-green-500/10 to-emerald-500/10 rounded-xl text-primary font-semibold border border-green-500/20">
+              <PartyPopper className="h-6 w-6" />
+              <span>We're back online! Thanks for your patience.</span>
+            </div>
           )}
 
-          <Card>
-            <CardContent className="p-4 text-left">
-                <h3 className="font-semibold mb-2">A message from the team:</h3>
-                <p className="text-sm text-muted-foreground whitespace-pre-line">{maintenanceMessage}</p>
-            </CardContent>
-          </Card>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left">
-             {maintenanceCards && maintenanceCards.map((card, index) => (
-              <Card key={index} className="bg-accent/50 border-none">
-                <CardContent className="p-4 flex items-start gap-4">
-                  {index === 0 ? <Hourglass className="h-6 w-6 text-primary mt-1" /> : <Zap className="h-6 w-6 text-primary mt-1" />}
-                  <div>
-                    <h3 className="font-semibold">{card.title}</h3>
-                    <p className="text-sm text-muted-foreground">{card.description}</p>
+          {/* Maintenance message card */}
+          <div>
+            <Card className="bg-card/70 backdrop-blur-sm border-0 shadow-xl">
+              <CardContent className="p-6 text-left">
+                <div className="flex items-start gap-3">
+                  <div className="bg-primary/10 p-2 rounded-lg">
+                    <Shield className="h-5 w-5 text-primary" />
                   </div>
-                </CardContent>
-              </Card>
-            ))}
+                  <div>
+                    <h3 className="font-semibold text-lg mb-2">What's Happening</h3>
+                    <p className="text-muted-foreground whitespace-pre-line">{defaultMessage}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
 
-          <div className="text-sm text-muted-foreground">
+          {/* Maintenance cards */}
+          {defaultCards && defaultCards.length > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+              {defaultCards.map((card, index) => (
+                <Card key={index} className="bg-card/70 backdrop-blur-sm border-0 shadow-lg h-full">
+                  <CardContent className="p-5 flex items-start gap-4">
+                    <div className="bg-primary/10 p-2 rounded-lg mt-1">
+                      {index === 0 ? <Hourglass className="h-5 w-5 text-primary" /> : <Zap className="h-5 w-5 text-primary" />}
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-lg">{card.title}</h3>
+                      <p className="text-muted-foreground">{card.description}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+
+          {/* Action button */}
+          <div>
+            <Button 
+              onClick={() => router.push('/')}
+              className="mt-4 bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90"
+              size="lg"
+            >
+              {isTimerFinished ? "Go to App" : "Refresh Status"}
+            </Button>
+          </div>
+
+          {/* Contact info */}
+          <div className="text-sm text-muted-foreground mt-8">
             <p>
               Need immediate assistance? Contact Aman at:{' '}
               <a
                 href="mailto:amanyadavyadav9458@gmail.com"
-                className="text-primary hover:underline"
+                className="text-primary hover:underline font-medium"
               >
                 amanyadavyadav9458@gmail.com
               </a>

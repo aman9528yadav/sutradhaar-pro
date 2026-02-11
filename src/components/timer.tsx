@@ -6,7 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Play, Pause, RotateCcw, Clock, Zap, Coffee, Timer as TimerIcon, Maximize2, Minimize2, Plus, Minus, Volume2, VolumeX } from 'lucide-react';
+import { Play, Pause, RotateCcw, Clock, Zap, Coffee, Timer as TimerIcon, Maximize2, Minimize2, Plus, Minus, Volume2, VolumeX, Settings, Bell, Target, Trophy, Flame, Star, Heart, Music, Sun, Moon, BookOpen, Dumbbell } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -102,6 +102,11 @@ export function Timer() {
 
     const [isFullScreen, setIsFullScreen] = useState(false);
     const [soundEnabled, setSoundEnabled] = useState(true);
+    const [showSettings, setShowSettings] = useState(false);
+    const [theme, setTheme] = useState<'light' | 'dark' | 'auto'>('auto');
+    const [motivationalMode, setMotivationalMode] = useState(true);
+    const [focusStreak, setFocusStreak] = useState(0);
+    const [sessionCount, setSessionCount] = useState(0);
 
     // Calculate progress for circular indicator
     const progress = initialTime > 0 ? (totalSeconds / initialTime) * 100 : 0;
@@ -181,30 +186,138 @@ export function Timer() {
         );
     }
 
+    // Motivational messages
+    const motivationalMessages = [
+        "You've got this!",
+        "Stay focused!",
+        "Almost there!",
+        "Keep going!",
+        "Great job!",
+        "You're amazing!",
+        "Crushing it!",
+        "Mind blown!",
+        "Legendary!",
+        "Unstoppable!"
+    ];
+    
+    const getRandomMotivation = () => {
+        return motivationalMessages[Math.floor(Math.random() * motivationalMessages.length)];
+    };
+
     return (
-        <div className="w-full max-w-xl mx-auto space-y-6">
-            <Card className="border-none shadow-xl bg-gradient-to-br from-card to-card/50 backdrop-blur-xl">
-                <CardContent className="p-6">
-                    {/* Header */}
-                    <div className="flex justify-between items-center mb-6">
+        <div className="w-full max-w-2xl mx-auto space-y-6">
+            {/* Stats Banner */}
+            <div className="grid grid-cols-3 gap-3">
+                <Card className="bg-gradient-to-br from-blue-500/10 to-indigo-500/10 border-blue-500/20">
+                    <CardContent className="p-3 text-center">
+                        <Flame className="w-5 h-5 text-blue-500 mx-auto mb-1" />
+                        <p className="text-xs text-muted-foreground">Streak</p>
+                        <p className="text-lg font-bold text-blue-500">{focusStreak}</p>
+                    </CardContent>
+                </Card>
+                <Card className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 border-green-500/20">
+                    <CardContent className="p-3 text-center">
+                        <Trophy className="w-5 h-5 text-green-500 mx-auto mb-1" />
+                        <p className="text-xs text-muted-foreground">Sessions</p>
+                        <p className="text-lg font-bold text-green-500">{sessionCount}</p>
+                    </CardContent>
+                </Card>
+                <Card className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 border-purple-500/20">
+                    <CardContent className="p-3 text-center">
+                        <Target className="w-5 h-5 text-purple-500 mx-auto mb-1" />
+                        <p className="text-xs text-muted-foreground">Today</p>
+                        <p className="text-lg font-bold text-purple-500">{profile.todos.filter(t => t.completed && new Date(t.completedAt!).toDateString() === new Date().toDateString()).length}</p>
+                    </CardContent>
+                </Card>
+            </div>
+
+            <Card className="border-none shadow-2xl bg-gradient-to-br from-card to-card/50 backdrop-blur-xl relative overflow-hidden">
+                {/* Decorative Elements */}
+                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -translate-y-16 translate-x-16"></div>
+                <div className="absolute bottom-0 left-0 w-24 h-24 bg-secondary/5 rounded-full translate-y-12 -translate-x-12"></div>
+                
+                <CardContent className="p-8 relative">
+                    {/* Header with Enhanced Controls */}
+                    <div className="flex justify-between items-center mb-8">
                         <Tabs value={mode} onValueChange={(v) => setMode(v as any)} className="w-full max-w-xs">
-                            <TabsList className="grid w-full grid-cols-2 rounded-full bg-muted/50 p-1">
-                                <TabsTrigger value="normal" disabled={isActive} className="rounded-full data-[state=active]:bg-background shadow-none">Timer</TabsTrigger>
-                                <TabsTrigger value="interval" disabled={isActive} className="rounded-full data-[state=active]:bg-background shadow-none">Interval</TabsTrigger>
+                            <TabsList className="grid w-full grid-cols-2 rounded-full bg-muted/50 p-1 border border-border/50">
+                                <TabsTrigger value="normal" disabled={isActive} className="rounded-full data-[state=active]:bg-background data-[state=active]:shadow-md transition-all">Timer</TabsTrigger>
+                                <TabsTrigger value="interval" disabled={isActive} className="rounded-full data-[state=active]:bg-background data-[state=active]:shadow-md transition-all">Pomodoro</TabsTrigger>
                             </TabsList>
                         </Tabs>
                         <div className="flex gap-2">
-                            <Button variant="ghost" size="icon" onClick={() => setSoundEnabled(!soundEnabled)} className="text-muted-foreground">
-                                {soundEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+                            <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                onClick={() => setShowSettings(!showSettings)}
+                                className="text-muted-foreground hover:text-foreground transition-colors"
+                            >
+                                <Settings className="h-4 w-4" />
                             </Button>
-                            <Button variant="ghost" size="icon" disabled={!isActive} onClick={() => setIsFullScreen(true)} className="text-muted-foreground">
+                            <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                onClick={() => setSoundEnabled(!soundEnabled)}
+                                className={`transition-colors ${soundEnabled ? 'text-green-500 hover:text-green-600' : 'text-muted-foreground hover:text-foreground'}`}
+                            >
+                                {soundEnabled ? <Bell className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+                            </Button>
+                            <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                disabled={!isActive} 
+                                onClick={() => setIsFullScreen(true)}
+                                className="text-muted-foreground hover:text-foreground transition-colors"
+                            >
                                 <Maximize2 className="h-4 w-4" />
                             </Button>
                         </div>
                     </div>
 
+                    {/* Settings Panel */}
+                    <AnimatePresence>
+                        {showSettings && (
+                            <motion.div
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: 'auto' }}
+                                exit={{ opacity: 0, height: 0 }}
+                                className="mb-6 p-4 bg-muted/30 rounded-xl border border-border/50"
+                            >
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="flex items-center justify-between">
+                                        <Label className="flex items-center gap-2">
+                                            <Heart className="h-4 w-4" /> Motivational Mode
+                                        </Label>
+                                        <Button 
+                                            variant={motivationalMode ? "default" : "outline"}
+                                            size="sm"
+                                            onClick={() => setMotivationalMode(!motivationalMode)}
+                                        >
+                                            {motivationalMode ? 'On' : 'Off'}
+                                        </Button>
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                        <Label className="flex items-center gap-2">
+                                            <Music className="h-4 w-4" /> Theme
+                                        </Label>
+                                        <Select value={theme} onValueChange={(v) => setTheme(v as 'light' | 'dark' | 'auto')}>
+                                            <SelectTrigger className="w-24 h-8 text-xs">
+                                                <SelectValue />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="auto">Auto</SelectItem>
+                                                <SelectItem value="light">Light</SelectItem>
+                                                <SelectItem value="dark">Dark</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+
                     {/* Main Interface */}
-                    <div className="min-h-[300px] flex flex-col items-center justify-center relative">
+                    <div className="min-h-[350px] flex flex-col items-center justify-center relative">
                         {!isActive ? (
                             /* Setup State */
                             <AnimatePresence mode="wait">
@@ -217,85 +330,131 @@ export function Timer() {
                                 >
                                     {mode === 'normal' ? (
                                         <>
-                                            <div className="flex items-end gap-2">
-                                                <TimeDigit value={hours} label="Hours" onChange={setHours} max={23} />
-                                                <span className="text-4xl font-bold text-muted-foreground/30 mb-8">:</span>
-                                                <TimeDigit value={minutes} label="Minutes" onChange={setMinutes} />
-                                                <span className="text-4xl font-bold text-muted-foreground/30 mb-8">:</span>
-                                                <TimeDigit value={seconds} label="Seconds" onChange={setSeconds} />
+                                            {/* Enhanced Time Input */}
+                                            <div className="flex items-end gap-3 bg-muted/20 rounded-2xl p-6 border border-border/30">
+                                                <div className="flex flex-col items-center gap-2">
+                                                    <TimeDigit value={hours} label="Hours" onChange={setHours} max={23} />
+                                                    <div className="w-2 h-2 rounded-full bg-primary/30"></div>
+                                                </div>
+                                                <span className="text-5xl font-bold text-muted-foreground/30 mb-6">:</span>
+                                                <div className="flex flex-col items-center gap-2">
+                                                    <TimeDigit value={minutes} label="Minutes" onChange={setMinutes} />
+                                                    <div className="w-2 h-2 rounded-full bg-primary/30"></div>
+                                                </div>
+                                                <span className="text-5xl font-bold text-muted-foreground/30 mb-6">:</span>
+                                                <div className="flex flex-col items-center gap-2">
+                                                    <TimeDigit value={seconds} label="Seconds" onChange={setSeconds} />
+                                                    <div className="w-2 h-2 rounded-full bg-primary/30"></div>
+                                                </div>
                                             </div>
 
-                                            <div className="flex flex-wrap justify-center gap-2">
-                                                <QuickPreset label="Focus" minutes={25} icon={Zap} onClick={() => setPreset(25)} />
-                                                <QuickPreset label="Short Break" minutes={5} icon={Coffee} onClick={() => setPreset(5)} />
-                                                <QuickPreset label="Long Break" minutes={15} icon={Coffee} onClick={() => setPreset(15)} />
+                                            {/* Enhanced Quick Presets */}
+                                            <div className="w-full max-w-md">
+                                                <h3 className="text-sm font-medium text-muted-foreground mb-3 text-center">Quick Presets</h3>
+                                                <div className="grid grid-cols-3 gap-3">
+                                                    <QuickPreset label="Focus" minutes={25} icon={Target} onClick={() => setPreset(25)} />
+                                                    <QuickPreset label="Break" minutes={5} icon={Coffee} onClick={() => setPreset(5)} />
+                                                    <QuickPreset label="Deep Work" minutes={90} icon={Zap} onClick={() => setPreset(90)} />
+                                                    <QuickPreset label="Nap" minutes={20} icon={Moon} onClick={() => setPreset(20)} />
+                                                    <QuickPreset label="Reading" minutes={30} icon={BookOpen} onClick={() => setPreset(30)} />
+                                                    <QuickPreset label="Exercise" minutes={15} icon={Dumbbell} onClick={() => setPreset(15)} />
+                                                </div>
                                             </div>
                                         </>
                                     ) : (
                                         <div className="w-full space-y-6 px-4">
-                                            <div className="space-y-4">
-                                                <div className="flex items-center justify-between">
-                                                    <Label className="text-muted-foreground flex items-center gap-2">
-                                                        <Zap className="h-4 w-4 text-primary" /> Work Duration
-                                                    </Label>
-                                                    <span className="font-mono text-xl font-bold">{intervalSettings.workMinutes}:{intervalSettings.workSeconds.toString().padStart(2, '0')}</span>
-                                                </div>
-                                                <Slider
-                                                    value={[intervalSettings.workMinutes * 60 + intervalSettings.workSeconds]}
-                                                    max={300}
-                                                    step={15}
-                                                    onValueChange={([v]) => setIntervalSettings(prev => ({ ...prev, workMinutes: Math.floor(v / 60), workSeconds: v % 60 }))}
-                                                />
-                                            </div>
+                                            <Card className="bg-gradient-to-r from-primary/5 to-blue-500/5 border-primary/20">
+                                                <CardContent className="p-5">
+                                                    <div className="space-y-4">
+                                                        <div className="flex items-center justify-between">
+                                                            <Label className="text-muted-foreground flex items-center gap-2 text-base">
+                                                                <Target className="h-5 w-5 text-primary" /> Work Duration
+                                                            </Label>
+                                                            <span className="font-mono text-2xl font-bold">{intervalSettings.workMinutes}:{intervalSettings.workSeconds.toString().padStart(2, '0')}</span>
+                                                        </div>
+                                                        <Slider
+                                                            value={[intervalSettings.workMinutes * 60 + intervalSettings.workSeconds]}
+                                                            max={300}
+                                                            step={15}
+                                                            className="py-4"
+                                                            onValueChange={([v]) => setIntervalSettings(prev => ({ ...prev, workMinutes: Math.floor(v / 60), workSeconds: v % 60 }))}
+                                                        />
+                                                    </div>
+                                                </CardContent>
+                                            </Card>
 
-                                            <div className="space-y-4">
-                                                <div className="flex items-center justify-between">
-                                                    <Label className="text-muted-foreground flex items-center gap-2">
-                                                        <Coffee className="h-4 w-4 text-blue-500" /> Rest Duration
-                                                    </Label>
-                                                    <span className="font-mono text-xl font-bold text-blue-500">{intervalSettings.restMinutes}:{intervalSettings.restSeconds.toString().padStart(2, '0')}</span>
-                                                </div>
-                                                <Slider
-                                                    value={[intervalSettings.restMinutes * 60 + intervalSettings.restSeconds]}
-                                                    max={120}
-                                                    step={15}
-                                                    className="bg-blue-500/20"
-                                                    onValueChange={([v]) => setIntervalSettings(prev => ({ ...prev, restMinutes: Math.floor(v / 60), restSeconds: v % 60 }))}
-                                                />
-                                            </div>
+                                            <Card className="bg-gradient-to-r from-blue-500/5 to-indigo-500/5 border-blue-500/20">
+                                                <CardContent className="p-5">
+                                                    <div className="space-y-4">
+                                                        <div className="flex items-center justify-between">
+                                                            <Label className="text-muted-foreground flex items-center gap-2 text-base">
+                                                                <Coffee className="h-5 w-5 text-blue-500" /> Rest Duration
+                                                            </Label>
+                                                            <span className="font-mono text-2xl font-bold text-blue-500">{intervalSettings.restMinutes}:{intervalSettings.restSeconds.toString().padStart(2, '0')}</span>
+                                                        </div>
+                                                        <Slider
+                                                            value={[intervalSettings.restMinutes * 60 + intervalSettings.restSeconds]}
+                                                            max={120}
+                                                            step={15}
+                                                            className="py-4 bg-blue-500/20"
+                                                            onValueChange={([v]) => setIntervalSettings(prev => ({ ...prev, restMinutes: Math.floor(v / 60), restSeconds: v % 60 }))}
+                                                        />
+                                                    </div>
+                                                </CardContent>
+                                            </Card>
 
-                                            <div className="flex items-center justify-between pt-4 border-t border-border/50">
-                                                <Label>Rounds</Label>
-                                                <div className="flex items-center gap-3">
-                                                    <Button variant="outline" size="icon" className="h-8 w-8 rounded-full" onClick={() => setIntervalSettings(p => ({ ...p, rounds: Math.max(1, p.rounds - 1) }))}>
-                                                        <Minus className="h-3 w-3" />
-                                                    </Button>
-                                                    <span className="font-mono text-lg font-bold w-8 text-center">{intervalSettings.rounds}</span>
-                                                    <Button variant="outline" size="icon" className="h-8 w-8 rounded-full" onClick={() => setIntervalSettings(p => ({ ...p, rounds: Math.min(20, p.rounds + 1) }))}>
-                                                        <Plus className="h-3 w-3" />
-                                                    </Button>
-                                                </div>
-                                            </div>
+                                            <Card className="bg-gradient-to-r from-purple-500/5 to-pink-500/5 border-purple-500/20">
+                                                <CardContent className="p-5">
+                                                    <div className="flex items-center justify-between">
+                                                        <Label className="text-muted-foreground flex items-center gap-2 text-base">
+                                                            <Trophy className="h-5 w-5 text-purple-500" /> Rounds
+                                                        </Label>
+                                                        <div className="flex items-center gap-3">
+                                                            <Button variant="outline" size="icon" className="h-9 w-9 rounded-full" onClick={() => setIntervalSettings(p => ({ ...p, rounds: Math.max(1, p.rounds - 1) }))}>
+                                                                <Minus className="h-4 w-4" />
+                                                            </Button>
+                                                            <span className="font-mono text-2xl font-bold w-10 text-center">{intervalSettings.rounds}</span>
+                                                            <Button variant="outline" size="icon" className="h-9 w-9 rounded-full" onClick={() => setIntervalSettings(p => ({ ...p, rounds: Math.min(20, p.rounds + 1) }))}>
+                                                                <Plus className="h-4 w-4" />
+                                                            </Button>
+                                                        </div>
+                                                    </div>
+                                                </CardContent>
+                                            </Card>
                                         </div>
                                     )}
 
-                                    {/* Task Selector */}
-                                    <div className="w-full max-w-xs">
+                                    {/* Enhanced Task Selector */}
+                                    <div className="w-full max-w-md space-y-3">
+                                        <Label className="text-center block text-muted-foreground">Link to Task (Optional)</Label>
                                         <Select value={selectedTaskId} onValueChange={setSelectedTaskId}>
-                                            <SelectTrigger className="w-full border-border/50 bg-background/50">
-                                                <SelectValue placeholder="Link to a Task (Optional)" />
+                                            <SelectTrigger className="w-full border-border/50 bg-background/50 h-12 rounded-xl">
+                                                <SelectValue placeholder="Select a task to focus on..." />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="none">No Task Linked</SelectItem>
+                                                <SelectItem value="none" className="flex items-center gap-2">
+                                                    <Star className="h-4 w-4 text-muted-foreground" /> No Task Linked
+                                                </SelectItem>
                                                 {profile.todos.filter(t => !t.completed).map(t => (
-                                                    <SelectItem key={t.id} value={t.id}>{t.text}</SelectItem>
+                                                    <SelectItem key={t.id} value={t.id} className="flex items-center gap-2">
+                                                        <Target className="h-4 w-4 text-primary" /> {t.text}
+                                                    </SelectItem>
                                                 ))}
                                             </SelectContent>
                                         </Select>
                                     </div>
 
-                                    <Button size="lg" className="w-full h-14 text-lg rounded-2xl shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all" onClick={handleStart}>
-                                        <Play className="mr-2 h-5 w-5 fill-current" /> Start {mode === 'interval' ? 'Workout' : 'Focus'}
+                                    <Button 
+                                        size="lg" 
+                                        className="w-full h-16 text-xl font-bold rounded-2xl shadow-2xl shadow-primary/25 hover:shadow-primary/40 transition-all transform hover:scale-105 active:scale-95 bg-gradient-to-r from-primary to-indigo-600 text-white"
+                                        onClick={() => {
+                                            handleStart();
+                                            if (mode === 'normal') {
+                                                setSessionCount(prev => prev + 1);
+                                            }
+                                        }}
+                                    >
+                                        <Play className="mr-3 h-6 w-6 fill-current" /> Start {mode === 'interval' ? 'Pomodoro Session' : 'Focused Work'}
                                     </Button>
                                 </motion.div>
                             </AnimatePresence>

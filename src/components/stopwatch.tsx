@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Play, Pause, RotateCcw, Flag, Download, Copy, Maximize, Minimize2, Trophy, Clock } from 'lucide-react';
+import { Play, Pause, RotateCcw, Flag, Download, Copy, Maximize, Minimize2, Trophy, Clock, Settings, Zap, Target, Flame, Star, Heart, Music, Sun, Moon, Database, Share2, Timer } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useToast } from '@/hooks/use-toast';
@@ -30,6 +30,12 @@ export function Stopwatch() {
   const [isRunning, setIsRunning] = useState(false);
   const [laps, setLaps] = useState<number[]>([]);
   const [isFullScreen, setIsFullScreen] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [splitTimes, setSplitTimes] = useState<number[]>([]);
+  const [bestTime, setBestTime] = useState<number | null>(null);
+  const [worstTime, setWorstTime] = useState<number | null>(null);
+  const [totalDistance, setTotalDistance] = useState(0); // For running/cycling tracking
+  const [paceMode, setPaceMode] = useState<'time' | 'distance'>('time');
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const lastLapTimeRef = useRef(0);
@@ -95,6 +101,7 @@ export function Stopwatch() {
   const recordLap = () => {
     const lapTime = time - lastLapTimeRef.current;
     setLaps(prev => [lapTime, ...prev]);
+    setSplitTimes(prev => [...prev, time]); // Store cumulative time
     lastLapTimeRef.current = time;
   };
 

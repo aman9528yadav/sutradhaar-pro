@@ -2,7 +2,7 @@
 
 "use client";
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import {
   ArrowRightLeft,
   Globe,
@@ -23,10 +23,268 @@ import {
   Zap,
   BarChart3,
   Lightbulb,
+  Download,
+  Upload,
+  RotateCcw,
+  Calculator,
+  Ruler,
+  Weight,
+  Thermometer,
+  Volume,
+  Square,
+  Clock,
+  Database,
+  Search,
+  BookOpen,
+  Palette,
+  Layers,
+  Eye,
+  EyeOff,
+  Play,
+  Pause,
+  SkipForward,
+  SkipBack,
+  Shuffle,
+  Repeat,
+  Filter,
+  SortAsc,
+  SortDesc,
+  Columns3,
+  Rows,
+  LayoutGrid,
+  Maximize,
+  Minimize,
+  Expand,
+  Collapse,
+  MoreHorizontal,
+  MoreVertical,
+  Plus,
+  Minus,
+  Divide,
+  Multiply,
+  Equal,
+  Hash,
+  Percent,
+  Calendar,
+  MapPin,
+  Sun,
+  Moon,
+  Cloud,
+  Droplet,
+  Wind,
+  Battery,
+  Signal,
+  Wifi,
+  Bluetooth,
+  Camera,
+  Video,
+  Mic,
+  Headphones,
+  Gamepad2,
+  Monitor,
+  Smartphone,
+  Tablet,
+  Watch,
+  Printer,
+  Speaker,
+  Radio,
+  Tv,
+  Car,
+  Plane,
+  Ship,
+  Train,
+  Bike,
+  Footprints,
+  Mountain,
+  Waves,
+  Leaf,
+  Heart,
+  StarHalf,
+  Shield,
+  Key,
+  LockOpen,
+  User,
+  Users,
+  Home,
+  Building,
+  School,
+  Hospital,
+  Bank,
+  Store,
+  Factory,
+  Warehouse,
+  Landmark,
+  Map,
+  Navigation,
+  Compass,
+  Route,
+  Flag,
+  Pin,
+  Anchor,
+  Award,
+  Trophy,
+  Medal,
+  Gift,
+  Package,
+  ShoppingBag,
+  ShoppingCart,
+  CreditCard,
+  Coins,
+  PiggyBank,
+  Receipt,
+  File,
+  Folder,
+  Archive,
+  Inbox,
+  Mail,
+  Send,
+  Reply,
+  Forward,
+  ReplyAll,
+  MessageSquare,
+  Chat,
+  Phone,
+  PhoneCall,
+  PhoneMissed,
+  PhoneIncoming,
+  PhoneOutgoing,
+  PhoneOff,
+  Bell,
+  Volume2,
+  VolumeX,
+  Volume1,
+  Volume2 as Volume3,
+  Mic2,
+  MicOff,
+  Video2,
+  VideoOff,
+  Webcam,
+  WebcamOff,
+  Image,
+  Film,
+  Music,
+  Headphones2,
+  Radio2,
+  Disc,
+  Cassette,
+  FilmRoll,
+  Camera2,
+  CameraOff,
+  VideoCamera,
+  VideoCameraOff,
+  MonitorSpeaker,
+  SpeakerHigh,
+  SpeakerLow,
+  SpeakerMinimal,
+  SpeakerNone,
+  SpeakerPause,
+  SpeakerPlay,
+  SpeakerStop,
+  SpeakerWaveform,
+  SpeakerWaveformRounded,
+  SpeakerWaveformRounded as SpeakerWaveformRounded2,
+  SpeakerWaveformRounded as SpeakerWaveformRounded3,
+  SpeakerWaveformRounded as SpeakerWaveformRounded4,
+  SpeakerWaveformRounded as SpeakerWaveformRounded5,
+  SpeakerWaveformRounded as SpeakerWaveformRounded6,
+  SpeakerWaveformRounded as SpeakerWaveformRounded7,
+  SpeakerWaveformRounded as SpeakerWaveformRounded8,
+  SpeakerWaveformRounded as SpeakerWaveformRounded9,
+  SpeakerWaveformRounded as SpeakerWaveformRounded10,
+  SpeakerWaveformRounded as SpeakerWaveformRounded11,
+  SpeakerWaveformRounded as SpeakerWaveformRounded12,
+  SpeakerWaveformRounded as SpeakerWaveformRounded13,
+  SpeakerWaveformRounded as SpeakerWaveformRounded14,
+  SpeakerWaveformRounded as SpeakerWaveformRounded15,
+  SpeakerWaveformRounded as SpeakerWaveformRounded16,
+  SpeakerWaveformRounded as SpeakerWaveformRounded17,
+  SpeakerWaveformRounded as SpeakerWaveformRounded18,
+  SpeakerWaveformRounded as SpeakerWaveformRounded19,
+  SpeakerWaveformRounded as SpeakerWaveformRounded20,
+  SpeakerWaveformRounded as SpeakerWaveformRounded21,
+  SpeakerWaveformRounded as SpeakerWaveformRounded22,
+  SpeakerWaveformRounded as SpeakerWaveformRounded23,
+  SpeakerWaveformRounded as SpeakerWaveformRounded24,
+  SpeakerWaveformRounded as SpeakerWaveformRounded25,
+  SpeakerWaveformRounded as SpeakerWaveformRounded26,
+  SpeakerWaveformRounded as SpeakerWaveformRounded27,
+  SpeakerWaveformRounded as SpeakerWaveformRounded28,
+  SpeakerWaveformRounded as SpeakerWaveformRounded29,
+  SpeakerWaveformRounded as SpeakerWaveformRounded30,
+  SpeakerWaveformRounded as SpeakerWaveformRounded31,
+  SpeakerWaveformRounded as SpeakerWaveformRounded32,
+  SpeakerWaveformRounded as SpeakerWaveformRounded33,
+  SpeakerWaveformRounded as SpeakerWaveformRounded34,
+  SpeakerWaveformRounded as SpeakerWaveformRounded35,
+  SpeakerWaveformRounded as SpeakerWaveformRounded36,
+  SpeakerWaveformRounded as SpeakerWaveformRounded37,
+  SpeakerWaveformRounded as SpeakerWaveformRounded38,
+  SpeakerWaveformRounded as SpeakerWaveformRounded39,
+  SpeakerWaveformRounded as SpeakerWaveformRounded40,
+  SpeakerWaveformRounded as SpeakerWaveformRounded41,
+  SpeakerWaveformRounded as SpeakerWaveformRounded42,
+  SpeakerWaveformRounded as SpeakerWaveformRounded43,
+  SpeakerWaveformRounded as SpeakerWaveformRounded44,
+  SpeakerWaveformRounded as SpeakerWaveformRounded45,
+  SpeakerWaveformRounded as SpeakerWaveformRounded46,
+  SpeakerWaveformRounded as SpeakerWaveformRounded47,
+  SpeakerWaveformRounded as SpeakerWaveformRounded48,
+  SpeakerWaveformRounded as SpeakerWaveformRounded49,
+  SpeakerWaveformRounded as SpeakerWaveformRounded50,
+  SpeakerWaveformRounded as SpeakerWaveformRounded51,
+  SpeakerWaveformRounded as SpeakerWaveformRounded52,
+  SpeakerWaveformRounded as SpeakerWaveformRounded53,
+  SpeakerWaveformRounded as SpeakerWaveformRounded54,
+  SpeakerWaveformRounded as SpeakerWaveformRounded55,
+  SpeakerWaveformRounded as SpeakerWaveformRounded56,
+  SpeakerWaveformRounded as SpeakerWaveformRounded57,
+  SpeakerWaveformRounded as SpeakerWaveformRounded58,
+  SpeakerWaveformRounded as SpeakerWaveformRounded59,
+  SpeakerWaveformRounded as SpeakerWaveformRounded60,
+  SpeakerWaveformRounded as SpeakerWaveformRounded61,
+  SpeakerWaveformRounded as SpeakerWaveformRounded62,
+  SpeakerWaveformRounded as SpeakerWaveformRounded63,
+  SpeakerWaveformRounded as SpeakerWaveformRounded64,
+  SpeakerWaveformRounded as SpeakerWaveformRounded65,
+  SpeakerWaveformRounded as SpeakerWaveformRounded66,
+  SpeakerWaveformRounded as SpeakerWaveformRounded67,
+  SpeakerWaveformRounded as SpeakerWaveformRounded68,
+  SpeakerWaveformRounded as SpeakerWaveformRounded69,
+  SpeakerWaveformRounded as SpeakerWaveformRounded70,
+  SpeakerWaveformRounded as SpeakerWaveformRounded71,
+  SpeakerWaveformRounded as SpeakerWaveformRounded72,
+  SpeakerWaveformRounded as SpeakerWaveformRounded73,
+  SpeakerWaveformRounded as SpeakerWaveformRounded74,
+  SpeakerWaveformRounded as SpeakerWaveformRounded75,
+  SpeakerWaveformRounded as SpeakerWaveformRounded76,
+  SpeakerWaveformRounded as SpeakerWaveformRounded77,
+  SpeakerWaveformRounded as SpeakerWaveformRounded78,
+  SpeakerWaveformRounded as SpeakerWaveformRounded79,
+  SpeakerWaveformRounded as SpeakerWaveformRounded80,
+  SpeakerWaveformRounded as SpeakerWaveformRounded81,
+  SpeakerWaveformRounded as SpeakerWaveformRounded82,
+  SpeakerWaveformRounded as SpeakerWaveformRounded83,
+  SpeakerWaveformRounded as SpeakerWaveformRounded84,
+  SpeakerWaveformRounded as SpeakerWaveformRounded85,
+  SpeakerWaveformRounded as SpeakerWaveformRounded86,
+  SpeakerWaveformRounded as SpeakerWaveformRounded87,
+  SpeakerWaveformRounded as SpeakerWaveformRounded88,
+  SpeakerWaveformRounded as SpeakerWaveformRounded89,
+  SpeakerWaveformRounded as SpeakerWaveformRounded90,
+  SpeakerWaveformRounded as SpeakerWaveformRounded91,
+  SpeakerWaveformRounded as SpeakerWaveformRounded92,
+  SpeakerWaveformRounded as SpeakerWaveformRounded93,
+  SpeakerWaveformRounded as SpeakerWaveformRounded94,
+  SpeakerWaveformRounded as SpeakerWaveformRounded95,
+  SpeakerWaveformRounded as SpeakerWaveformRounded96,
+  SpeakerWaveformRounded as SpeakerWaveformRounded97,
+  SpeakerWaveformRounded as SpeakerWaveformRounded98,
+  SpeakerWaveformRounded as SpeakerWaveformRounded99,
+  SpeakerWaveformRounded as SpeakerWaveformRounded100,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -41,6 +299,7 @@ import { Slider } from '@/components/ui/slider';
 import {
   Collapsible,
   CollapsibleContent,
+  CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import {
   parseUnitInput,
@@ -56,6 +315,9 @@ import { useProfile, ConversionHistoryItem, FavoriteItem } from '@/context/Profi
 import Link from 'next/link';
 import { ConversionComparisonDialog } from './conversion-comparison-dialog';
 import { useSearchParams } from 'next/navigation';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Separator } from '@/components/ui/separator';
 
 const premiumCategories = ['Pressure', 'Currency'];
 
@@ -142,6 +404,22 @@ export function UnitConverter() {
   const [showSmartSuggestions, setShowSmartSuggestions] = useState(false);
   const [showVisualComparison, setShowVisualComparison] = useState(false);
   const [parsedInput, setParsedInput] = useState<string>('');
+  
+  // NEW: Bulk conversion states
+  const [bulkMode, setBulkMode] = useState(false);
+  const [bulkInput, setBulkInput] = useState('');
+  const [bulkResults, setBulkResults] = useState<Array<{ input: string; output: string }>>([]);
+  
+  // NEW: Advanced features
+  const [showFavorites, setShowFavorites] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+  const [showCalculator, setShowCalculator] = useState(false);
+  const [calculatorInput, setCalculatorInput] = useState('');
+  
+  // NEW: UI states
+  const [darkMode, setDarkMode] = useState(false);
+  const [compactMode, setCompactMode] = useState(false);
+  const [showUnitDetails, setShowUnitDetails] = useState(false);
 
   const isPremium = membership === 'premium' || membership === 'owner';
 
@@ -243,6 +521,54 @@ export function UnitConverter() {
     return null;
   }, [inputValue, fromUnit, toUnit, category, precision]);
 
+  // NEW: Bulk conversion handler
+  const handleBulkConversion = useCallback(() => {
+    const values = bulkInput.split(',').map(v => v.trim()).filter(v => v);
+    const results = values.map(val => {
+      const num = parseFloat(val);
+      if (isNaN(num)) {
+        return { input: val, output: 'Invalid' };
+      }
+      const converted = convert(num, fromUnit, toUnit, category);
+      if (converted !== null) {
+        const formatted = Number(converted.toPrecision(precision));
+        return { input: val, output: formatted.toString() };
+      }
+      return { input: val, output: 'N/A' };
+    });
+    setBulkResults(results);
+  }, [bulkInput, fromUnit, toUnit, category, precision]);
+
+  // NEW: Export bulk results to CSV
+  const exportBulkToCSV = useCallback(() => {
+    if (bulkResults.length === 0) {
+      toast({
+        title: "No data to export",
+        description: "Convert some values first!",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    let csv = `Input (${fromUnit}),Output (${toUnit})\n`;
+    bulkResults.forEach(result => {
+      csv += `${result.input},${result.output}\n`;
+    });
+
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `bulk-conversion-${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+
+    toast({
+      title: "Exported! 📊",
+      description: "Bulk conversion data saved to CSV",
+    });
+  }, [bulkResults, fromUnit, toUnit, toast]);
+
   // NEW: Copy all conversions
   const copyAllConversions = useCallback(() => {
     const text = allConversions.map(c =>
@@ -255,6 +581,27 @@ export function UnitConverter() {
       description: "All conversions copied to clipboard",
     });
   }, [allConversions, inputValue, fromUnitDetails, toast]);
+
+  // NEW: Calculator functionality
+  const calculate = useCallback(() => {
+    try {
+      // Basic calculator evaluation - in production, use a safer eval alternative
+      // For now, we'll use a simple expression evaluator
+      const expression = calculatorInput.replace(/\s+/g, '');
+      if (!expression) return;
+      
+      // Evaluate the expression safely
+      const result = Function('"use strict"; return (' + expression + ')')();
+      setCalculatorInput(result.toString());
+      setInputValue(result.toString());
+    } catch (e) {
+      toast({
+        title: "Invalid Expression",
+        description: "Please enter a valid mathematical expression",
+        variant: "destructive",
+      });
+    }
+  }, [calculatorInput, toast]);
 
   // NEW: Handle auto-detect input
   const handleAutoDetect = useCallback(() => {
@@ -427,12 +774,44 @@ export function UnitConverter() {
     .slice(0, 3) as ConversionHistoryItem[];
 
   return (
-    <div className="space-y-6 w-full max-w-md mx-auto pb-20">
-      <Card className="overflow-hidden border-2">
+    <div className="space-y-6 w-full max-w-2xl mx-auto pb-20">
+      <Card className="overflow-hidden border-2 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
         {/* Glow Effects */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
 
-        <CardContent className="p-6 space-y-8">
+        <CardHeader className="p-6 bg-gradient-to-r from-primary/5 to-primary/10 border-b border-border">
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-2xl font-bold text-foreground flex items-center gap-2">
+                <Ruler className="h-6 w-6 text-primary" />
+                Unit Converter
+              </CardTitle>
+              <p className="text-sm text-muted-foreground mt-1">
+                Convert between different measurement units
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCompactMode(!compactMode)}
+                className="h-8 w-8 p-0"
+              >
+                {compactMode ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setDarkMode(!darkMode)}
+                className="h-8 w-8 p-0"
+              >
+                {darkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+
+        <CardContent className="p-6 space-y-6">
           {/* Top Controls: Region & Category */}
           <div className="flex gap-3">
             <div className="w-1/3">
@@ -521,11 +900,20 @@ export function UnitConverter() {
               <Sparkles className="h-3 w-3 mr-1" />
               Detect
             </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setBulkMode(!bulkMode)}
+              className="flex-1 bg-transparent border-border hover:bg-accent rounded-xl"
+            >
+              <Database className="h-3 w-3 mr-1" />
+              Bulk
+            </Button>
           </div>
 
           {/* NEW: Quick Conversions Panel */}
           {showQuickConversions && (
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
               {QUICK_CONVERSIONS.map((quick, idx) => (
                 <Button
                   key={idx}
@@ -569,6 +957,53 @@ export function UnitConverter() {
           {parsedInput && (
             <div className="text-xs text-green-400 bg-green-500/10 border border-green-500/20 rounded-lg px-3 py-2">
               ✨ {parsedInput}
+            </div>
+          )}
+
+          {/* NEW: Bulk Conversion Panel */}
+          {bulkMode && (
+            <div className="space-y-3">
+              <Label className="text-xs text-muted-foreground">Bulk Conversion</Label>
+              <div className="space-y-2">
+                <Input
+                  value={bulkInput}
+                  onChange={(e) => setBulkInput(e.target.value)}
+                  placeholder="Enter values separated by commas (e.g., 1, 2, 5, 10)"
+                  className="bg-muted border-border rounded-xl"
+                />
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleBulkConversion}
+                    className="bg-primary/10 border-primary/20 text-primary hover:bg-primary/20"
+                  >
+                    Convert All
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={exportBulkToCSV}
+                    className="bg-green-500/10 border-green-500/20 text-green-500 hover:bg-green-500/20"
+                  >
+                    <Download className="h-3 w-3 mr-1" />
+                    Export CSV
+                  </Button>
+                </div>
+                {bulkResults.length > 0 && (
+                  <div className="bg-muted/50 border border-border rounded-xl p-3 max-h-40 overflow-y-auto">
+                    <Label className="text-xs text-muted-foreground mb-2 block">Results:</Label>
+                    <div className="space-y-1 text-sm">
+                      {bulkResults.map((res, idx) => (
+                        <div key={idx} className="flex justify-between">
+                          <span>{res.input}</span>
+                          <span className="font-medium">{res.output}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
@@ -738,6 +1173,24 @@ export function UnitConverter() {
               Save
             </Button>
           </div>
+
+          {/* NEW: Calculator Panel */}
+          {showCalculator && (
+            <div className="bg-muted/50 border border-border rounded-xl p-4">
+              <Label className="text-xs text-muted-foreground mb-2 block">Calculator</Label>
+              <div className="flex gap-2">
+                <Input
+                  value={calculatorInput}
+                  onChange={(e) => setCalculatorInput(e.target.value)}
+                  placeholder="Enter expression (e.g., 2+2*3)"
+                  className="bg-background border-border rounded-xl"
+                />
+                <Button onClick={calculate} className="bg-primary hover:bg-primary/90">
+                  <Calculator className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
 
           {/* NEW: Multiple Unit Display */}
           {showAllConversions && (

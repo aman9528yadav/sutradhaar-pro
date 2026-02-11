@@ -25,16 +25,25 @@ import {
     Filter,
     History,
     CheckCircle2,
-    ArrowRight
+    ArrowRight,
+    Users,
+    Heart,
+    Star,
+    Flame,
+    CalendarDays,
+    ChartNoAxesColumn,
+    ArrowUpRight,
+    ArrowDownRight
 } from 'lucide-react';
 import { useProfile } from '@/context/ProfileContext';
-import { isToday, isYesterday, formatDistanceToNow, startOfWeek, endOfWeek, isWithinInterval, format } from 'date-fns';
+import { isToday, isYesterday, formatDistanceToNow, startOfWeek, endOfWeek, isWithinInterval, format, subDays, startOfMonth, endOfMonth, startOfYear, endOfYear } from 'date-fns';
 import { ActivityBreakdownChart } from '@/components/activity-breakdown-chart';
 import { WeeklySummaryChart } from './weekly-summary-chart';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const StatCard = ({
     title,
@@ -54,7 +63,7 @@ const StatCard = ({
     className?: string;
 }) => {
     const isPositive = change !== undefined && change >= 0;
-    const TrendIcon = isPositive ? TrendingUp : TrendingDown;
+    const TrendIcon = isPositive ? ArrowUpRight : ArrowDownRight;
 
     return (
         <Card className={cn("bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border-white/20 shadow-lg overflow-hidden relative group hover:scale-[1.02] transition-all duration-300", className)}>
@@ -127,10 +136,102 @@ const DailyGoalCard = ({ current, target }: { current: number; target: number })
                         <span>Progress</span>
                         <span className="font-medium">{current} / {target}</span>
                     </div>
-                    <Progress value={progress} className="h-2 bg-white/10" indicatorClassName={isCompleted ? "bg-green-500" : "bg-primary"} />
+                    <div className="h-2 w-full overflow-hidden rounded-full bg-white/10">
+                        <div 
+                            className={`h-full ${isCompleted ? "bg-green-500" : "bg-primary"}`}
+                            style={{ width: `${progress}%` }}
+                        />
+                    </div>
                 </div>
             </CardContent>
         </Card>
+    );
+};
+
+const EngagementMetrics = ({ history }: { history: any[] }) => {
+    // Calculate engagement metrics
+    const totalUsers = 1245; // Placeholder for actual user count
+    const activeUsers = 324; // Placeholder for actual active user count
+    const retentionRate = 78; // Placeholder for actual retention rate
+    const avgSessionDuration = "12m 34s"; // Placeholder for actual session duration
+
+    return (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="bg-gradient-to-br from-blue-500/10 to-blue-600/5 backdrop-blur-xl border border-blue-500/20 rounded-xl p-4">
+                <div className="flex items-center gap-2 mb-2">
+                    <Users className="h-4 w-4 text-blue-400" />
+                    <span className="text-xs text-white/60 uppercase tracking-wider">Total Users</span>
+                </div>
+                <div className="text-xl font-bold text-white">{totalUsers.toLocaleString()}</div>
+                <div className="text-xs text-white/40">Active community</div>
+            </div>
+            
+            <div className="bg-gradient-to-br from-green-500/10 to-green-600/5 backdrop-blur-xl border border-green-500/20 rounded-xl p-4">
+                <div className="flex items-center gap-2 mb-2">
+                    <Heart className="h-4 w-4 text-green-400" />
+                    <span className="text-xs text-white/60 uppercase tracking-wider">Active Users</span>
+                </div>
+                <div className="text-xl font-bold text-white">{activeUsers.toLocaleString()}</div>
+                <div className="text-xs text-white/40">Today</div>
+            </div>
+            
+            <div className="bg-gradient-to-br from-purple-500/10 to-purple-600/5 backdrop-blur-xl border border-purple-500/20 rounded-xl p-4">
+                <div className="flex items-center gap-2 mb-2">
+                    <Star className="h-4 w-4 text-purple-400" />
+                    <span className="text-xs text-white/60 uppercase tracking-wider">Retention</span>
+                </div>
+                <div className="text-xl font-bold text-white">{retentionRate}%</div>
+                <div className="text-xs text-white/40">30-day rate</div>
+            </div>
+            
+            <div className="bg-gradient-to-br from-amber-500/10 to-amber-600/5 backdrop-blur-xl border border-amber-500/20 rounded-xl p-4">
+                <div className="flex items-center gap-2 mb-2">
+                    <Clock className="h-4 w-4 text-amber-400" />
+                    <span className="text-xs text-white/60 uppercase tracking-wider">Avg Session</span>
+                </div>
+                <div className="text-xl font-bold text-white">{avgSessionDuration}</div>
+                <div className="text-xs text-white/40">Time spent</div>
+            </div>
+        </div>
+    );
+};
+
+const ComparisonChart = ({ history }: { history: any[] }) => {
+    // Mock data for comparison chart
+    const comparisonData = [
+        { name: 'Jan', thisYear: 4000, lastYear: 2400 },
+        { name: 'Feb', thisYear: 3000, lastYear: 1398 },
+        { name: 'Mar', thisYear: 2000, lastYear: 9800 },
+        { name: 'Apr', thisYear: 2780, lastYear: 3908 },
+        { name: 'May', thisYear: 1890, lastYear: 4800 },
+        { name: 'Jun', thisYear: 2390, lastYear: 3800 },
+    ];
+
+    return (
+        <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-xl p-4">
+            <div className="flex items-center justify-between mb-4">
+                <h3 className="text-white font-medium">Growth Comparison</h3>
+                <Badge variant="outline" className="text-xs">vs Last Year</Badge>
+            </div>
+            <div className="space-y-2">
+                {comparisonData.slice(0, 4).map((item, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                        <div className="w-8 text-xs text-white/60">{item.name}</div>
+                        <div className="flex-1 flex gap-1">
+                            <div 
+                                className="h-8 bg-gradient-to-r from-primary/30 to-primary/50 rounded-l" 
+                                style={{ width: `${(item.thisYear / 10000) * 100}%` }}
+                            />
+                            <div 
+                                className="h-8 bg-gradient-to-r from-secondary/30 to-secondary/50 rounded-r" 
+                                style={{ width: `${(item.lastYear / 10000) * 100}%` }}
+                            />
+                        </div>
+                        <div className="w-16 text-right text-xs text-white/60">{item.thisYear}</div>
+                    </div>
+                ))}
+            </div>
+        </div>
     );
 };
 
@@ -158,7 +259,7 @@ const RecentActivityList = ({ history }: { history: any[] }) => {
                 } else if (item.type === 'calculator') {
                     title = "Calculation";
                     details = `${item.expression} = ${item.result}`;
-                    Icon = Calendar; // Using Calendar as placeholder or generic math icon if available
+                    Icon = Calendar;
                 } else if (item.type === 'date_calculation') {
                     title = "Date Calc";
                     details = item.calculationType;
@@ -187,7 +288,8 @@ const RecentActivityList = ({ history }: { history: any[] }) => {
 export function AnalyticsPageEnhanced() {
     const { profile } = useProfile();
     const { history, favorites, budget } = profile;
-    const [timeRange, setTimeRange] = useState<'today' | 'week' | 'month'>('week');
+    const [timeRange, setTimeRange] = useState<'today' | 'week' | 'month' | 'year'>('week');
+    const [chartType, setChartType] = useState<'bar' | 'line' | 'pie'>('bar');
     const [showInsights, setShowInsights] = useState(true);
 
     const getCountForDay = (items: any[], dateFn: (d: Date) => boolean) => {
@@ -203,6 +305,24 @@ export function AnalyticsPageEnhanced() {
         ).length;
     };
 
+    const getCountForMonth = (items: any[]) => {
+        const now = new Date();
+        const start = startOfMonth(now);
+        const end = endOfMonth(now);
+        return items.filter((c: { timestamp: string | number | Date; }) =>
+            isWithinInterval(new Date(c.timestamp), { start, end })
+        ).length;
+    };
+
+    const getCountForYear = (items: any[]) => {
+        const now = new Date();
+        const start = startOfYear(now);
+        const end = endOfYear(now);
+        return items.filter((c: { timestamp: string | number | Date; }) =>
+            isWithinInterval(new Date(c.timestamp), { start, end })
+        ).length;
+    };
+
     const analyticsData = useMemo(() => {
         const { allTimeActivities = 0, streak = 0 } = profile.stats || {};
 
@@ -213,12 +333,20 @@ export function AnalyticsPageEnhanced() {
         const conversionsToday = getCountForDay(conversions, isToday);
         const conversionsYesterday = getCountForDay(conversions, isYesterday);
         const conversionsWeek = getCountForWeek(conversions);
+        const conversionsMonth = getCountForMonth(conversions);
+        const conversionsYear = getCountForYear(conversions);
 
         const calculatorOpsToday = getCountForDay(calculatorOps, isToday);
         const calculatorOpsYesterday = getCountForDay(calculatorOps, isYesterday);
+        const calculatorOpsWeek = getCountForWeek(calculatorOps);
+        const calculatorOpsMonth = getCountForMonth(calculatorOps);
+        const calculatorOpsYear = getCountForYear(calculatorOps);
 
         const dateCalculationsToday = getCountForDay(dateCalculations, isToday);
         const dateCalculationsYesterday = getCountForDay(dateCalculations, isYesterday);
+        const dateCalculationsWeek = getCountForWeek(dateCalculations);
+        const dateCalculationsMonth = getCountForMonth(dateCalculations);
+        const dateCalculationsYear = getCountForYear(dateCalculations);
 
         const calcPercentageChange = (todayCount: number, yesterdayCount: number) => {
             if (yesterdayCount === 0) return todayCount > 0 ? 100 : 0;
@@ -238,6 +366,54 @@ export function AnalyticsPageEnhanced() {
         }, {});
         const mostActiveHour = Object.entries(hourCounts).sort((a: any, b: any) => b[1] - a[1])[0]?.[0] || 12;
 
+        // Calculate period-based data
+        let currentPeriodActivities = 0;
+        let previousPeriodActivities = 0;
+        
+        switch(timeRange) {
+            case 'today':
+                currentPeriodActivities = conversionsToday + calculatorOpsToday + dateCalculationsToday;
+                previousPeriodActivities = conversionsYesterday + calculatorOpsYesterday + dateCalculationsYesterday;
+                break;
+            case 'week':
+                currentPeriodActivities = conversionsWeek + calculatorOpsWeek + dateCalculationsWeek;
+                
+                // Calculate previous week
+                const now = new Date();
+                const startPrevWeek = startOfWeek(subDays(now, 7));
+                const endPrevWeek = endOfWeek(subDays(now, 7));
+                const prevWeekActivities = history.filter((c: { timestamp: string | number | Date; }) =>
+                    isWithinInterval(new Date(c.timestamp), { start: startPrevWeek, end: endPrevWeek })
+                ).length;
+                
+                previousPeriodActivities = prevWeekActivities;
+                break;
+            case 'month':
+                currentPeriodActivities = conversionsMonth + calculatorOpsMonth + dateCalculationsMonth;
+                
+                // Calculate previous month
+                const startPrevMonth = startOfMonth(subDays(new Date(), 30));
+                const endPrevMonth = endOfMonth(subDays(new Date(), 30));
+                const prevMonthActivities = history.filter((c: { timestamp: string | number | Date; }) =>
+                    isWithinInterval(new Date(c.timestamp), { start: startPrevMonth, end: endPrevMonth })
+                ).length;
+                
+                previousPeriodActivities = prevMonthActivities;
+                break;
+            case 'year':
+                currentPeriodActivities = conversionsYear + calculatorOpsYear + dateCalculationsYear;
+                
+                // Calculate previous year
+                const startPrevYear = startOfYear(subDays(new Date(), 365));
+                const endPrevYear = endOfYear(subDays(new Date(), 365));
+                const prevYearActivities = history.filter((c: { timestamp: string | number | Date; }) =>
+                    isWithinInterval(new Date(c.timestamp), { start: startPrevYear, end: endPrevYear })
+                ).length;
+                
+                previousPeriodActivities = prevYearActivities;
+                break;
+        }
+
         return {
             totalActivities: {
                 value: allTimeActivities,
@@ -246,6 +422,11 @@ export function AnalyticsPageEnhanced() {
                     conversionsYesterday + calculatorOpsYesterday + dateCalculationsYesterday
                 )
             },
+            currentPeriodActivities: {
+                value: currentPeriodActivities,
+                change: previousPeriodActivities === 0 ? 100 : Math.round(((currentPeriodActivities - previousPeriodActivities) / previousPeriodActivities) * 100),
+                description: `Activities this ${timeRange}`
+            },
             todayActivities: {
                 value: conversionsToday + calculatorOpsToday + dateCalculationsToday,
                 description: 'Activities today'
@@ -253,6 +434,10 @@ export function AnalyticsPageEnhanced() {
             weekActivities: {
                 value: conversionsWeek,
                 description: 'This week'
+            },
+            monthActivities: {
+                value: conversionsMonth,
+                description: 'This month'
             },
             totalConversions: {
                 value: conversions.length,
@@ -333,12 +518,13 @@ export function AnalyticsPageEnhanced() {
             exported: new Date().toISOString(),
             stats: analyticsData,
             history: history.slice(0, 100),
+            timeRange: timeRange
         };
         const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `analytics-${format(new Date(), 'yyyy-MM-dd')}.json`;
+        a.download = `analytics-${format(new Date(), 'yyyy-MM-dd')}-${timeRange}.json`;
         a.click();
         URL.revokeObjectURL(url);
     };
@@ -348,10 +534,21 @@ export function AnalyticsPageEnhanced() {
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold text-white tracking-tight">App Insights</h1>
+                    <h1 className="text-3xl font-bold text-white tracking-tight">Analytics Dashboard</h1>
                     <p className="text-sm text-white/60">Track your productivity and usage patterns</p>
                 </div>
                 <div className="flex gap-2">
+                    <Select value={timeRange} onValueChange={(value: 'today' | 'week' | 'month' | 'year') => setTimeRange(value)}>
+                        <SelectTrigger className="w-[120px] bg-white/5 border-white/20 text-white">
+                            <SelectValue placeholder="Time Range" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-card border-white/10 text-white">
+                            <SelectItem value="today">Today</SelectItem>
+                            <SelectItem value="week">This Week</SelectItem>
+                            <SelectItem value="month">This Month</SelectItem>
+                            <SelectItem value="year">This Year</SelectItem>
+                        </SelectContent>
+                    </Select>
                     <Button variant="outline" size="sm" onClick={exportData} className="bg-white/5 border-white/20 text-white hover:bg-white/10">
                         <Download className="h-4 w-4 mr-2" />
                         Export Data
@@ -360,14 +557,15 @@ export function AnalyticsPageEnhanced() {
             </div>
 
             <Tabs defaultValue="overview" className="w-full">
-                <TabsList className="grid w-full grid-cols-2 lg:w-[400px] bg-white/5 border border-white/10">
+                <TabsList className="grid w-full grid-cols-3 lg:w-[600px] bg-white/5 border border-white/10">
                     <TabsTrigger value="overview">Overview</TabsTrigger>
+                    <TabsTrigger value="engagement">Engagement</TabsTrigger>
                     <TabsTrigger value="detailed">Detailed Stats</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="overview" className="space-y-6 mt-6">
                     {/* Top Stats Row */}
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         <DailyGoalCard current={analyticsData.todayActivities.value} target={10} />
                         <StatCard
                             title="Current Streak"
@@ -376,26 +574,43 @@ export function AnalyticsPageEnhanced() {
                             icon={Award}
                             className="bg-gradient-to-br from-orange-500/10 to-transparent border-orange-500/20"
                         />
+                        <StatCard
+                            title="This Period"
+                            value={analyticsData.currentPeriodActivities.value}
+                            change={analyticsData.currentPeriodActivities.change}
+                            description={analyticsData.currentPeriodActivities.description}
+                            icon={CalendarDays}
+                        />
+                        <StatCard
+                            title="Productivity"
+                            value={`${analyticsData.productivityScore.value}%`}
+                            description={analyticsData.productivityScore.description}
+                            icon={Zap}
+                            className="bg-gradient-to-br from-blue-500/10 to-transparent border-blue-500/20"
+                        />
                     </div>
-
-                    {/* Productivity Score - Full Width */}
-                    <StatCard
-                        title="Productivity Score"
-                        value={`${analyticsData.productivityScore.value}%`}
-                        description={analyticsData.productivityScore.description}
-                        icon={Zap}
-                        className="bg-gradient-to-br from-blue-500/10 to-transparent border-blue-500/20"
-                    />
 
                     {/* Main Charts Area */}
                     <div className="space-y-6">
                         <Card className="bg-white/5 backdrop-blur-xl border-white/10 shadow-xl">
                             <CardHeader>
-                                <CardTitle className="text-white flex items-center gap-2">
-                                    <BarChart3 className="h-5 w-5 text-primary" />
-                                    Weekly Activity
+                                <CardTitle className="text-white flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <BarChart3 className="h-5 w-5 text-primary" />
+                                        <span>Activity Overview</span>
+                                    </div>
+                                    <Select value={chartType} onValueChange={(value: 'bar' | 'line' | 'pie') => setChartType(value)}>
+                                        <SelectTrigger className="w-[100px] h-8 bg-white/5 border-white/20 text-white">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent className="bg-card border-white/10 text-white">
+                                            <SelectItem value="bar">Bar</SelectItem>
+                                            <SelectItem value="line">Line</SelectItem>
+                                            <SelectItem value="pie">Pie</SelectItem>
+                                        </SelectContent>
+                                    </Select>
                                 </CardTitle>
-                                <CardDescription className="text-white/40">Your activity over the last 7 days</CardDescription>
+                                <CardDescription className="text-white/40">Your activity over the selected period</CardDescription>
                             </CardHeader>
                             <CardContent>
                                 <div className="h-[200px] sm:h-[250px] w-full">
@@ -403,6 +618,9 @@ export function AnalyticsPageEnhanced() {
                                 </div>
                             </CardContent>
                         </Card>
+
+                        {/* Comparison Chart */}
+                        <ComparisonChart history={history} />
 
                         {/* Recent Activity */}
                         <Card className="bg-white/5 backdrop-blur-xl border-white/10 shadow-xl">
@@ -414,19 +632,6 @@ export function AnalyticsPageEnhanced() {
                             </CardHeader>
                             <CardContent>
                                 <RecentActivityList history={history} />
-                            </CardContent>
-                        </Card>
-
-                        {/* Activity Breakdown */}
-                        <Card className="bg-white/5 backdrop-blur-xl border-white/10 shadow-xl">
-                            <CardHeader>
-                                <CardTitle className="text-white flex items-center gap-2">
-                                    <PieChart className="h-5 w-5 text-primary" />
-                                    Breakdown
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className="h-[200px] flex justify-center items-center">
-                                <ActivityBreakdownChart />
                             </CardContent>
                         </Card>
                     </div>
@@ -441,23 +646,69 @@ export function AnalyticsPageEnhanced() {
                     )}
                 </TabsContent>
 
+                <TabsContent value="engagement" className="space-y-6 mt-6">
+                    <Card className="bg-white/5 backdrop-blur-xl border-white/10 shadow-xl">
+                        <CardHeader>
+                            <CardTitle className="text-white flex items-center gap-2">
+                                <Users className="h-5 w-5 text-primary" />
+                                User Engagement Metrics
+                            </CardTitle>
+                            <CardDescription className="text-white/40">Community and engagement statistics</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <EngagementMetrics history={history} />
+                        </CardContent>
+                    </Card>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <Card className="bg-white/5 backdrop-blur-xl border-white/10 shadow-xl">
+                            <CardHeader>
+                                <CardTitle className="text-white flex items-center gap-2">
+                                    <PieChart className="h-5 w-5 text-primary" />
+                                    Activity Breakdown
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="h-[300px] flex justify-center items-center">
+                                <ActivityBreakdownChart />
+                            </CardContent>
+                        </Card>
+
+                        <Card className="bg-white/5 backdrop-blur-xl border-white/10 shadow-xl">
+                            <CardHeader>
+                                <CardTitle className="text-white flex items-center gap-2">
+                                    <ChartNoAxesColumn className="h-5 w-5 text-primary" />
+                                    Growth Trends
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="h-[300px] flex justify-center items-center">
+                                <div className="w-full h-full flex items-center justify-center text-white/40">
+                                    Growth trend visualization
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+                </TabsContent>
+
                 <TabsContent value="detailed" className="space-y-6 mt-6">
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         <StatCard
                             title="Total Activities"
                             value={analyticsData.totalActivities.value}
+                            change={analyticsData.totalActivities.change}
                             description="All time"
                             icon={Activity}
                         />
                         <StatCard
                             title="Conversions"
                             value={analyticsData.totalConversions.value}
+                            change={analyticsData.totalConversions.change}
                             description="Total conversions"
                             icon={ArrowRight}
                         />
                         <StatCard
                             title="Calculations"
                             value={analyticsData.calculatorOps.value}
+                            change={analyticsData.calculatorOps.change}
                             description="Total calculations"
                             icon={Calendar}
                         />

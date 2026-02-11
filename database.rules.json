@@ -9,6 +9,10 @@
           }
         }
       }
+    },
+    "config": {
+      ".read": true,
+      ".write": true
     }
   }
 }

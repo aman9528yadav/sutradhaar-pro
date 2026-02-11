@@ -105,7 +105,7 @@ const TimerComponent = dynamic(() => import('@/components/timer').then(mod => ({
   ssr: false
 });
 
-const StopwatchComponent = dynamic(() => import('@/components/stopwatch').then(mod => ({ default: mod.Stopwatch })), {
+const StopwatchComponent = dynamic(() => import('@/components/stopwatch-modern').then(mod => ({ default: mod.StopwatchModern })), {
   loading: () => <DashboardSkeleton />,
   ssr: false
 });
@@ -149,7 +149,7 @@ const TodoPage = dynamic(() => import('@/components/todo-page').then(mod => ({ d
   loading: () => <DashboardSkeleton />,
   ssr: false
 });
-const LoanCalculator = dynamic(() => import('@/components/loan-calculator').then(mod => ({ default: mod.LoanCalculator })), {
+const LoanCalculator = dynamic(() => import('@/components/loan-calculator-modern').then(mod => ({ default: mod.LoanCalculatorModern })), {
   loading: () => <DashboardSkeleton />,
   ssr: false
 });
