@@ -37,6 +37,7 @@ import {
   ChevronUp,
   DollarSign,
   Percent,
+  KeyRound,
 } from 'lucide-react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
@@ -155,6 +156,11 @@ const LoanCalculator = dynamic(() => import('@/components/loan-calculator-modern
 });
 
 const DiscountCalculator = dynamic(() => import('@/components/discount-calculator').then(mod => ({ default: mod.DiscountCalculator })), {
+  loading: () => <DashboardSkeleton />,
+  ssr: false
+});
+
+const PasswordGenerator = dynamic(() => import('@/components/password-generator').then(mod => ({ default: mod.PasswordGenerator })), {
   loading: () => <DashboardSkeleton />,
   ssr: false
 });
@@ -298,6 +304,11 @@ export default function DashboardPage() {
           <TabsContent value="todo" className="p-4 pb-24 mt-0 h-full">
             <PageTransition>
               <TodoPage />
+            </PageTransition>
+          </TabsContent>
+          <TabsContent value="password-generator" className="p-4 pb-24 mt-0 h-full">
+            <PageTransition>
+              <PasswordGenerator />
             </PageTransition>
           </TabsContent>
         </div>

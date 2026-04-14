@@ -62,3 +62,7 @@ Integrate an LLM to interact with user data.
 - [ ] **Accessibility (a11y):** Audit the app for screen reader support and keyboard navigation.
 - [ ] **Testing:** Implement unit tests for critical calculations (Budget, Converters) to prevent regressions.
 - [ ] **Localization:** Add full support for Hindi and other Indian languages.
+
+## ✅ Recently Added
+
+- [x] **Password Generator:** Create strong, secure passwords with customizable options.

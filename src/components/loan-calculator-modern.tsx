@@ -14,12 +14,26 @@ import {
   Calculator, DollarSign, Percent, Calendar, RefreshCcw, Download, 
   Home, Car, CreditCard, Briefcase, Target, TrendingUp, 
   FileText, Share2, Zap, Shield, Award, Globe,
-  IndianRupee, Building2, Users, Lightbulb, Clock
+  IndianRupee, Building2, Users, Lightbulb, Clock,
+  Save, BookmarkPlus, BookmarkCheck, Trash2, Eye,
+  GitCompareArrows as CompareArrows, TrendingDown, Info
 } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
+import { Badge } from '@/components/ui/badge';
+import { Textarea } from '@/components/ui/textarea';
 
 export function LoanCalculatorModern() {
+    const { toast } = useToast();
     const [amount, setAmount] = useState<number>(500000);
     const [rate, setRate] = useState<number>(8.5);
     const [tenure, setTenure] = useState<number>(5);
@@ -28,6 +42,9 @@ export function LoanCalculatorModern() {
     const [processingFee, setProcessingFee] = useState<number>(1);
     const [prepaymentAllowed, setPrepaymentAllowed] = useState<boolean>(true);
     const [prepaymentPenalty, setPrepaymentPenalty] = useState<number>(2);
+    const [downPayment, setDownPayment] = useState<number>(0);
+    const [prepaymentAmount, setPrepaymentAmount] = useState<number>(0);
+    const [prepaymentMonth, setPrepaymentMonth] = useState<number>(12);
 
     const [emi, setEmi] = useState<number>(0);
     const [totalInterest, setTotalInterest] = useState<number>(0);
@@ -35,6 +52,29 @@ export function LoanCalculatorModern() {
     const [processingFeeAmount, setProcessingFeeAmount] = useState<number>(0);
     const [schedule, setSchedule] = useState<any[]>([]);
     const [yearlySummary, setYearlySummary] = useState<any[]>([]);
+    
+    // New calculated fields
+    const [emiWithPrepayment, setEmiWithPrepayment] = useState<number>(0);
+    const [interestSaved, setInterestSaved] = useState<number>(0);
+    const [tenureReduced, setTenureReduced] = useState<number>(0);
+    
+    // Saved comparisons
+    const [savedComparisons, setSavedComparisons] = useState<Array<{
+        id: string;
+        label: string;
+        amount: number;
+        rate: number;
+        tenure: number;
+        emi: number;
+        totalInterest: number;
+        totalPayment: number;
+        createdAt: string;
+    }>>([]);
+    const [showSavedComparisons, setShowSavedComparisons] = useState(false);
+    const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
+    const [comparisonLabel, setComparisonLabel] = useState('');
+    const [showComparison, setShowComparison] = useState(false);
+    const [previousComparison, setPreviousComparison] = useState<any>(null);
 
     // Loan type configurations
     const loanConfigurations = {
@@ -45,7 +85,7 @@ export function LoanCalculatorModern() {
     };
 
     const calculateLoan = () => {
-        const principal = amount;
+        const principal = amount - downPayment;
         const monthlyRate = rate / 12 / 100;
         const months = tenureType === 'years' ? tenure * 12 : tenure;
         const feeAmount = (amount * processingFee) / 100;
@@ -60,24 +100,48 @@ export function LoanCalculatorModern() {
             setTotalInterest(Math.round(totalInt));
             setProcessingFeeAmount(Math.round(feeAmount));
 
-            // Generate Detailed Amortization Schedule
+            // Generate Detailed Amortization Schedule with Prepayment
             let balance = principal;
             const newSchedule = [];
             const yearlyData = [];
+            let actualMonths = months;
 
             for (let i = 1; i <= months; i++) {
                 const interest = balance * monthlyRate;
-                const principalComponent = emiValue - interest;
+                let principalComponent = emiValue - interest;
+                let extraPayment = 0;
+                
+                // Apply prepayment if specified
+                if (i === prepaymentMonth && prepaymentAmount > 0) {
+                    extraPayment = prepaymentAmount;
+                    balance -= extraPayment;
+                }
+                
                 const prevBalance = balance;
                 balance -= principalComponent;
+                
+                if (balance <= 0) {
+                    actualMonths = i;
+                    newSchedule.push({
+                        month: i,
+                        emi: Math.round(emiValue + extraPayment),
+                        principal: Math.round(principalComponent + extraPayment),
+                        interest: Math.round(interest),
+                        balance: 0,
+                        totalPaid: Math.round(emiValue * i + extraPayment),
+                        isPrepayment: extraPayment > 0
+                    });
+                    break;
+                }
 
                 newSchedule.push({
                     month: i,
-                    emi: Math.round(emiValue),
-                    principal: Math.round(principalComponent),
+                    emi: Math.round(emiValue + extraPayment),
+                    principal: Math.round(principalComponent + extraPayment),
                     interest: Math.round(interest),
                     balance: Math.max(0, Math.round(balance)),
-                    totalPaid: Math.round(emiValue * i)
+                    totalPaid: Math.round(emiValue * i + extraPayment),
+                    isPrepayment: extraPayment > 0
                 });
 
                 // Yearly summary
@@ -101,12 +165,27 @@ export function LoanCalculatorModern() {
 
             setSchedule(newSchedule);
             setYearlySummary(yearlyData);
+            
+            // Calculate prepayment benefits
+            const monthsSaved = months - actualMonths;
+            const interestWithPrepayment = newSchedule.reduce((sum, entry) => sum + entry.interest, 0);
+            setEmiWithPrepayment(Math.round(emiValue));
+            setInterestSaved(Math.round(totalInt - interestWithPrepayment));
+            setTenureReduced(Math.round(monthsSaved / 30.44));
         }
     };
 
     useEffect(() => {
         calculateLoan();
-    }, [amount, rate, tenure, tenureType, processingFee]);
+    }, [amount, rate, tenure, tenureType, processingFee, downPayment, prepaymentAmount, prepaymentMonth]);
+
+    useEffect(() => {
+        // Load saved comparisons from localStorage
+        const saved = localStorage.getItem('savedLoanComparisons');
+        if (saved) {
+            setSavedComparisons(JSON.parse(saved));
+        }
+    }, []);
 
     useEffect(() => {
         // Update default rate when loan type changes
@@ -156,6 +235,7 @@ export function LoanCalculatorModern() {
         const text = `💰 ${loanType.charAt(0).toUpperCase() + loanType.slice(1)} Loan EMI Calculator Results
         
 Loan Amount: ₹${amount.toLocaleString()}
+Down Payment: ₹${downPayment.toLocaleString()}
 Interest Rate: ${rate}%
 Tenure: ${tenure} ${tenureType}
 Monthly EMI: ₹${emi.toLocaleString()}
@@ -173,8 +253,65 @@ Total Payment: ₹${totalPayment.toLocaleString()}`;
             }
         } else {
             navigator.clipboard.writeText(text);
-            alert('Results copied to clipboard!');
+            toast({
+                title: "Copied!",
+                description: "Results copied to clipboard",
+            });
         }
+    };
+
+    const saveComparison = () => {
+        setIsSaveDialogOpen(true);
+    };
+
+    const confirmSaveComparison = () => {
+        const newComparison = {
+            id: Date.now().toString(),
+            label: comparisonLabel || `Comparison ${savedComparisons.length + 1}`,
+            amount: amount,
+            rate: rate,
+            tenure: tenure,
+            emi: emi,
+            totalInterest: totalInterest,
+            totalPayment: totalPayment,
+            createdAt: new Date().toISOString(),
+        };
+
+        const updated = [newComparison, ...savedComparisons];
+        setSavedComparisons(updated);
+        localStorage.setItem('savedLoanComparisons', JSON.stringify(updated));
+        
+        setComparisonLabel('');
+        setIsSaveDialogOpen(false);
+        
+        toast({
+            title: "Saved!",
+            description: "Loan comparison saved successfully",
+        });
+    };
+
+    const deleteComparison = (id: string) => {
+        const updated = savedComparisons.filter(c => c.id !== id);
+        setSavedComparisons(updated);
+        localStorage.setItem('savedLoanComparisons', JSON.stringify(updated));
+        
+        toast({
+            title: "Deleted",
+            description: "Comparison removed from saved list",
+        });
+    };
+
+    const loadComparison = (comparison: any) => {
+        setPreviousComparison({ amount, rate, tenure, emi, totalInterest, totalPayment });
+        setAmount(comparison.amount);
+        setRate(comparison.rate);
+        setTenure(comparison.tenure);
+        setShowComparison(true);
+        
+        toast({
+            title: "Loaded!",
+            description: "Comparison loaded - adjust to see differences",
+        });
     };
 
     const { icon: LoanIcon, color: gradientColor } = getLoanTypeInfo();
@@ -193,6 +330,14 @@ Total Payment: ₹${totalPayment.toLocaleString()}`;
                     </div>
                 </div>
                 <div className="flex gap-2">
+                    <Button variant="outline" size="sm" onClick={saveComparison}>
+                        <BookmarkPlus className="h-4 w-4 mr-2" />
+                        Save
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => setShowSavedComparisons(!showSavedComparisons)}>
+                        <BookmarkCheck className="h-4 w-4 mr-2" />
+                        Saved ({savedComparisons.length})
+                    </Button>
                     <Button variant="outline" size="sm" onClick={shareResults}>
                         <Share2 className="h-4 w-4 mr-2" />
                         Share
@@ -264,6 +409,30 @@ Total Payment: ₹${totalPayment.toLocaleString()}`;
                                     max={loanConfigurations[loanType].max}
                                     step={10000}
                                     onValueChange={([v]) => setAmount(v)}
+                                    className="py-2"
+                                />
+                            </div>
+
+                            <div className="space-y-3">
+                                <div className="flex justify-between">
+                                    <Label className="text-white">Down Payment (Optional)</Label>
+                                    <span className="text-emerald-400 font-mono font-bold">₹{downPayment.toLocaleString()}</span>
+                                </div>
+                                <div className="relative">
+                                    <IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
+                                    <Input
+                                        type="number"
+                                        value={downPayment}
+                                        onChange={(e) => setDownPayment(Number(e.target.value))}
+                                        className="pl-9 bg-white/5 border-white/10 text-white"
+                                    />
+                                </div>
+                                <Slider
+                                    value={[downPayment]}
+                                    min={0}
+                                    max={amount * 0.5}
+                                    step={10000}
+                                    onValueChange={([v]) => setDownPayment(v)}
                                     className="py-2"
                                 />
                             </div>
@@ -359,29 +528,48 @@ Total Payment: ₹${totalPayment.toLocaleString()}`;
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            <div className="flex items-center justify-between">
-                                <Label className="text-white text-sm">Prepayment Allowed</Label>
-                                <Button
-                                    variant={prepaymentAllowed ? "default" : "outline"}
-                                    size="sm"
-                                    onClick={() => setPrepaymentAllowed(!prepaymentAllowed)}
-                                >
-                                    {prepaymentAllowed ? 'Yes' : 'No'}
-                                </Button>
-                            </div>
-                            {prepaymentAllowed && (
-                                <div className="space-y-2">
-                                    <Label className="text-white text-sm">Prepayment Penalty (%)</Label>
-                                    <Slider
-                                        value={[prepaymentPenalty]}
-                                        min={0}
-                                        max={5}
-                                        step={0.1}
-                                        onValueChange={([v]) => setPrepaymentPenalty(v)}
-                                        className="py-2"
+                            <div className="space-y-3">
+                                <Label className="text-white text-sm">Prepayment Amount (₹)</Label>
+                                <div className="relative">
+                                    <IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
+                                    <Input
+                                        type="number"
+                                        value={prepaymentAmount}
+                                        onChange={(e) => setPrepaymentAmount(Number(e.target.value))}
+                                        className="pl-9 bg-white/5 border-white/10 text-white"
+                                        placeholder="Enter prepayment amount"
                                     />
-                                    <div className="text-xs text-white/60 text-center">
-                                        {prepaymentPenalty}% penalty on prepayment amount
+                                </div>
+                            </div>
+                            
+                            <div className="space-y-3">
+                                <Label className="text-white text-sm">Prepayment After (Months)</Label>
+                                <Input
+                                    type="number"
+                                    value={prepaymentMonth}
+                                    onChange={(e) => setPrepaymentMonth(Number(e.target.value))}
+                                    className="bg-white/5 border-white/10 text-white"
+                                />
+                                <div className="text-xs text-white/60">
+                                    Prepayment will be applied after {prepaymentMonth} months
+                                </div>
+                            </div>
+
+                            {interestSaved > 0 && (
+                                <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-lg">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <TrendingDown className="h-4 w-4 text-emerald-400" />
+                                        <span className="text-sm font-medium text-emerald-400">Benefits of Prepayment</span>
+                                    </div>
+                                    <div className="space-y-1 text-xs text-white/80">
+                                        <div className="flex justify-between">
+                                            <span>Interest Saved:</span>
+                                            <span className="font-bold text-emerald-400">₹{interestSaved.toLocaleString()}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span>Tenure Reduced:</span>
+                                            <span className="font-bold text-emerald-400">{tenureReduced} years</span>
+                                        </div>
                                     </div>
                                 </div>
                             )}
@@ -621,6 +809,219 @@ Total Payment: ₹${totalPayment.toLocaleString()}`;
                     </div>
                 </CardContent>
             </Card>
+
+            {/* Saved Comparisons */}
+            <AnimatePresence>
+                {showSavedComparisons && savedComparisons.length > 0 && (
+                    <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="overflow-hidden"
+                    >
+                        <Card className="bg-white/5 border-white/10 backdrop-blur-xl">
+                            <CardHeader>
+                                <CardTitle className="text-white flex items-center gap-2">
+                                    <BookmarkCheck className="h-5 w-5 text-emerald-400" />
+                                    Saved Comparisons
+                                </CardTitle>
+                                <CardDescription className="text-white/40">
+                                    Your saved loan configurations
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-3">
+                                {savedComparisons.map((comparison) => (
+                                    <div
+                                        key={comparison.id}
+                                        className="p-4 rounded-lg bg-card/50 border border-white/5 space-y-2"
+                                    >
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2 flex-1 min-w-0">
+                                                <Target className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                                <p className="font-medium text-sm text-white truncate">{comparison.label}</p>
+                                            </div>
+                                            <div className="flex items-center gap-1">
+                                                <Button
+                                                    size="icon"
+                                                    variant="ghost"
+                                                    className="h-8 w-8"
+                                                    onClick={() => loadComparison(comparison)}
+                                                >
+                                                    <CompareArrows className="h-4 w-4" />
+                                                </Button>
+                                                <Button
+                                                    size="icon"
+                                                    variant="ghost"
+                                                    className="h-8 w-8 text-destructive"
+                                                    onClick={() => deleteComparison(comparison.id)}
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
+                                                </Button>
+                                            </div>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-2 text-xs text-white/80">
+                                            <div>
+                                                <span className="text-white/60">Amount:</span>
+                                                <span className="ml-1 font-mono">₹{comparison.amount.toLocaleString()}</span>
+                                            </div>
+                                            <div>
+                                                <span className="text-white/60">Rate:</span>
+                                                <span className="ml-1 font-mono">{comparison.rate}%</span>
+                                            </div>
+                                            <div>
+                                                <span className="text-white/60">EMI:</span>
+                                                <span className="ml-1 font-mono">₹{comparison.emi.toLocaleString()}</span>
+                                            </div>
+                                            <div>
+                                                <span className="text-white/60">Interest:</span>
+                                                <span className="ml-1 font-mono">₹{comparison.totalInterest.toLocaleString()}</span>
+                                            </div>
+                                        </div>
+                                        <div className="text-xs text-white/40">
+                                            {new Date(comparison.createdAt).toLocaleDateString()}
+                                        </div>
+                                    </div>
+                                ))}
+                            </CardContent>
+                        </Card>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Comparison View */}
+            <AnimatePresence>
+                {showComparison && previousComparison && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                    >
+                        <Card className="bg-gradient-to-br from-blue-500/10 to-purple-500/10 border-blue-500/20">
+                            <CardHeader>
+                                <CardTitle className="text-white flex items-center gap-2">
+                                    <CompareArrows className="h-5 w-5 text-blue-400" />
+                                    Loan Comparison
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-3">
+                                        <h4 className="font-semibold text-white/60 text-sm uppercase">Previous</h4>
+                                        <div className="space-y-2 text-sm">
+                                            <div className="p-3 bg-white/5 rounded-lg">
+                                                <div className="text-white/60 text-xs">EMI</div>
+                                                <div className="text-white font-bold text-lg">₹{previousComparison.emi.toLocaleString()}</div>
+                                            </div>
+                                            <div className="p-3 bg-white/5 rounded-lg">
+                                                <div className="text-white/60 text-xs">Total Interest</div>
+                                                <div className="text-rose-400 font-bold">₹{previousComparison.totalInterest.toLocaleString()}</div>
+                                            </div>
+                                            <div className="p-3 bg-white/5 rounded-lg">
+                                                <div className="text-white/60 text-xs">Total Payment</div>
+                                                <div className="text-white font-bold">₹{previousComparison.totalPayment.toLocaleString()}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="space-y-3">
+                                        <h4 className="font-semibold text-emerald-400 text-sm uppercase">Current</h4>
+                                        <div className="space-y-2 text-sm">
+                                            <div className="p-3 bg-emerald-500/10 rounded-lg border border-emerald-500/30">
+                                                <div className="text-white/60 text-xs">EMI</div>
+                                                <div className="text-emerald-400 font-bold text-lg">₹{emi.toLocaleString()}</div>
+                                            </div>
+                                            <div className="p-3 bg-emerald-500/10 rounded-lg border border-emerald-500/30">
+                                                <div className="text-white/60 text-xs">Total Interest</div>
+                                                <div className="text-emerald-400 font-bold">₹{totalInterest.toLocaleString()}</div>
+                                            </div>
+                                            <div className="p-3 bg-emerald-500/10 rounded-lg border border-emerald-500/30">
+                                                <div className="text-white/60 text-xs">Total Payment</div>
+                                                <div className="text-emerald-400 font-bold">₹{totalPayment.toLocaleString()}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div className="mt-4 p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <Info className="h-4 w-4 text-blue-400" />
+                                        <span className="text-sm font-medium text-blue-400">Difference</span>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4 text-sm">
+                                        <div>
+                                            <div className="text-white/60 text-xs">EMI Difference</div>
+                                            <div className={`font-bold text-lg ${emi > previousComparison.emi ? 'text-rose-400' : 'text-emerald-400'}`}>
+                                                ₹{(emi - previousComparison.emi).toLocaleString()}
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div className="text-white/60 text-xs">Interest Savings</div>
+                                            <div className={`font-bold text-lg ${totalInterest > previousComparison.totalInterest ? 'text-rose-400' : 'text-emerald-400'}`}>
+                                                ₹{(previousComparison.totalInterest - totalInterest).toLocaleString()}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Save Comparison Dialog */}
+            <Dialog open={isSaveDialogOpen} onOpenChange={setIsSaveDialogOpen}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Save Loan Comparison</DialogTitle>
+                    <DialogDescription>
+                        Add a label to help you remember this loan configuration
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4">
+                    <div className="space-y-2">
+                        <Label>Label (optional)</Label>
+                        <Input
+                            value={comparisonLabel}
+                            onChange={(e) => setComparisonLabel(e.target.value)}
+                            placeholder="e.g., Home Loan - SBI, Car Loan - HDFC, etc."
+                        />
+                    </div>
+                    <div className="p-4 bg-muted rounded-lg space-y-2 text-sm">
+                        <div className="flex justify-between">
+                            <span className="text-muted-foreground">Loan Amount:</span>
+                            <span className="font-mono font-bold">₹{amount.toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between">
+                            <span className="text-muted-foreground">Interest Rate:</span>
+                            <span className="font-mono font-bold">{rate}%</span>
+                        </div>
+                        <div className="flex justify-between">
+                            <span className="text-muted-foreground">Tenure:</span>
+                            <span className="font-mono font-bold">{tenure} {tenureType}</span>
+                        </div>
+                        <div className="flex justify-between">
+                            <span className="text-muted-foreground">Monthly EMI:</span>
+                            <span className="font-mono font-bold text-emerald-500">₹{emi.toLocaleString()}</span>
+                        </div>
+                    </div>
+                </div>
+                <DialogFooter className="gap-2">
+                    <Button
+                        variant="outline"
+                        onClick={() => {
+                            setIsSaveDialogOpen(false);
+                            setComparisonLabel('');
+                        }}
+                    >
+                        Cancel
+                    </Button>
+                    <Button onClick={confirmSaveComparison}>
+                        <BookmarkPlus className="mr-2 h-4 w-4" />
+                        Save Comparison
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+            </Dialog>
         </div>
     );
 }

@@ -26,6 +26,7 @@ import {
     Hash,
     Palette,
     FileCode,
+    KeyRound,
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
@@ -46,6 +47,7 @@ export function ToolsPage({ onToolSelect }: ToolsPageProps) {
         { id: 'news', icon: Newspaper, label: 'News', color: 'text-sky-500', bg: 'bg-sky-500/10', externalLink: 'https://aman9528.wixstudio.com/my-site-3' },
 
         // Secondary tools
+        { id: 'password-generator', icon: KeyRound, label: 'Password Gen', color: 'text-blue-500', bg: 'bg-blue-500/10' },
         { id: 'loan-calculator', icon: DollarSign, label: 'Loan / EMI', color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
         { id: 'discount-calculator', icon: Percent, label: 'Discount', color: 'text-rose-500', bg: 'bg-rose-500/10' },
         { id: 'timer', icon: Timer, label: 'Timer', color: 'text-cyan-500', bg: 'bg-cyan-500/10' },
