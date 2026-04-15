@@ -69,6 +69,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { ModernSidebar } from '@/components/modern-sidebar';
 import { DashboardRevamped } from '@/components/dashboard-revamped';
+import { DashboardModern } from '@/components/dashboard-modern';
 
 // Lazy load heavy components for better performance
 const WeeklySummaryChart = dynamic(() => import('@/components/weekly-summary-chart').then(mod => ({ default: mod.WeeklySummaryChart })), {
@@ -216,7 +217,7 @@ export default function DashboardPage() {
         <div className="flex-1 overflow-y-auto scrollbar-hide scroll-smooth">
           <TabsContent value="dashboard" className="p-4 pb-24 space-y-6 mt-0 h-full">
             <PageTransition>
-              {isPageLoading ? <DashboardSkeleton /> : <DashboardRevamped onNavigate={handleNavigate} />}
+              {isPageLoading ? <DashboardSkeleton /> : <DashboardModern onNavigate={handleNavigate} />}
             </PageTransition>
           </TabsContent>
           <TabsContent value="tools" className="p-4 pb-24 mt-0 h-full">

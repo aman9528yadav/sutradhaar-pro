@@ -1495,6 +1495,13 @@ export function SettingsPage() {
                   <span className="text-muted-foreground">Developer</span>
                   <span className="font-medium">Aman Yadav</span>
                 </div>
+                <div 
+                  className="flex justify-between py-2 border-b border-border/40 cursor-pointer hover:text-primary transition-colors"
+                  onClick={() => router.push('/about')}
+                >
+                  <span className="text-muted-foreground">About Sutradhaar</span>
+                  <ChevronRight className="h-4 w-4" />
+                </div>
                 <div className="flex justify-between py-2 cursor-pointer hover:text-primary transition-colors">
                   <span className="text-muted-foreground">Privacy Policy</span>
                   <ChevronRight className="h-4 w-4" />
