@@ -12,7 +12,7 @@ import {
     Flame, Calendar, Star, TrendingUp, TrendingDown, Target, Zap, Clock,
     CheckCircle2, Rocket, Wallet, ArrowRight, Sparkles, Bell, Plus,
     ChevronRight, Activity, Award, BarChart3, Timer, BookOpen, Calculator,
-    ArrowUpRight, ArrowDownLeft, Settings, Wrench, Gem, CreditCard, LayoutGrid, Quote
+    ArrowUpRight, ArrowDownLeft, Settings, Wrench, Gem, CreditCard, LayoutGrid, Quote, WifiOff
 } from 'lucide-react';
 import { useProfile } from '@/context/ProfileContext';
 import { useAuth } from '@/context/AuthContext';
@@ -119,7 +119,7 @@ export function DashboardModern({ onNavigate }: { onNavigate: (tab: string) => v
             {/* Header Section */}
             <motion.div variants={item} className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 pt-4">
                 <div className="space-y-2">
-                    <div className="flex items-center gap-3">
+                    <div className="flex flex-wrap items-center gap-3">
                         <Badge className="bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 transition-colors rounded-full px-3 py-1 font-semibold">
                             <Calendar className="w-3.5 h-3.5 mr-2" />
                             {dateString}
@@ -127,6 +127,13 @@ export function DashboardModern({ onNavigate }: { onNavigate: (tab: string) => v
                         <Badge className="bg-muted text-muted-foreground border-transparent rounded-full px-3 py-1">
                             <Clock className="w-3.5 h-3.5 mr-2" />
                             {currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                        </Badge>
+                        <Badge 
+                            className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20 hover:bg-emerald-500/20 cursor-pointer transition-colors rounded-full px-3 py-1 font-semibold"
+                            onClick={() => window.open('/offline-app/index.html', '_blank')}
+                        >
+                            <WifiOff className="w-3.5 h-3.5 mr-2" />
+                            Offline
                         </Badge>
                     </div>
                     <h1 className="text-4xl md:text-5xl font-black tracking-tight text-foreground">

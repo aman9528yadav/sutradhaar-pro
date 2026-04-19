@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Toolbox Offline</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="mobile-app-container">
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Dashboard View -->
+            <section id="view-dashboard" class="view active">
+                <header class="header">
+                    <h1>Good Morning.</h1>
+                    <p>Here's what's happening today.</p>
+                </header>
+                
+                <div class="bento-grid">
+                    <div class="card stat-card">
+                        <h3>Offline Status</h3>
+                        <p class="stat-value" id="streak-val">100% Secure</p>
+                        <p style="color:var(--muted); margin-top:8px; font-size:14px;">All data is saved securely to your local hard drive.</p>
+                    </div>
+                    <div class="card tools-card">
+                        <h3>Quick Tools</h3>
+                        <div class="quick-tools">
+                            <button onclick="navigate('calculator')">Calculator</button>
+                            <button onclick="navigate('timer')">Timer</button>
+                            <button onclick="navigate('notes')">Notes</button>
+                            <button onclick="navigate('budget')">Budget</button>
+                            <button onclick="navigate('tasks')">Tasks</button>
+                            <button onclick="navigate('passwords')">Passwords</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Calculator View -->
+            <section id="view-calculator" class="view">
+                <header class="header">
+                    <h1>Calculator</h1>
+                </header>
+                <div class="card calculator-container">
+                    <input type="text" id="calc-display" disabled value="0">
+                    <div class="calc-grid">
+                        <button class="calc-btn op" onclick="calcAction('clear')">C</button>
+                        <button class="calc-btn op" onclick="calcAction('back')">←</button>
+                        <button class="calc-btn op" onclick="calcAction('%')">%</button>
+                        <button class="calc-btn op" onclick="calcAction('/')">/</button>
+                        <button class="calc-btn" onclick="calcAction('7')">7</button>
+                        <button class="calc-btn" onclick="calcAction('8')">8</button>
+                        <button class="calc-btn" onclick="calcAction('9')">9</button>
+                        <button class="calc-btn op" onclick="calcAction('*')">*</button>
+                        <button class="calc-btn" onclick="calcAction('4')">4</button>
+                        <button class="calc-btn" onclick="calcAction('5')">5</button>
+                        <button class="calc-btn" onclick="calcAction('6')">6</button>
+                        <button class="calc-btn op" onclick="calcAction('-')">-</button>
+                        <button class="calc-btn" onclick="calcAction('1')">1</button>
+                        <button class="calc-btn" onclick="calcAction('2')">2</button>
+                        <button class="calc-btn" onclick="calcAction('3')">3</button>
+                        <button class="calc-btn op" onclick="calcAction('+')">+</button>
+                        <button class="calc-btn zero" onclick="calcAction('0')">0</button>
+                        <button class="calc-btn" onclick="calcAction('.')">.</button>
+                        <button class="calc-btn equals" onclick="calcAction('=')">=</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Timer View -->
+            <section id="view-timer" class="view">
+                <header class="header">
+                    <h1>Timer</h1>
+                </header>
+                <div class="card timer-container">
+                    <div class="time-display" id="timer-display">00:00:00</div>
+                    <div class="timer-controls">
+                        <input type="number" id="timer-input" placeholder="Minutes" value="25">
+                        <div class="timer-buttons">
+                            <button class="btn primary" onclick="startTimer()">Start</button>
+                            <button class="btn secondary" onclick="pauseTimer()">Pause</button>
+                            <button class="btn outline" onclick="resetTimer()">Reset</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Notes View -->
+            <section id="view-notes" class="view">
+                <header class="header">
+                    <h1>Notes</h1>
+                </header>
+                <div class="notes-container">
+                    <div class="notes-list" id="notes-list">
+                        <!-- Notes populated via JS -->
+                    </div>
+                    <div class="card note-editor">
+                        <input type="text" id="note-title" placeholder="Note Title...">
+                        <textarea id="note-content" placeholder="Start typing your note here..."></textarea>
+                        <button class="btn primary" onclick="saveNote()">Save Note</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Budget View -->
+            <section id="view-budget" class="view">
+                <header class="header">
+                    <h1>My Finances</h1>
+                </header>
+                
+                <div class="budget-dashboard">
+                    <!-- Balance Card -->
+                    <div class="card balance-card">
+                        <p>Current Balance</p>
+                        <h2 id="budget-balance">₹0</h2>
+                        <div class="budget-stats">
+                            <div class="stat-box income">
+                                <span class="label">Income</span>
+                                <span class="val" id="budget-income">+₹0</span>
+                            </div>
+                            <div class="stat-box expense">
+                                <span class="label">Expense</span>
+                                <span class="val" id="budget-expense">-₹0</span>
+                            </div>
+                            <div class="stat-box savings">
+                                <span class="label">Savings</span>
+                                <span class="val" id="budget-savings">₹0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Goals Card -->
+                    <div class="card goals-card">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <h3>Savings Goal</h3>
+                            <button class="btn secondary" style="padding: 6px 12px; font-size: 12px;" onclick="setGoal()">Set Goal</button>
+                        </div>
+                        <div class="goal-progress-container mt-16">
+                            <div style="display:flex; justify-content:space-between; margin-bottom:8px; font-weight:600;">
+                                <span id="goal-text">No Goal Set</span>
+                                <span id="goal-percent">0%</span>
+                            </div>
+                            <div class="progress-bar-bg">
+                                <div class="progress-bar-fill" id="goal-progress-fill" style="width:0%"></div>
+                            </div>
+                        </div>
+                        
+                        <h3 style="margin-top:24px;">Top Expense Category</h3>
+                        <div id="top-category" style="margin-top:8px; padding: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 12px; text-align: center; font-weight: bold; color: var(--muted);">
+                            No data yet
+                        </div>
+                    </div>
+                </div>
+
+                <div class="budget-container" style="margin-top:24px;">
+                    <div class="card budget-form">
+                        <h3>Add Transaction</h3>
+                        <input type="text" id="trans-desc" placeholder="Description (e.g. Groceries)">
+                        <input type="number" id="trans-amount" placeholder="Amount">
+                        <select id="trans-type">
+                            <option value="expense">Expense</option>
+                            <option value="income">Income</option>
+                        </select>
+                        <select id="trans-category">
+                            <option value="Food & Dining">Food & Dining</option>
+                            <option value="Shopping">Shopping</option>
+                            <option value="Transport">Transport</option>
+                            <option value="Entertainment">Entertainment</option>
+                            <option value="Bills & Utilities">Bills & Utilities</option>
+                            <option value="Salary">Salary / Income</option>
+                            <option value="Other">Other</option>
+                        </select>
+                        <button id="btn-add-trans" class="btn primary" style="width:100%" onclick="addTransaction()">Add Transaction</button>
+                    </div>
+                    <div class="card budget-list-card">
+                        <h3>Recent Transactions</h3>
+                        <div id="transactions-list" class="transactions-list">
+                            <!-- Transactions go here -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Tasks View -->
+            <section id="view-tasks" class="view">
+                <header class="header">
+                    <h1>Tasks</h1>
+                </header>
+                <div class="tasks-container card">
+                    <div class="task-input-group">
+                        <input type="text" id="task-input" placeholder="What needs to be done?">
+                        <button class="btn primary" onclick="addTask()">Add Task</button>
+                    </div>
+                    <ul class="task-list" id="task-list">
+                        <!-- Tasks go here -->
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Password Generator View -->
+            <section id="view-passwords" class="view">
+                <header class="header">
+                    <h1>Password Generator</h1>
+                </header>
+                <div class="card password-container">
+                    <div class="password-display">
+                        <h2 id="generated-password">Click Generate</h2>
+                        <button class="btn secondary" onclick="copyPassword()">Copy</button>
+                    </div>
+                    <div class="password-controls">
+                        <div class="control-group">
+                            <label>Length: <span id="pw-length-val">16</span></label>
+                            <input type="range" id="pw-length" min="8" max="32" value="16" oninput="document.getElementById('pw-length-val').innerText = this.value">
+                        </div>
+                        <div class="control-group flex-check">
+                            <input type="checkbox" id="pw-uppercase" checked> <label>Uppercase</label>
+                        </div>
+                        <div class="control-group flex-check">
+                            <input type="checkbox" id="pw-numbers" checked> <label>Numbers</label>
+                        </div>
+                        <div class="control-group flex-check">
+                            <input type="checkbox" id="pw-symbols" checked> <label>Symbols</label>
+                        </div>
+                        <button class="btn primary" style="width:100%; margin-top:16px;" onclick="generatePassword()">Generate Password</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+        
+        <!-- Bottom Navigation -->
+        <nav class="bottom-nav">
+            <ul class="nav-links">
+                <li class="active" data-view="dashboard"><span class="icon">🏠</span><span>Home</span></li>
+                <li data-view="tasks"><span class="icon">☑️</span><span>Tasks</span></li>
+                <li data-view="budget"><span class="icon">💰</span><span>Budget</span></li>
+                <li data-view="notes"><span class="icon">📝</span><span>Notes</span></li>
+                <li data-view="timer"><span class="icon">⏱️</span><span>Timer</span></li>
+            </ul>
+        </nav>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>
