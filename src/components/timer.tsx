@@ -6,7 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Play, Pause, RotateCcw, Clock, Zap, Coffee, Timer as TimerIcon, Maximize2, Minimize2, Plus, Minus, Volume2, VolumeX, Settings, Bell, Target, Trophy, Flame, Star, Heart, Music, Sun, Moon, BookOpen, Dumbbell } from 'lucide-react';
+import { Play, Pause, RotateCcw, Clock, Zap, Coffee, Timer as TimerIcon, Maximize2, Minimize2, Plus, Minus, Volume2, VolumeX, Settings, Bell, Target, Trophy, Flame, Star, Heart, Music, Sun, Moon, BookOpen, Dumbbell, ChevronUp, ChevronDown } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -21,18 +21,27 @@ const TimeDigit = ({ value, label, onChange, max = 59, disabled }: { value: numb
     const handleScroll = (e: React.WheelEvent) => {
         if (disabled || !onChange) return;
         if (e.deltaY < 0) {
-            onChange(Math.min(max, value + 1));
+            onChange(value >= max ? 0 : value + 1);
         } else {
-            onChange(Math.max(0, value - 1));
+            onChange(value <= 0 ? max : value - 1);
         }
     };
 
     return (
-        <div className="flex flex-col items-center gap-2">
+        <div className="flex flex-col items-center gap-1 group">
+            {!disabled && onChange ? (
+                <button 
+                    onClick={() => onChange(value >= max ? 0 : value + 1)}
+                    className="p-1.5 text-muted-foreground hover:text-primary transition-colors bg-secondary/50 rounded-full hover:bg-secondary md:opacity-0 md:group-hover:opacity-100"
+                >
+                    <ChevronUp className="w-5 h-5" />
+                </button>
+            ) : <div className="h-8" />}
+            
             <div
                 className={cn(
-                    "relative w-20 h-24 bg-card border border-border/50 rounded-2xl flex items-center justify-center overflow-hidden transition-all",
-                    !disabled && "hover:border-primary/50 cursor-ns-resize shadow-lg"
+                    "relative w-20 h-24 md:w-24 md:h-28 bg-card border border-border/50 rounded-3xl flex items-center justify-center overflow-hidden transition-all",
+                    !disabled && "hover:border-primary/50 cursor-ns-resize shadow-sm hover:shadow-md"
                 )}
                 onWheel={handleScroll}
             >
@@ -49,29 +58,39 @@ const TimeDigit = ({ value, label, onChange, max = 59, disabled }: { value: numb
                         onChange(val);
                     }}
                     disabled={disabled}
-                    className="w-full h-full text-center text-5xl font-mono font-bold bg-transparent border-none focus:ring-0 p-0 z-10"
+                    className="w-full h-full text-center text-5xl md:text-6xl font-black font-mono bg-transparent border-none focus:ring-0 p-0 z-10 text-foreground"
                 />
-                {/* Decorative gradients for scroll hint */}
                 {!disabled && (
-                    <>
-                        <div className="absolute top-0 inset-x-0 h-4 bg-gradient-to-b from-background/20 to-transparent pointer-events-none" />
-                        <div className="absolute bottom-0 inset-x-0 h-4 bg-gradient-to-t from-background/20 to-transparent pointer-events-none" />
-                    </>
+                    <div className="absolute inset-0 pointer-events-none rounded-3xl shadow-[inset_0_0_20px_rgba(0,0,0,0.02)] dark:shadow-[inset_0_0_20px_rgba(255,255,255,0.02)]" />
                 )}
             </div>
-            <span className="text-xs uppercase tracking-widest text-muted-foreground font-medium">{label}</span>
+
+            {!disabled && onChange ? (
+                <button 
+                    onClick={() => onChange(value <= 0 ? max : value - 1)}
+                    className="p-1.5 text-muted-foreground hover:text-primary transition-colors bg-secondary/50 rounded-full hover:bg-secondary md:opacity-0 md:group-hover:opacity-100"
+                >
+                    <ChevronDown className="w-5 h-5" />
+                </button>
+            ) : <div className="h-8" />}
+            
+            <span className="text-xs uppercase tracking-widest text-muted-foreground font-bold mt-1">{label}</span>
         </div>
     );
 };
 
-const QuickPreset = ({ label, minutes, onClick, icon: Icon }: { label: string, minutes: number, onClick: () => void, icon: any }) => (
+const QuickPreset = ({ label, minutes, onClick, icon: Icon, isActive }: { label: string, minutes: number, onClick: () => void, icon: any, isActive?: boolean }) => (
     <Button
-        variant="secondary"
-        className="h-10 px-4 gap-2 rounded-full bg-secondary/50 hover:bg-secondary border border-transparent hover:border-primary/20 transition-all"
+        variant={isActive ? "default" : "secondary"}
+        className={cn(
+            "h-12 px-4 gap-2 rounded-2xl transition-all duration-300 font-semibold shadow-sm",
+            isActive ? "shadow-primary/25 scale-105" : "hover:bg-secondary hover:border-primary/20 bg-card border border-border/50"
+        )}
         onClick={onClick}
     >
-        <Icon className="h-3.5 w-3.5" />
-        <span className="text-xs">{label}</span>
+        <Icon className={cn("h-4 w-4", isActive ? "text-primary-foreground" : "text-primary")} />
+        <span className={isActive ? "text-primary-foreground" : "text-foreground"}>{label}</span>
+        <span className={cn("text-[10px] ml-1 opacity-70 font-mono", isActive ? "text-primary-foreground" : "text-muted-foreground")}>{minutes}m</span>
     </Button>
 );
 
@@ -110,7 +129,7 @@ export function Timer() {
 
     // Calculate progress for circular indicator
     const progress = initialTime > 0 ? (totalSeconds / initialTime) * 100 : 0;
-    const radius = 120;
+    const radius = 130;
     const circumference = 2 * Math.PI * radius;
     const strokeDashoffset = circumference - (progress / 100) * circumference;
 
@@ -129,33 +148,33 @@ export function Timer() {
         return (
             <div className={cn(
                 "fixed inset-0 z-50 bg-background flex flex-col items-center justify-center p-8 animate-in fade-in zoom-in duration-300",
-                isWorkPhase ? "bg-background" : "bg-blue-950/20"
+                isWorkPhase ? "bg-background" : "bg-blue-950/10"
             )}>
                 <Button
                     variant="ghost"
                     size="icon"
-                    className="absolute top-4 right-4 h-12 w-12 rounded-full"
+                    className="absolute top-6 right-6 h-14 w-14 rounded-full bg-card/50 backdrop-blur-md border border-border/50 hover:bg-accent"
                     onClick={() => setIsFullScreen(false)}
                 >
-                    <Minimize2 className="h-6 w-6" />
+                    <Minimize2 className="h-6 w-6 text-foreground" />
                 </Button>
 
                 {/* Status Indicator */}
                 {mode === 'interval' && (
-                    <div className="absolute top-12 px-6 py-2 rounded-full bg-muted/20 text-xl font-bold uppercase tracking-widest animate-pulse">
-                        {isWorkPhase ? '🔥 WORK' : '😌 REST'}
+                    <div className="absolute top-16 px-8 py-3 rounded-full bg-card shadow-sm border border-border/50 text-xl font-black uppercase tracking-widest text-primary animate-pulse">
+                        {isWorkPhase ? '🔥 Deep Work' : '😌 Relax'}
                     </div>
                 )}
 
                 {/* Main Time Display */}
-                <div className="font-mono text-[20vw] font-bold tabular-nums tracking-tighter leading-none text-foreground select-none">
-                    {displayTime.isNegative && <span className="text-red-500">-</span>}
+                <div className="font-mono text-[22vw] font-black tabular-nums tracking-tighter leading-none text-foreground select-none drop-shadow-2xl">
+                    {displayTime.isNegative && <span className="text-destructive">-</span>}
                     {displayTime.h > 0 && <span>{displayTime.h.toString().padStart(2, '0')}:</span>}
                     {displayTime.m.toString().padStart(2, '0')}:{displayTime.s.toString().padStart(2, '0')}
                 </div>
 
                 {/* Progress Bar (Linear for fullscreen) */}
-                <div className="w-full max-w-2xl h-2 bg-secondary rounded-full mt-12 overflow-hidden">
+                <div className="w-full max-w-4xl h-3 bg-secondary rounded-full mt-16 overflow-hidden shadow-inner">
                     <motion.div
                         className={cn("h-full", isWorkPhase ? "bg-primary" : "bg-blue-500")}
                         initial={{ width: "100%" }}
@@ -165,18 +184,18 @@ export function Timer() {
                 </div>
 
                 {/* Controls */}
-                <div className="mt-16 flex gap-12">
+                <div className="mt-20 flex items-center gap-10">
                     <Button
                         variant="outline"
                         size="icon"
-                        className="h-24 w-24 rounded-full border-2"
+                        className="h-20 w-20 rounded-full border-border/50 bg-card hover:bg-accent hover:border-primary/50 transition-all shadow-sm"
                         onClick={handleReset}
                     >
-                        <RotateCcw className="h-8 w-8" />
+                        <RotateCcw className="h-8 w-8 text-muted-foreground" />
                     </Button>
                     <Button
                         size="icon"
-                        className="h-32 w-32 rounded-[3rem] shadow-2xl text-2xl"
+                        className="h-32 w-32 rounded-[3rem] shadow-2xl shadow-primary/30 transition-transform hover:scale-105 active:scale-95"
                         onClick={handlePauseResume}
                     >
                         {isPaused ? <Play className="h-12 w-12 ml-2 fill-current" /> : <Pause className="h-12 w-12 fill-current" />}
@@ -186,90 +205,81 @@ export function Timer() {
         );
     }
 
-    // Motivational messages
-    const motivationalMessages = [
-        "You've got this!",
-        "Stay focused!",
-        "Almost there!",
-        "Keep going!",
-        "Great job!",
-        "You're amazing!",
-        "Crushing it!",
-        "Mind blown!",
-        "Legendary!",
-        "Unstoppable!"
-    ];
-    
-    const getRandomMotivation = () => {
-        return motivationalMessages[Math.floor(Math.random() * motivationalMessages.length)];
-    };
-
     return (
-        <div className="w-full max-w-2xl mx-auto space-y-6">
+        <div className="w-full max-w-3xl mx-auto space-y-6">
             {/* Stats Banner */}
-            <div className="grid grid-cols-3 gap-3">
-                <Card className="bg-gradient-to-br from-blue-500/10 to-indigo-500/10 border-blue-500/20">
-                    <CardContent className="p-3 text-center">
-                        <Flame className="w-5 h-5 text-blue-500 mx-auto mb-1" />
-                        <p className="text-xs text-muted-foreground">Streak</p>
-                        <p className="text-lg font-bold text-blue-500">{focusStreak}</p>
+            <div className="grid grid-cols-3 gap-4">
+                <Card className="bg-card border-border/50 shadow-sm hover:border-blue-500/30 transition-colors">
+                    <CardContent className="p-4 flex items-center justify-between">
+                        <div>
+                            <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">Streak</p>
+                            <p className="text-2xl font-black text-foreground">{focusStreak}</p>
+                        </div>
+                        <div className="h-10 w-10 rounded-full bg-blue-500/10 flex items-center justify-center">
+                            <Flame className="w-5 h-5 text-blue-500" />
+                        </div>
                     </CardContent>
                 </Card>
-                <Card className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 border-green-500/20">
-                    <CardContent className="p-3 text-center">
-                        <Trophy className="w-5 h-5 text-green-500 mx-auto mb-1" />
-                        <p className="text-xs text-muted-foreground">Sessions</p>
-                        <p className="text-lg font-bold text-green-500">{sessionCount}</p>
+                <Card className="bg-card border-border/50 shadow-sm hover:border-green-500/30 transition-colors">
+                    <CardContent className="p-4 flex items-center justify-between">
+                        <div>
+                            <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">Sessions</p>
+                            <p className="text-2xl font-black text-foreground">{sessionCount}</p>
+                        </div>
+                        <div className="h-10 w-10 rounded-full bg-green-500/10 flex items-center justify-center">
+                            <Trophy className="w-5 h-5 text-green-500" />
+                        </div>
                     </CardContent>
                 </Card>
-                <Card className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 border-purple-500/20">
-                    <CardContent className="p-3 text-center">
-                        <Target className="w-5 h-5 text-purple-500 mx-auto mb-1" />
-                        <p className="text-xs text-muted-foreground">Today</p>
-                        <p className="text-lg font-bold text-purple-500">{profile.todos.filter(t => t.completed && new Date(t.completedAt!).toDateString() === new Date().toDateString()).length}</p>
+                <Card className="bg-card border-border/50 shadow-sm hover:border-purple-500/30 transition-colors">
+                    <CardContent className="p-4 flex items-center justify-between">
+                        <div>
+                            <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">Today</p>
+                            <p className="text-2xl font-black text-foreground">{profile.todos.filter(t => t.completed && new Date(t.completedAt!).toDateString() === new Date().toDateString()).length}</p>
+                        </div>
+                        <div className="h-10 w-10 rounded-full bg-purple-500/10 flex items-center justify-center">
+                            <Target className="w-5 h-5 text-purple-500" />
+                        </div>
                     </CardContent>
                 </Card>
             </div>
 
-            <Card className="border-none shadow-2xl bg-gradient-to-br from-card to-card/50 backdrop-blur-xl relative overflow-hidden">
-                {/* Decorative Elements */}
-                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -translate-y-16 translate-x-16"></div>
-                <div className="absolute bottom-0 left-0 w-24 h-24 bg-secondary/5 rounded-full translate-y-12 -translate-x-12"></div>
-                
-                <CardContent className="p-8 relative">
+            <Card className="border-border/50 shadow-xl bg-card relative overflow-hidden rounded-[2rem]">
+                <CardContent className="p-6 md:p-10 relative z-10">
                     {/* Header with Enhanced Controls */}
-                    <div className="flex justify-between items-center mb-8">
-                        <Tabs value={mode} onValueChange={(v) => setMode(v as any)} className="w-full max-w-xs">
-                            <TabsList className="grid w-full grid-cols-2 rounded-full bg-muted/50 p-1 border border-border/50">
-                                <TabsTrigger value="normal" disabled={isActive} className="rounded-full data-[state=active]:bg-background data-[state=active]:shadow-md transition-all">Timer</TabsTrigger>
-                                <TabsTrigger value="interval" disabled={isActive} className="rounded-full data-[state=active]:bg-background data-[state=active]:shadow-md transition-all">Pomodoro</TabsTrigger>
+                    <div className="flex flex-col sm:flex-row justify-between items-center mb-10 gap-4">
+                        <Tabs value={mode} onValueChange={(v) => setMode(v as any)} className="w-full sm:w-[300px]">
+                            <TabsList className="grid w-full grid-cols-2 rounded-2xl bg-secondary/50 p-1 border border-border/50 h-12">
+                                <TabsTrigger value="normal" disabled={isActive} className="rounded-xl data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all font-semibold">Standard</TabsTrigger>
+                                <TabsTrigger value="interval" disabled={isActive} className="rounded-xl data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all font-semibold">Pomodoro</TabsTrigger>
                             </TabsList>
                         </Tabs>
-                        <div className="flex gap-2">
+                        
+                        <div className="flex gap-2 bg-secondary/30 p-1.5 rounded-2xl border border-border/50">
                             <Button 
                                 variant="ghost" 
                                 size="icon" 
                                 onClick={() => setShowSettings(!showSettings)}
-                                className="text-muted-foreground hover:text-foreground transition-colors"
+                                className={cn("rounded-xl transition-all", showSettings ? "bg-background shadow-sm" : "hover:bg-background/50")}
                             >
-                                <Settings className="h-4 w-4" />
+                                <Settings className="h-5 w-5 text-foreground" />
                             </Button>
                             <Button 
                                 variant="ghost" 
                                 size="icon" 
                                 onClick={() => setSoundEnabled(!soundEnabled)}
-                                className={`transition-colors ${soundEnabled ? 'text-green-500 hover:text-green-600' : 'text-muted-foreground hover:text-foreground'}`}
+                                className={cn("rounded-xl transition-all", soundEnabled ? "text-primary hover:text-primary/80 hover:bg-primary/10" : "text-muted-foreground hover:bg-background/50")}
                             >
-                                {soundEnabled ? <Bell className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+                                {soundEnabled ? <Bell className="h-5 w-5" /> : <VolumeX className="h-5 w-5" />}
                             </Button>
                             <Button 
                                 variant="ghost" 
                                 size="icon" 
                                 disabled={!isActive} 
                                 onClick={() => setIsFullScreen(true)}
-                                className="text-muted-foreground hover:text-foreground transition-colors"
+                                className="rounded-xl hover:bg-background/50 transition-all text-foreground"
                             >
-                                <Maximize2 className="h-4 w-4" />
+                                <Maximize2 className="h-5 w-5" />
                             </Button>
                         </div>
                     </div>
@@ -278,36 +288,37 @@ export function Timer() {
                     <AnimatePresence>
                         {showSettings && (
                             <motion.div
-                                initial={{ opacity: 0, height: 0 }}
-                                animate={{ opacity: 1, height: 'auto' }}
-                                exit={{ opacity: 0, height: 0 }}
-                                className="mb-6 p-4 bg-muted/30 rounded-xl border border-border/50"
+                                initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+                                animate={{ opacity: 1, height: 'auto', marginBottom: 32 }}
+                                exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+                                className="overflow-hidden"
                             >
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="flex items-center justify-between">
-                                        <Label className="flex items-center gap-2">
-                                            <Heart className="h-4 w-4" /> Motivational Mode
+                                <div className="p-5 bg-secondary/20 rounded-2xl border border-border/50 grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                    <div className="flex items-center justify-between bg-card p-3 rounded-xl border border-border/50 shadow-sm">
+                                        <Label className="flex items-center gap-2 font-semibold">
+                                            <Heart className="h-4 w-4 text-rose-500" /> Motivational Mode
                                         </Label>
                                         <Button 
-                                            variant={motivationalMode ? "default" : "outline"}
+                                            variant={motivationalMode ? "default" : "secondary"}
                                             size="sm"
                                             onClick={() => setMotivationalMode(!motivationalMode)}
+                                            className="rounded-lg h-8"
                                         >
-                                            {motivationalMode ? 'On' : 'Off'}
+                                            {motivationalMode ? 'Active' : 'Muted'}
                                         </Button>
                                     </div>
-                                    <div className="flex items-center justify-between">
-                                        <Label className="flex items-center gap-2">
-                                            <Music className="h-4 w-4" /> Theme
+                                    <div className="flex items-center justify-between bg-card p-3 rounded-xl border border-border/50 shadow-sm">
+                                        <Label className="flex items-center gap-2 font-semibold">
+                                            <Music className="h-4 w-4 text-blue-500" /> Alarm Sound
                                         </Label>
-                                        <Select value={theme} onValueChange={(v) => setTheme(v as 'light' | 'dark' | 'auto')}>
-                                            <SelectTrigger className="w-24 h-8 text-xs">
+                                        <Select defaultValue="chime">
+                                            <SelectTrigger className="w-28 h-8 text-xs rounded-lg bg-secondary/50 border-none">
                                                 <SelectValue />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="auto">Auto</SelectItem>
-                                                <SelectItem value="light">Light</SelectItem>
-                                                <SelectItem value="dark">Dark</SelectItem>
+                                                <SelectItem value="chime">Chime</SelectItem>
+                                                <SelectItem value="bell">Digital Bell</SelectItem>
+                                                <SelectItem value="lofi">Lo-Fi Beat</SelectItem>
                                             </SelectContent>
                                         </Select>
                                     </div>
@@ -317,7 +328,7 @@ export function Timer() {
                     </AnimatePresence>
 
                     {/* Main Interface */}
-                    <div className="min-h-[350px] flex flex-col items-center justify-center relative">
+                    <div className="min-h-[400px] flex flex-col items-center justify-center relative">
                         {!isActive ? (
                             /* Setup State */
                             <AnimatePresence mode="wait">
@@ -326,96 +337,94 @@ export function Timer() {
                                     initial={{ opacity: 0, scale: 0.95 }}
                                     animate={{ opacity: 1, scale: 1 }}
                                     exit={{ opacity: 0, scale: 0.95 }}
-                                    className="w-full flex flex-col items-center gap-8"
+                                    className="w-full flex flex-col items-center"
                                 >
                                     {mode === 'normal' ? (
-                                        <>
+                                        <div className="w-full flex flex-col items-center gap-10">
                                             {/* Enhanced Time Input */}
-                                            <div className="flex items-end gap-3 bg-muted/20 rounded-2xl p-6 border border-border/30">
-                                                <div className="flex flex-col items-center gap-2">
-                                                    <TimeDigit value={hours} label="Hours" onChange={setHours} max={23} />
-                                                    <div className="w-2 h-2 rounded-full bg-primary/30"></div>
-                                                </div>
-                                                <span className="text-5xl font-bold text-muted-foreground/30 mb-6">:</span>
-                                                <div className="flex flex-col items-center gap-2">
-                                                    <TimeDigit value={minutes} label="Minutes" onChange={setMinutes} />
-                                                    <div className="w-2 h-2 rounded-full bg-primary/30"></div>
-                                                </div>
-                                                <span className="text-5xl font-bold text-muted-foreground/30 mb-6">:</span>
-                                                <div className="flex flex-col items-center gap-2">
-                                                    <TimeDigit value={seconds} label="Seconds" onChange={setSeconds} />
-                                                    <div className="w-2 h-2 rounded-full bg-primary/30"></div>
-                                                </div>
+                                            <div className="flex items-center gap-2 md:gap-4 bg-secondary/10 p-6 md:p-8 rounded-[2.5rem] border border-border/50 shadow-inner">
+                                                <TimeDigit value={hours} label="Hours" onChange={setHours} max={23} />
+                                                <span className="text-4xl md:text-5xl font-black text-muted-foreground/30 -mt-8">:</span>
+                                                <TimeDigit value={minutes} label="Minutes" onChange={setMinutes} />
+                                                <span className="text-4xl md:text-5xl font-black text-muted-foreground/30 -mt-8">:</span>
+                                                <TimeDigit value={seconds} label="Seconds" onChange={setSeconds} />
                                             </div>
 
                                             {/* Enhanced Quick Presets */}
-                                            <div className="w-full max-w-md">
-                                                <h3 className="text-sm font-medium text-muted-foreground mb-3 text-center">Quick Presets</h3>
-                                                <div className="grid grid-cols-3 gap-3">
-                                                    <QuickPreset label="Focus" minutes={25} icon={Target} onClick={() => setPreset(25)} />
-                                                    <QuickPreset label="Break" minutes={5} icon={Coffee} onClick={() => setPreset(5)} />
-                                                    <QuickPreset label="Deep Work" minutes={90} icon={Zap} onClick={() => setPreset(90)} />
-                                                    <QuickPreset label="Nap" minutes={20} icon={Moon} onClick={() => setPreset(20)} />
-                                                    <QuickPreset label="Reading" minutes={30} icon={BookOpen} onClick={() => setPreset(30)} />
-                                                    <QuickPreset label="Exercise" minutes={15} icon={Dumbbell} onClick={() => setPreset(15)} />
+                                            <div className="w-full max-w-lg">
+                                                <div className="flex items-center gap-4 mb-4">
+                                                    <div className="h-px bg-border flex-1" />
+                                                    <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Quick Select</h3>
+                                                    <div className="h-px bg-border flex-1" />
+                                                </div>
+                                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                                    <QuickPreset label="Pomodoro" minutes={25} icon={Target} onClick={() => { setHours(0); setMinutes(25); setSeconds(0); }} isActive={hours === 0 && minutes === 25 && seconds === 0} />
+                                                    <QuickPreset label="Break" minutes={5} icon={Coffee} onClick={() => { setHours(0); setMinutes(5); setSeconds(0); }} isActive={hours === 0 && minutes === 5 && seconds === 0} />
+                                                    <QuickPreset label="Deep Work" minutes={90} icon={Zap} onClick={() => { setHours(1); setMinutes(30); setSeconds(0); }} isActive={hours === 1 && minutes === 30 && seconds === 0} />
+                                                    <QuickPreset label="Nap" minutes={20} icon={Moon} onClick={() => { setHours(0); setMinutes(20); setSeconds(0); }} isActive={hours === 0 && minutes === 20 && seconds === 0} />
+                                                    <QuickPreset label="Reading" minutes={30} icon={BookOpen} onClick={() => { setHours(0); setMinutes(30); setSeconds(0); }} isActive={hours === 0 && minutes === 30 && seconds === 0} />
+                                                    <QuickPreset label="Exercise" minutes={15} icon={Dumbbell} onClick={() => { setHours(0); setMinutes(15); setSeconds(0); }} isActive={hours === 0 && minutes === 15 && seconds === 0} />
                                                 </div>
                                             </div>
-                                        </>
+                                        </div>
                                     ) : (
-                                        <div className="w-full space-y-6 px-4">
-                                            <Card className="bg-gradient-to-r from-primary/5 to-blue-500/5 border-primary/20">
-                                                <CardContent className="p-5">
-                                                    <div className="space-y-4">
+                                        <div className="w-full max-w-lg space-y-4">
+                                            <Card className="bg-card border-border/50 shadow-sm hover:border-primary/30 transition-colors">
+                                                <CardContent className="p-6">
+                                                    <div className="space-y-6">
                                                         <div className="flex items-center justify-between">
-                                                            <Label className="text-muted-foreground flex items-center gap-2 text-base">
-                                                                <Target className="h-5 w-5 text-primary" /> Work Duration
+                                                            <Label className="text-foreground flex items-center gap-3 text-lg font-bold">
+                                                                <div className="p-2 bg-primary/10 rounded-xl"><Target className="h-5 w-5 text-primary" /></div>
+                                                                Focus Time
                                                             </Label>
-                                                            <span className="font-mono text-2xl font-bold">{intervalSettings.workMinutes}:{intervalSettings.workSeconds.toString().padStart(2, '0')}</span>
+                                                            <span className="font-mono text-3xl font-black text-primary">{intervalSettings.workMinutes}:{intervalSettings.workSeconds.toString().padStart(2, '0')}</span>
                                                         </div>
                                                         <Slider
                                                             value={[intervalSettings.workMinutes * 60 + intervalSettings.workSeconds]}
                                                             max={300}
                                                             step={15}
-                                                            className="py-4"
+                                                            className="py-2"
                                                             onValueChange={([v]) => setIntervalSettings(prev => ({ ...prev, workMinutes: Math.floor(v / 60), workSeconds: v % 60 }))}
                                                         />
                                                     </div>
                                                 </CardContent>
                                             </Card>
 
-                                            <Card className="bg-gradient-to-r from-blue-500/5 to-indigo-500/5 border-blue-500/20">
-                                                <CardContent className="p-5">
-                                                    <div className="space-y-4">
+                                            <Card className="bg-card border-border/50 shadow-sm hover:border-blue-500/30 transition-colors">
+                                                <CardContent className="p-6">
+                                                    <div className="space-y-6">
                                                         <div className="flex items-center justify-between">
-                                                            <Label className="text-muted-foreground flex items-center gap-2 text-base">
-                                                                <Coffee className="h-5 w-5 text-blue-500" /> Rest Duration
+                                                            <Label className="text-foreground flex items-center gap-3 text-lg font-bold">
+                                                                <div className="p-2 bg-blue-500/10 rounded-xl"><Coffee className="h-5 w-5 text-blue-500" /></div>
+                                                                Break Time
                                                             </Label>
-                                                            <span className="font-mono text-2xl font-bold text-blue-500">{intervalSettings.restMinutes}:{intervalSettings.restSeconds.toString().padStart(2, '0')}</span>
+                                                            <span className="font-mono text-3xl font-black text-blue-500">{intervalSettings.restMinutes}:{intervalSettings.restSeconds.toString().padStart(2, '0')}</span>
                                                         </div>
                                                         <Slider
                                                             value={[intervalSettings.restMinutes * 60 + intervalSettings.restSeconds]}
                                                             max={120}
                                                             step={15}
-                                                            className="py-4 bg-blue-500/20"
+                                                            className="py-2"
                                                             onValueChange={([v]) => setIntervalSettings(prev => ({ ...prev, restMinutes: Math.floor(v / 60), restSeconds: v % 60 }))}
                                                         />
                                                     </div>
                                                 </CardContent>
                                             </Card>
 
-                                            <Card className="bg-gradient-to-r from-purple-500/5 to-pink-500/5 border-purple-500/20">
-                                                <CardContent className="p-5">
+                                            <Card className="bg-card border-border/50 shadow-sm hover:border-purple-500/30 transition-colors">
+                                                <CardContent className="p-6">
                                                     <div className="flex items-center justify-between">
-                                                        <Label className="text-muted-foreground flex items-center gap-2 text-base">
-                                                            <Trophy className="h-5 w-5 text-purple-500" /> Rounds
+                                                        <Label className="text-foreground flex items-center gap-3 text-lg font-bold">
+                                                            <div className="p-2 bg-purple-500/10 rounded-xl"><Trophy className="h-5 w-5 text-purple-500" /></div>
+                                                            Total Rounds
                                                         </Label>
-                                                        <div className="flex items-center gap-3">
-                                                            <Button variant="outline" size="icon" className="h-9 w-9 rounded-full" onClick={() => setIntervalSettings(p => ({ ...p, rounds: Math.max(1, p.rounds - 1) }))}>
-                                                                <Minus className="h-4 w-4" />
+                                                        <div className="flex items-center gap-4 bg-secondary/50 p-1.5 rounded-2xl border border-border/50">
+                                                            <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl bg-background shadow-sm hover:bg-accent" onClick={() => setIntervalSettings(p => ({ ...p, rounds: Math.max(1, p.rounds - 1) }))}>
+                                                                <Minus className="h-5 w-5" />
                                                             </Button>
-                                                            <span className="font-mono text-2xl font-bold w-10 text-center">{intervalSettings.rounds}</span>
-                                                            <Button variant="outline" size="icon" className="h-9 w-9 rounded-full" onClick={() => setIntervalSettings(p => ({ ...p, rounds: Math.min(20, p.rounds + 1) }))}>
-                                                                <Plus className="h-4 w-4" />
+                                                            <span className="font-mono text-2xl font-black w-8 text-center">{intervalSettings.rounds}</span>
+                                                            <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl bg-background shadow-sm hover:bg-accent" onClick={() => setIntervalSettings(p => ({ ...p, rounds: Math.min(20, p.rounds + 1) }))}>
+                                                                <Plus className="h-5 w-5" />
                                                             </Button>
                                                         </div>
                                                     </div>
@@ -425,19 +434,19 @@ export function Timer() {
                                     )}
 
                                     {/* Enhanced Task Selector */}
-                                    <div className="w-full max-w-md space-y-3">
-                                        <Label className="text-center block text-muted-foreground">Link to Task (Optional)</Label>
+                                    <div className="w-full max-w-lg mt-8 space-y-3">
+                                        <Label className="text-sm font-bold text-foreground">Link to a Task (Optional)</Label>
                                         <Select value={selectedTaskId} onValueChange={setSelectedTaskId}>
-                                            <SelectTrigger className="w-full border-border/50 bg-background/50 h-12 rounded-xl">
-                                                <SelectValue placeholder="Select a task to focus on..." />
+                                            <SelectTrigger className="w-full bg-card border-border/50 h-14 rounded-2xl shadow-sm focus:ring-primary/50 text-base">
+                                                <SelectValue placeholder="What are you focusing on?" />
                                             </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="none" className="flex items-center gap-2">
-                                                    <Star className="h-4 w-4 text-muted-foreground" /> No Task Linked
+                                            <SelectContent className="rounded-2xl border-border/50">
+                                                <SelectItem value="none" className="flex items-center gap-2 py-3">
+                                                    <div className="flex items-center gap-2"><Star className="h-4 w-4 text-muted-foreground" /> No Task Linked</div>
                                                 </SelectItem>
                                                 {profile.todos.filter(t => !t.completed).map(t => (
-                                                    <SelectItem key={t.id} value={t.id} className="flex items-center gap-2">
-                                                        <Target className="h-4 w-4 text-primary" /> {t.text}
+                                                    <SelectItem key={t.id} value={t.id} className="py-3">
+                                                        <div className="flex items-center gap-2"><Target className="h-4 w-4 text-primary" /> <span className="truncate">{t.text}</span></div>
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>
@@ -446,7 +455,7 @@ export function Timer() {
 
                                     <Button 
                                         size="lg" 
-                                        className="w-full h-16 text-xl font-bold rounded-2xl shadow-2xl shadow-primary/25 hover:shadow-primary/40 transition-all transform hover:scale-105 active:scale-95 bg-gradient-to-r from-primary to-indigo-600 text-white"
+                                        className="w-full max-w-lg mt-8 h-16 text-xl font-black rounded-2xl shadow-xl shadow-primary/25 hover:shadow-primary/40 transition-all transform hover:scale-[1.02] active:scale-[0.98] bg-primary text-primary-foreground"
                                         onClick={() => {
                                             handleStart();
                                             if (mode === 'normal') {
@@ -454,7 +463,7 @@ export function Timer() {
                                             }
                                         }}
                                     >
-                                        <Play className="mr-3 h-6 w-6 fill-current" /> Start {mode === 'interval' ? 'Pomodoro Session' : 'Focused Work'}
+                                        <Play className="mr-3 h-6 w-6 fill-current" /> START SESSION
                                     </Button>
                                 </motion.div>
                             </AnimatePresence>
@@ -466,28 +475,28 @@ export function Timer() {
                                     initial={{ opacity: 0, scale: 0.9 }}
                                     animate={{ opacity: 1, scale: 1 }}
                                     exit={{ opacity: 0, scale: 0.9 }}
-                                    className="flex flex-col items-center justify-center w-full"
+                                    className="flex flex-col items-center justify-center w-full py-8"
                                 >
-                                    <div className="relative w-72 h-72 flex items-center justify-center">
+                                    <div className="relative w-72 h-72 md:w-80 md:h-80 flex items-center justify-center">
                                         {/* Circular Progress SVG */}
-                                        <svg className="absolute w-full h-full transform -rotate-90 text-primary drop-shadow-[0_0_15px_rgba(var(--primary),0.3)]" viewBox="0 0 300 300">
+                                        <svg className="absolute w-full h-full transform -rotate-90 text-primary" viewBox="0 0 300 300">
                                             {/* Background Circle */}
                                             <circle
                                                 cx="150" cy="150" r={radius}
                                                 stroke="currentColor"
-                                                strokeWidth="8"
+                                                strokeWidth="10"
                                                 fill="transparent"
-                                                className="text-muted/10"
+                                                className="text-secondary"
                                             />
                                             {/* Progress Circle */}
                                             <circle
                                                 cx="150" cy="150" r={radius}
                                                 stroke="currentColor"
-                                                strokeWidth="12"
+                                                strokeWidth="14"
                                                 fill="transparent"
                                                 strokeLinecap="round"
                                                 className={cn(
-                                                    "transition-[stroke-dashoffset] duration-1000 ease-linear",
+                                                    "transition-[stroke-dashoffset] duration-1000 ease-linear drop-shadow-xl",
                                                     isWorkPhase ? "text-primary" : "text-blue-500"
                                                 )}
                                                 style={{
@@ -498,17 +507,17 @@ export function Timer() {
                                         </svg>
 
                                         {/* Digital Time Center */}
-                                        <div className="flex flex-col items-center z-10">
-                                            <div className={cn("text-6xl font-mono font-bold tracking-tighter tabular-nums text-foreground", displayTime.isNegative && "text-red-500 animate-pulse")}>
+                                        <div className="flex flex-col items-center z-10 w-full px-8">
+                                            <div className={cn("text-6xl md:text-7xl font-mono font-black tracking-tighter tabular-nums text-foreground drop-shadow-sm", displayTime.isNegative && "text-destructive animate-pulse")}>
                                                 {displayTime.isNegative && "-"}
                                                 {displayTime.h > 0 && <span>{displayTime.h}:</span>}
                                                 {displayTime.m.toString().padStart(2, '0')}:{displayTime.s.toString().padStart(2, '0')}
                                             </div>
-                                            <div className="mt-2 text-sm font-medium uppercase tracking-widest text-muted-foreground animate-pulse">
+                                            <div className="mt-3 px-4 py-1.5 rounded-full bg-secondary text-sm font-bold uppercase tracking-widest text-foreground shadow-sm">
                                                 {isPaused ? 'Paused' : (isWorkPhase ? 'Focusing' : 'Resting')}
                                             </div>
                                             {mode === 'interval' && (
-                                                <div className="mt-1 text-xs text-muted-foreground/70">
+                                                <div className="mt-2 text-sm font-semibold text-muted-foreground">
                                                     Round {currentRound} / {intervalSettings.rounds}
                                                 </div>
                                             )}
@@ -517,44 +526,46 @@ export function Timer() {
 
                                     {/* Task Info Pill */}
                                     {selectedTaskId !== 'none' && (
-                                        <div className="mt-6 px-4 py-2 bg-primary/10 rounded-full border border-primary/20 text-sm font-medium text-primary flex items-center gap-2 max-w-xs truncate">
-                                            <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                                            {profile.todos.find(t => t.id === selectedTaskId)?.text}
+                                        <div className="mt-10 px-6 py-3 bg-card border border-border/50 shadow-sm rounded-2xl text-base font-semibold text-foreground flex items-center gap-3 max-w-sm w-full">
+                                            <div className="w-3 h-3 rounded-full bg-primary animate-pulse shadow-[0_0_8px_rgba(var(--primary),0.8)]" />
+                                            <span className="truncate flex-1">{profile.todos.find(t => t.id === selectedTaskId)?.text}</span>
                                         </div>
                                     )}
 
                                     {/* Controls */}
-                                    <div className="mt-8 flex items-center gap-6">
+                                    <div className="mt-10 flex items-center gap-8 bg-secondary/30 p-4 rounded-full border border-border/50">
                                         <Button
-                                            variant="outline"
+                                            variant="ghost"
                                             size="icon"
-                                            className="h-14 w-14 rounded-full border-border/50 hover:bg-secondary hover:border-border transition-all"
+                                            className="h-16 w-16 rounded-full bg-card shadow-sm hover:bg-accent border border-border/50 transition-all"
                                             onClick={handleReset}
                                         >
-                                            <RotateCcw className="h-5 w-5" />
+                                            <RotateCcw className="h-6 w-6 text-foreground" />
                                         </Button>
 
                                         <Button
                                             size="icon"
                                             className={cn(
-                                                "h-20 w-20 rounded-[2rem] shadow-xl text-white transition-all transform hover:scale-105 active:scale-95",
+                                                "h-24 w-24 rounded-full shadow-2xl text-white transition-transform hover:scale-105 active:scale-95",
                                                 isPaused ? "bg-primary hover:bg-primary/90" : "bg-amber-500 hover:bg-amber-600"
                                             )}
                                             onClick={handlePauseResume}
                                         >
-                                            {isPaused ? <Play className="h-8 w-8 fill-current ml-1" /> : <Pause className="h-8 w-8 fill-current" />}
+                                            {isPaused ? <Play className="h-10 w-10 fill-current ml-2" /> : <Pause className="h-10 w-10 fill-current" />}
                                         </Button>
 
-                                        {mode === 'normal' && (
+                                        {mode === 'normal' ? (
                                             <Button
-                                                variant="outline"
+                                                variant="ghost"
                                                 size="icon"
-                                                className="h-14 w-14 rounded-full border-border/50 hover:bg-secondary hover:border-border transition-all"
+                                                className="h-16 w-16 rounded-full bg-card shadow-sm hover:bg-accent border border-border/50 transition-all"
                                                 onClick={() => quickAddTime(60)}
                                             >
-                                                <Plus className="h-5 w-5" />
+                                                <Plus className="h-6 w-6 text-foreground" />
                                                 <span className="sr-only">+1m</span>
                                             </Button>
+                                        ) : (
+                                            <div className="h-16 w-16" /> // Placeholder for spacing in interval mode
                                         )}
                                     </div>
                                 </motion.div>
