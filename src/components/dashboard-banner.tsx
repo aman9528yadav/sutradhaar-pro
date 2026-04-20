@@ -33,11 +33,11 @@ const calculateTimeLeft = (targetDate: string): Countdown => {
 };
 
 export function DashboardBanner() {
-  const { maintenanceConfig } = useMaintenance();
+  const { maintenanceConfig, isDevMode } = useMaintenance();
   const { show, targetDate, category } = maintenanceConfig.dashboardBanner || {};
 
   const [timeLeft, setTimeLeft] = useState<Countdown>(calculateTimeLeft(targetDate));
-  const [isVisible, setIsVisible] = useState(show || false);
+  const [isVisible, setIsVisible] = useState((show && !isDevMode) || false);
   const [isClient, setIsClient] = useState(false);
   const [isDismissed, setIsDismissed] = useState(false);
 
@@ -47,9 +47,9 @@ export function DashboardBanner() {
 
   useEffect(() => {
     if (maintenanceConfig.dashboardBanner) {
-      setIsVisible(maintenanceConfig.dashboardBanner.show);
+      setIsVisible(maintenanceConfig.dashboardBanner.show && !isDevMode);
     }
-  }, [maintenanceConfig.dashboardBanner]);
+  }, [maintenanceConfig.dashboardBanner, isDevMode]);
 
   useEffect(() => {
     if (!isVisible || !isClient || !targetDate) return;

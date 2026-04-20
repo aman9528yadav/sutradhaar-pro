@@ -16,10 +16,11 @@ const getFullUrl = (url: string) => {
 };
 
 export function AppUpdateBanner() {
-  const { maintenanceConfig } = useMaintenance();
+  const { maintenanceConfig, isDevMode } = useMaintenance();
   const { appUpdate } = maintenanceConfig;
 
-  if (!appUpdate?.showBanner) {
+  // Only bypass if Developer Mode is active
+  if (!appUpdate?.showBanner || isDevMode) {
     return null;
   }
 

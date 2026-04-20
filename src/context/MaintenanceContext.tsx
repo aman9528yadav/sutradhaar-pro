@@ -136,6 +136,7 @@ export type MaintenanceConfig = {
 
 type MaintenanceContextType = {
     isDevMode: boolean;
+    isOwner: boolean;
     setDevMode: (isDev: boolean) => void;
     maintenanceConfig: MaintenanceConfig;
     setMaintenanceConfig: React.Dispatch<React.SetStateAction<MaintenanceConfig>>;
@@ -398,13 +399,24 @@ export const MaintenanceProvider = ({ children }: { children: ReactNode }) => {
         localStorage.setItem('sutradhaar_dev_mode', isDev ? 'true' : 'false');
     }, []);
 
+    const { user } = useAuth();
+    const { profile } = useProfile();
+
+    const isOwner = React.useMemo(() => {
+        const ownerEmail = 'amanyadavyadav9458@gmail.com'.toLowerCase();
+        const userEmail = user?.email?.toLowerCase() || '';
+        const profileEmail = profile?.email?.toLowerCase() || '';
+        return userEmail === ownerEmail || profileEmail === ownerEmail || profile?.membership === 'owner';
+    }, [user, profile?.email, profile?.membership]);
+
     const contextValue = React.useMemo(() => ({
         isDevMode,
+        isOwner,
         setDevMode,
         maintenanceConfig,
         setMaintenanceConfig,
         isLoading
-    }), [maintenanceConfig, isDevMode, setDevMode, isLoading]);
+    }), [maintenanceConfig, isDevMode, isOwner, setDevMode, isLoading]);
 
     return (
         <MaintenanceContext.Provider value={contextValue}>
@@ -422,18 +434,9 @@ export const useMaintenance = () => {
 };
 
 export const MaintenanceWrapper = ({ children }: { children: ReactNode }) => {
-    const { maintenanceConfig, isDevMode, isLoading } = useMaintenance();
-    const { user } = useAuth();
-    const { profile } = useProfile();
+    const { maintenanceConfig, isDevMode, isOwner, isLoading } = useMaintenance();
     const router = useRouter();
     const pathname = usePathname();
-
-    const isOwner = React.useMemo(() => {
-        const ownerEmail = 'amanyadavyadav9458@gmail.com'.toLowerCase();
-        const userEmail = user?.email?.toLowerCase() || '';
-        const profileEmail = profile.email?.toLowerCase() || '';
-        return userEmail === ownerEmail || profileEmail === ownerEmail || profile.membership === 'owner';
-    }, [user, profile.email, profile.membership]);
 
     useEffect(() => {
         if (isLoading) return;
@@ -443,9 +446,9 @@ export const MaintenanceWrapper = ({ children }: { children: ReactNode }) => {
         const sanitizedPath = sanitizePathForKey(pathname);
         const isUnderPageMaintenance = maintenanceConfig.pageMaintenance?.[sanitizedPath];
 
-        // The owner/developer bypasses maintenance on all pages
-        if (isDevMode || isOwner) {
-            // Allow dev/owner to navigate freely, including viewing the maintenance page
+        // Only the developer (after entering password) bypasses maintenance
+        if (isDevMode) {
+            // Allow dev to navigate freely, including viewing the maintenance page
             return;
         }
 
@@ -466,9 +469,7 @@ export const MaintenanceWrapper = ({ children }: { children: ReactNode }) => {
 
     const isUnderMaintenance = maintenanceConfig.globalMaintenance || maintenanceConfig.pageMaintenance?.[sanitizePathForKey(pathname)];
     
-    const bypassMaintenance = isDevMode || isOwner;
-
-    if (isUnderMaintenance && pathname !== '/maintenance' && !bypassMaintenance) {
+    if (isUnderMaintenance && pathname !== '/maintenance' && !isDevMode) {
         return null;
     }
 
