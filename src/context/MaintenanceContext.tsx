@@ -291,24 +291,24 @@ export const MaintenanceProvider = ({ children }: { children: ReactNode }) => {
         }
     };
 
+    const lastConfigSyncedRef = useRef<string>('');
+
     const setMaintenanceConfig = React.useCallback((value: React.SetStateAction<MaintenanceConfig>) => {
         setMaintenanceConfigState(prevConfig => {
             const newConfig = typeof value === 'function' ? value(prevConfig) : value;
+            
+            // Sync with DB immediately on local changes
+            const configStr = JSON.stringify(newConfig);
+            if (configStr !== lastConfigSyncedRef.current) {
+                lastConfigSyncedRef.current = configStr;
+                updateConfigInDb(newConfig);
+            }
+            
             return newConfig;
         });
-    }, []);
+    }, [configRef]);
 
-    // Side effect to sync with DB when config changes LOCALLY
-    // We use a ref to track the last synced config to avoid loops with onValue
-    const lastConfigSyncedRef = useRef<string>('');
-
-    useEffect(() => {
-        const configStr = JSON.stringify(maintenanceConfig);
-        if (configStr !== lastConfigSyncedRef.current) {
-            updateConfigInDb(maintenanceConfig);
-            lastConfigSyncedRef.current = configStr;
-        }
-    }, [maintenanceConfig]);
+    // Removed the buggy useEffect that wrote default state to DB on mount
 
     useEffect(() => {
         if (!configRef) {

@@ -158,71 +158,71 @@ export default function ManageAboutPage() {
   const router = useRouter();
   const { toast } = useToast();
   const { maintenanceConfig, setMaintenanceConfig } = useMaintenance();
-  const { stats, ownerInfo, appInfo, roadmap } = maintenanceConfig.aboutPageContent;
+  const [localContent, setLocalContent] = useState(maintenanceConfig.aboutPageContent);
+  const { stats, ownerInfo, appInfo, roadmap } = localContent;
   
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<RoadmapItem | null>(null);
   const [itemToDelete, setItemToDelete] = useState<string | null>(null);
   const [isClearAllDialogOpen, setIsClearAllDialogOpen] = useState(false);
 
+  // Sync local state if config changes remotely
+  React.useEffect(() => {
+    setLocalContent(maintenanceConfig.aboutPageContent);
+  }, [maintenanceConfig.aboutPageContent]);
+
   const founderImage = PlaceHolderImages.find(p => p.id === ownerInfo.photoId);
 
   const addRoadmapItem = (item: Omit<RoadmapItem, 'id'>) => {
-    setMaintenanceConfig(prev => {
+    setLocalContent(prev => {
         const newItem = { ...item, id: `${Date.now()}-${Math.random().toString(36).substring(2, 9)}` };
         return {
             ...prev,
-            aboutPageContent: {...prev.aboutPageContent, roadmap: [newItem, ...prev.aboutPageContent.roadmap]},
+            roadmap: [newItem, ...prev.roadmap],
         };
     });
   };
 
   const editRoadmapItem = (itemToEdit: RoadmapItem) => {
-    setMaintenanceConfig(prev => ({
+    setLocalContent(prev => ({
         ...prev,
-        aboutPageContent: {...prev.aboutPageContent, roadmap: prev.aboutPageContent.roadmap.map(i => (i.id === itemToEdit.id ? itemToEdit : i))},
+        roadmap: prev.roadmap.map(i => (i.id === itemToEdit.id ? itemToEdit : i)),
     }));
   };
 
   const deleteRoadmapItem = (id: string) => {
-    setMaintenanceConfig(prev => ({
+    setLocalContent(prev => ({
       ...prev,
-      aboutPageContent: {
-        ...prev.aboutPageContent,
-        roadmap: prev.aboutPageContent.roadmap.filter(i => i.id !== id)
-      }
+      roadmap: prev.roadmap.filter(i => i.id !== id)
     }));
     setItemToDelete(null);
   };
   
   const clearAllRoadmapItems = () => {
-    setMaintenanceConfig(prev => ({
+    setLocalContent(prev => ({
       ...prev,
-      aboutPageContent: {
-        ...prev.aboutPageContent,
-        roadmap: []
-      }
+      roadmap: []
     }));
     setIsClearAllDialogOpen(false);
   }
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>, section: string, field: string) => {
-      setMaintenanceConfig(prev => ({
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, section: string, field: string) => {
+      setLocalContent(prev => ({
           ...prev,
-          aboutPageContent: {
-              ...prev.aboutPageContent,
-              [section]: {
-                  // @ts-ignore
-                  ...prev.aboutPageContent[section],
-                  [field]: e.target.value
-              }
+          [section]: {
+              // @ts-ignore
+              ...prev[section],
+              [field]: e.target.value
           }
       }));
   }
 
   const handleSaveAll = () => {
-    // The state is already saved on change, this is just for user feedback.
-    toast({ title: 'About Page Content Saved!' });
+    setMaintenanceConfig(prev => ({
+      ...prev,
+      aboutPageContent: localContent
+    }));
+    toast({ title: 'About Page Content Saved!', description: 'Your changes have been pushed live.' });
   }
 
   const handleAddNewRoadmap = () => {

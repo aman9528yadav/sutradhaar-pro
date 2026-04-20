@@ -774,498 +774,513 @@ export function UnitConverter() {
     .slice(0, 3) as ConversionHistoryItem[];
 
   return (
-    <div className="space-y-6 w-full max-w-2xl mx-auto pb-20">
-      <Card className="overflow-hidden border-2 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
-        {/* Glow Effects */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
-
-        <CardHeader className="p-6 bg-gradient-to-r from-primary/5 to-primary/10 border-b border-border">
-          <div className="flex items-center justify-between">
+    <div className="space-y-6 w-full max-w-5xl mx-auto pb-20">
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+        
+        {/* Top Header Bento Box - Col Span 12 */}
+        <div className="md:col-span-12 p-6 rounded-[2rem] bg-background/60 backdrop-blur-xl border border-white/10 shadow-2xl flex flex-col md:flex-row items-center justify-between gap-4 transition-all hover:shadow-primary/5">
+          <div className="flex items-center gap-3">
+            <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center text-primary shadow-inner">
+              <Ruler className="h-6 w-6" />
+            </div>
             <div>
-              <CardTitle className="text-2xl font-bold text-foreground flex items-center gap-2">
-                <Ruler className="h-6 w-6 text-primary" />
-                Unit Converter
-              </CardTitle>
-              <p className="text-sm text-muted-foreground mt-1">
-                Convert between different measurement units
-              </p>
-            </div>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCompactMode(!compactMode)}
-                className="h-8 w-8 p-0"
-              >
-                {compactMode ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setDarkMode(!darkMode)}
-                className="h-8 w-8 p-0"
-              >
-                {darkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-              </Button>
+              <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">Unit Converter</h2>
+              <p className="text-sm text-muted-foreground font-medium">Precision conversions at your fingertips</p>
             </div>
           </div>
-        </CardHeader>
+          
+          <div className="flex items-center gap-3 w-full md:w-auto">
+            <Select value={region} onValueChange={setRegion}>
+              <SelectTrigger className="w-full md:w-40 bg-background/50 border-white/10 h-10 rounded-xl hover:bg-accent/50 transition-colors">
+                <Globe className="w-4 h-4 mr-2 text-muted-foreground" />
+                <SelectValue placeholder="Region" />
+              </SelectTrigger>
+              <SelectContent className="bg-background/95 backdrop-blur-xl border-white/10 rounded-xl">
+                <SelectItem value="International" className="rounded-lg">International</SelectItem>
+                <SelectItem value="Local" className="rounded-lg">Local (Indian)</SelectItem>
+              </SelectContent>
+            </Select>
 
-        <CardContent className="p-6 space-y-6">
-          {/* Top Controls: Region & Category */}
-          <div className="flex gap-3">
-            <div className="w-1/3">
-              <Select value={region} onValueChange={setRegion}>
-                <SelectTrigger className="w-full bg-muted border-border h-10 rounded-xl">
-                  <SelectValue placeholder="Region" />
-                </SelectTrigger>
-                <SelectContent className="bg-background border-border">
-                  <SelectItem value="International" className="focus:bg-accent">International</SelectItem>
-                  <SelectItem value="Local" className="focus:bg-accent">Local (Indian)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex-1">
-              <Select value={category} onValueChange={handleCategoryChange}>
-                <SelectTrigger className="w-full bg-muted border-border h-10 rounded-xl">
-                  <div className="flex items-center gap-2 truncate">
-                    {React.createElement(activeCategory.icon, { className: 'h-4 w-4 shrink-0' })}
-                    <span className="truncate">{category}</span>
-                  </div>
-                </SelectTrigger>
-                <SelectContent className="bg-background border-border max-h-[300px]">
-                  {CATEGORIES.map((cat) => {
-                    const isPremiumCategory = premiumCategories.includes(cat.name);
-                    return (
-                      <SelectItem key={cat.name} value={cat.name} disabled={isPremiumCategory && !isPremium} className="focus:bg-accent">
-                        <div className="flex items-center justify-between w-full gap-2">
-                          <div className="flex items-center gap-2">
-                            <cat.icon className="h-4 w-4" />
-                            <span>{cat.name}</span>
-                          </div>
-                          {isPremiumCategory && !isPremium && <Lock className="h-3 w-3 text-muted-foreground" />}
-                        </div>
-                      </SelectItem>
-                    )
-                  })}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          {/* NEW: Precision Control */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label className="text-xs text-muted-foreground flex items-center gap-2">
-                <Settings2 className="h-3 w-3" />
-                Precision: {precision} decimals
-              </Label>
-            </div>
-            <Slider
-              value={[precision]}
-              onValueChange={(value) => setPrecision(value[0])}
-              min={1}
-              max={10}
-              step={1}
-              className="w-full"
-            />
-          </div>
-
-          {/* NEW: Quick Actions Row */}
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowQuickConversions(!showQuickConversions)}
-              className="flex-1 bg-transparent border-border hover:bg-accent rounded-xl"
-            >
-              <Zap className="h-3 w-3 mr-1" />
-              Quick
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowSmartSuggestions(!showSmartSuggestions)}
-              className="flex-1 bg-transparent border-border hover:bg-accent rounded-xl"
-            >
-              <Lightbulb className="h-3 w-3 mr-1" />
-              Suggest
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleAutoDetect}
-              className="flex-1 bg-transparent border-border hover:bg-accent rounded-xl"
-            >
-              <Sparkles className="h-3 w-3 mr-1" />
-              Detect
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setBulkMode(!bulkMode)}
-              className="flex-1 bg-transparent border-border hover:bg-accent rounded-xl"
-            >
-              <Database className="h-3 w-3 mr-1" />
-              Bulk
-            </Button>
-          </div>
-
-          {/* NEW: Quick Conversions Panel */}
-          {showQuickConversions && (
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-              {QUICK_CONVERSIONS.map((quick, idx) => (
-                <Button
-                  key={idx}
-                  variant="outline"
-                  size="sm"
-                  onClick={() => loadQuickConversion(quick)}
-                  className="bg-accent border-border hover:bg-accent/80 rounded-lg h-auto py-2 flex flex-col items-start"
-                >
-                  <div className="flex items-center gap-1 text-xs">
-                    <span>{quick.icon}</span>
-                    <span className="font-semibold">{quick.label}</span>
-                  </div>
-                  <span className="text-[10px] text-muted-foreground">{quick.description}</span>
-                </Button>
-              ))}
-            </div>
-          )}
-
-          {/* NEW: Smart Suggestions Panel */}
-          {showSmartSuggestions && smartSuggestions.length > 0 && (
-            <div className="space-y-2">
-              <Label className="text-xs text-muted-foreground">Suggested for {category}</Label>
-              <div className="space-y-1">
-                {smartSuggestions.map((suggestion, idx) => (
-                  <Button
-                    key={idx}
-                    variant="outline"
-                    size="sm"
-                    onClick={() => applySuggestion(suggestion)}
-                    className="w-full bg-accent border-border hover:bg-accent/80 rounded-lg justify-start"
-                  >
-                    <span className="mr-2">{suggestion.icon}</span>
-                    <span className="text-xs">{suggestion.fromUnit} → {suggestion.toUnit}</span>
-                    <span className="ml-auto text-[10px] text-muted-foreground">{suggestion.reason}</span>
-                  </Button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {parsedInput && (
-            <div className="text-xs text-green-400 bg-green-500/10 border border-green-500/20 rounded-lg px-3 py-2">
-              ✨ {parsedInput}
-            </div>
-          )}
-
-          {/* NEW: Bulk Conversion Panel */}
-          {bulkMode && (
-            <div className="space-y-3">
-              <Label className="text-xs text-muted-foreground">Bulk Conversion</Label>
-              <div className="space-y-2">
-                <Input
-                  value={bulkInput}
-                  onChange={(e) => setBulkInput(e.target.value)}
-                  placeholder="Enter values separated by commas (e.g., 1, 2, 5, 10)"
-                  className="bg-muted border-border rounded-xl"
-                />
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleBulkConversion}
-                    className="bg-primary/10 border-primary/20 text-primary hover:bg-primary/20"
-                  >
-                    Convert All
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={exportBulkToCSV}
-                    className="bg-green-500/10 border-green-500/20 text-green-500 hover:bg-green-500/20"
-                  >
-                    <Download className="h-3 w-3 mr-1" />
-                    Export CSV
-                  </Button>
+            <Select value={category} onValueChange={handleCategoryChange}>
+              <SelectTrigger className="w-full md:w-48 bg-background/50 border-white/10 h-10 rounded-xl hover:bg-accent/50 transition-colors">
+                <div className="flex items-center gap-2 truncate">
+                  {React.createElement(activeCategory.icon, { className: 'h-4 w-4 shrink-0 text-primary' })}
+                  <span className="truncate font-medium">{category}</span>
                 </div>
-                {bulkResults.length > 0 && (
-                  <div className="bg-muted/50 border border-border rounded-xl p-3 max-h-40 overflow-y-auto">
-                    <Label className="text-xs text-muted-foreground mb-2 block">Results:</Label>
-                    <div className="space-y-1 text-sm">
-                      {bulkResults.map((res, idx) => (
-                        <div key={idx} className="flex justify-between">
-                          <span>{res.input}</span>
-                          <span className="font-medium">{res.output}</span>
+              </SelectTrigger>
+              <SelectContent className="bg-background/95 backdrop-blur-xl border-white/10 rounded-xl max-h-[300px]">
+                {CATEGORIES.map((cat) => {
+                  const isPremiumCategory = premiumCategories.includes(cat.name);
+                  return (
+                    <SelectItem key={cat.name} value={cat.name} disabled={isPremiumCategory && !isPremium} className="rounded-lg">
+                      <div className="flex items-center justify-between w-full gap-2">
+                        <div className="flex items-center gap-2">
+                          <cat.icon className="h-4 w-4 text-muted-foreground" />
+                          <span>{cat.name}</span>
                         </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
+                        {isPremiumCategory && !isPremium && <Lock className="h-3 w-3 text-muted-foreground" />}
+                      </div>
+                    </SelectItem>
+                  )
+                })}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
 
-          {/* Main Converter Area */}
-          <div className="space-y-6 relative">
+        {/* Main Converter Tool - Col Span 8 */}
+        <div className="md:col-span-8 p-6 md:p-8 rounded-[2rem] bg-gradient-to-br from-background/80 to-background/40 backdrop-blur-xl border border-white/10 shadow-2xl relative overflow-hidden group">
+          <div className="absolute top-0 right-0 p-32 bg-primary/5 rounded-full blur-[100px] -z-10 group-hover:bg-primary/10 transition-colors duration-700" />
+          
+          <div className="space-y-8">
             {/* From Section */}
-            <div className="space-y-2">
-              <div className="flex justify-between items-center px-1">
-                <label className="text-xs font-medium text-muted-foreground">From</label>
+            <div className="space-y-3 relative z-10">
+              <div className="flex justify-between items-center px-2">
+                <label className="text-sm font-semibold tracking-wide text-muted-foreground uppercase">From</label>
                 {fromUnitDetails?.isStandard && (
-                  <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full flex items-center gap-1">
-                    <Info className="h-3 w-3" /> Standard
-                  </span>
+                  <Badge variant="secondary" className="bg-primary/10 text-primary hover:bg-primary/20 border-0 rounded-lg">
+                    <Info className="h-3 w-3 mr-1" /> Standard Base
+                  </Badge>
                 )}
               </div>
-              <div className="flex gap-3 items-center">
+              <div className="flex flex-col sm:flex-row gap-3">
                 <Input
                   type="number"
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
-                  className="flex-1 text-3xl font-bold h-14 px-4 border-border bg-muted placeholder:text-muted-foreground rounded-xl"
+                  className="flex-1 text-4xl md:text-5xl font-bold h-20 md:h-24 px-6 border-white/10 bg-background/50 placeholder:text-muted-foreground/30 rounded-2xl shadow-inner focus-visible:ring-primary/20 focus-visible:ring-offset-0 focus-visible:bg-background/80 transition-all"
                   placeholder="0"
                 />
-                <div className="w-[40%]">
+                <div className="sm:w-[220px]">
                   <UnitSelector value={fromUnit} onChange={setFromUnit} label="Unit" availableUnits={units} />
                 </div>
               </div>
             </div>
 
-            {/* Swap Button */}
-            <div className="flex justify-center -my-3 relative z-10">
-              <Button
-                variant="outline"
-                size="icon"
-                className="rounded-full bg-card border-border hover:bg-accent h-10 w-10 shadow-lg transition-transform hover:scale-110 active:scale-95"
-                onClick={handleSwap}
-              >
-                <ArrowRightLeft className="h-4 w-4" />
-              </Button>
+            {/* Swap Button Area */}
+            <div className="flex justify-center -my-6 relative z-20">
+              <div className="bg-background p-2 rounded-full shadow-sm border border-white/5">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="rounded-full bg-gradient-to-br from-primary to-primary/80 border-0 text-primary-foreground hover:shadow-lg hover:shadow-primary/25 h-12 w-12 shadow-md transition-all hover:scale-110 active:scale-95 group/btn"
+                  onClick={handleSwap}
+                >
+                  <ArrowRightLeft className="h-5 w-5 group-hover/btn:rotate-180 transition-transform duration-500" />
+                </Button>
+              </div>
             </div>
 
             {/* To Section */}
-            <div className="space-y-2">
-              <div className="flex justify-between items-center px-1">
-                <label className="text-xs font-medium text-muted-foreground">To</label>
-                <div className="flex gap-1">
-                  <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-accent rounded-full" onClick={handleCopy}>
+            <div className="space-y-3 relative z-10">
+              <div className="flex justify-between items-center px-2">
+                <label className="text-sm font-semibold tracking-wide text-muted-foreground uppercase">To</label>
+                <div className="flex gap-1 bg-background/50 rounded-full p-1 border border-white/5 backdrop-blur-md">
+                  <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground rounded-full hover:bg-background shadow-sm transition-all" onClick={handleCopy}>
                     <Copy className="h-4 w-4" />
                   </Button>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-accent rounded-full" onClick={handleFavoriteToggle}>
-                    <Star className={cn("h-4 w-4", isFavorited && "fill-current text-yellow-400 text-yellow-400")} />
+                  <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground rounded-full hover:bg-background shadow-sm transition-all" onClick={handleFavoriteToggle}>
+                    <Star className={cn("h-4 w-4 transition-colors", isFavorited && "fill-yellow-400 text-yellow-400")} />
                   </Button>
                 </div>
               </div>
-              <div className="flex gap-3 items-center">
-                <div className="flex-1 h-14 px-4 flex items-center bg-muted border border-border rounded-xl overflow-hidden">
-                  <span className="text-3xl font-bold text-foreground truncate">
+              <div className="flex flex-col sm:flex-row gap-3">
+                <div className="flex-1 h-20 md:h-24 px-6 flex items-center bg-background/30 border border-white/10 rounded-2xl shadow-inner overflow-hidden relative group/result">
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-[100%] group-hover/result:translate-x-[100%] transition-transform duration-1000" />
+                  <span className="text-4xl md:text-5xl font-bold text-foreground truncate drop-shadow-sm">
                     {result ? formatIndianNumber(parseFloat(result)) : '0'}
                   </span>
                 </div>
-                <div className="w-[40%]">
+                <div className="sm:w-[220px]">
                   <UnitSelector value={toUnit} onChange={setToUnit} label="Unit" availableUnits={units} />
                 </div>
               </div>
             </div>
           </div>
-
-          {/* Conversion Info */}
+          
           {conversionInfo && (
-            <div className="text-center">
-              <span className="inline-block px-3 py-1 rounded-full bg-accent text-xs text-muted-foreground border border-border">
+            <div className="mt-8 flex justify-center">
+              <Badge variant="outline" className="px-4 py-1.5 rounded-full bg-background/40 backdrop-blur-md border-white/10 text-xs text-muted-foreground shadow-sm">
                 {conversionInfo}
-              </span>
+              </Badge>
             </div>
           )}
+        </div>
 
-          {/* NEW: Real-World Comparison */}
-          {realWorldComp && (
-            <div className="bg-purple-500/10 border border-purple-500/20 rounded-xl p-3">
-              <div className="flex items-center gap-2">
-                <span className="text-2xl">{realWorldComp.icon}</span>
-                <div className="flex-1">
-                  <div className="text-xs text-purple-400 font-semibold">Real-World Comparison</div>
-                  <div className="text-sm text-foreground">{realWorldComp.comparison}</div>
+        {/* Quick Actions & Settings - Col Span 4 */}
+        <div className="md:col-span-4 grid grid-rows-2 gap-4">
+          {/* Settings Bento */}
+          <div className="p-5 rounded-[2rem] bg-background/60 backdrop-blur-xl border border-white/10 shadow-xl flex flex-col justify-between">
+            <div>
+              <div className="flex items-center gap-2 mb-4 text-sm font-semibold text-foreground">
+                <Settings2 className="h-4 w-4 text-primary" /> Settings
+              </div>
+              
+              <div className="space-y-4">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs text-muted-foreground font-medium">Precision</Label>
+                    <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-md font-mono">{precision}</span>
+                  </div>
+                  <Slider
+                    value={[precision]}
+                    onValueChange={(value) => setPrecision(value[0])}
+                    min={1}
+                    max={10}
+                    step={1}
+                    className="w-full"
+                  />
                 </div>
               </div>
             </div>
-          )}
-
-          {/* NEW: Visual Comparison */}
-          {visualScale.length > 0 && showVisualComparison && (
-            <div className="bg-accent/50 border border-border rounded-xl p-4">
-              <div className="flex items-center justify-between mb-3">
-                <Label className="text-xs text-muted-foreground flex items-center gap-2">
-                  <BarChart3 className="h-3 w-3" />
-                  Visual Comparison
-                </Label>
-              </div>
-              <div className="space-y-3">
-                {visualScale.map((scale, idx) => (
-                  <div key={idx} className="space-y-1">
-                    <div className="flex justify-between text-xs">
-                      <span className="text-foreground">{scale.label}</span>
-                      <span className="text-muted-foreground">{scale.percentage.toFixed(1)}%</span>
-                    </div>
-                    <div className="h-6 bg-muted rounded-full overflow-hidden">
-                      <div
-                        className="h-full rounded-full transition-all duration-500"
-                        style={{
-                          width: `${scale.percentage}%`,
-                          backgroundColor: scale.color
-                        }}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
+            
+            <div className="grid grid-cols-2 gap-2 mt-4">
+              <Button variant="secondary" size="sm" onClick={() => setShowQuickConversions(!showQuickConversions)} className="rounded-xl h-9 bg-background hover:bg-accent/50 border border-white/5 shadow-sm text-xs transition-colors">
+                <Zap className="h-3.5 w-3.5 mr-1.5 text-yellow-500" /> Quick
+              </Button>
+              <Button variant="secondary" size="sm" onClick={() => setShowSmartSuggestions(!showSmartSuggestions)} className="rounded-xl h-9 bg-background hover:bg-accent/50 border border-white/5 shadow-sm text-xs transition-colors">
+                <Lightbulb className="h-3.5 w-3.5 mr-1.5 text-amber-500" /> Smart
+              </Button>
+              <Button variant="secondary" size="sm" onClick={handleAutoDetect} className="rounded-xl h-9 bg-background hover:bg-accent/50 border border-white/5 shadow-sm text-xs transition-colors">
+                <Sparkles className="h-3.5 w-3.5 mr-1.5 text-purple-500" /> Detect
+              </Button>
+              <Button variant="secondary" size="sm" onClick={() => setBulkMode(!bulkMode)} className="rounded-xl h-9 bg-background hover:bg-accent/50 border border-white/5 shadow-sm text-xs transition-colors">
+                <Database className="h-3.5 w-3.5 mr-1.5 text-blue-500" /> Bulk
+              </Button>
             </div>
-          )}
-
-          {/* NEW: Formula Display */}
-          {showFormula && (
-            <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <Info className="h-4 w-4 text-blue-400" />
-                <span className="text-sm font-semibold text-blue-400">Conversion Formula</span>
-              </div>
-              <p className="text-sm text-white/80 font-mono">{formula}</p>
-            </div>
-          )}
-
-          {/* Action Buttons */}
-          <div className="grid grid-cols-4 gap-2 pt-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowFormula(!showFormula)}
-              className="bg-transparent border-border text-foreground hover:bg-accent rounded-xl"
-            >
-              <Info className='h-4 w-4 mr-1' />
-              Formula
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowAllConversions(!showAllConversions)}
-              className="bg-transparent border-border text-foreground hover:bg-accent rounded-xl"
-            >
-              {showAllConversions ? <ChevronUp className='h-4 w-4 mr-1' /> : <ChevronDown className='h-4 w-4 mr-1' />}
-              All
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowVisualComparison(!showVisualComparison)}
-              className="bg-transparent border-border text-foreground hover:bg-accent rounded-xl"
-            >
-              <BarChart3 className='h-4 w-4 mr-1' />
-              Chart
-            </Button>
-            <Button
-              size="sm"
-              onClick={handleAddToHistory}
-              className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl font-semibold shadow-lg"
-            >
-              <Power className='h-4 w-4 mr-1' />
-              Save
-            </Button>
           </div>
 
-          {/* NEW: Calculator Panel */}
-          {showCalculator && (
-            <div className="bg-muted/50 border border-border rounded-xl p-4">
-              <Label className="text-xs text-muted-foreground mb-2 block">Calculator</Label>
-              <div className="flex gap-2">
-                <Input
-                  value={calculatorInput}
-                  onChange={(e) => setCalculatorInput(e.target.value)}
-                  placeholder="Enter expression (e.g., 2+2*3)"
-                  className="bg-background border-border rounded-xl"
-                />
-                <Button onClick={calculate} className="bg-primary hover:bg-primary/90">
-                  <Calculator className="h-4 w-4" />
-                </Button>
-              </div>
+          {/* Feature Toggles Bento */}
+          <div className="p-5 rounded-[2rem] bg-gradient-to-br from-primary/5 to-primary/10 backdrop-blur-xl border border-primary/10 shadow-xl flex flex-col justify-between group overflow-hidden relative">
+            <div className="absolute -right-4 -top-4 w-24 h-24 bg-primary/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700" />
+            
+            <div className="flex items-center gap-2 mb-4 text-sm font-semibold text-foreground relative z-10">
+              <Layers className="h-4 w-4 text-primary" /> View Options
             </div>
-          )}
 
-          {/* NEW: Multiple Unit Display */}
-          {showAllConversions && (
-            <Collapsible open={showAllConversions}>
-              <CollapsibleContent>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between mb-2">
-                    <Label className="text-xs text-muted-foreground">All Conversions</Label>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={copyAllConversions}
-                      className="h-7 text-xs text-muted-foreground hover:text-foreground"
+            <div className="grid grid-cols-2 gap-2 relative z-10">
+              <Button variant="outline" size="sm" onClick={() => setShowFormula(!showFormula)} className={cn("rounded-xl h-10 border-white/10 shadow-sm justify-start px-3 transition-colors", showFormula ? "bg-primary text-primary-foreground border-primary" : "bg-background/50 hover:bg-background")}>
+                <Info className='h-3.5 w-3.5 mr-2' /> Formula
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setShowAllConversions(!showAllConversions)} className={cn("rounded-xl h-10 border-white/10 shadow-sm justify-start px-3 transition-colors", showAllConversions ? "bg-primary text-primary-foreground border-primary" : "bg-background/50 hover:bg-background")}>
+                <Grid3x3 className='h-3.5 w-3.5 mr-2' /> All Units
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setShowVisualComparison(!showVisualComparison)} className={cn("rounded-xl h-10 border-white/10 shadow-sm justify-start px-3 transition-colors", showVisualComparison ? "bg-primary text-primary-foreground border-primary" : "bg-background/50 hover:bg-background")}>
+                <BarChart3 className='h-3.5 w-3.5 mr-2' /> Chart
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setShowCalculator(!showCalculator)} className={cn("rounded-xl h-10 border-white/10 shadow-sm justify-start px-3 transition-colors", showCalculator ? "bg-primary text-primary-foreground border-primary" : "bg-background/50 hover:bg-background")}>
+                <Calculator className='h-3.5 w-3.5 mr-2' /> Calc
+              </Button>
+            </div>
+
+            <Button size="sm" onClick={handleAddToHistory} className="w-full rounded-xl h-10 bg-primary/90 hover:bg-primary shadow-lg shadow-primary/20 transition-all mt-4 relative z-10 font-semibold">
+              <Power className='h-4 w-4 mr-2' /> Save Result
+            </Button>
+          </div>
+        </div>
+
+        {/* Dynamic Expandable Rows */}
+        
+        {/* Parsed Input Banner */}
+        {parsedInput && (
+          <div className="md:col-span-12 p-3 rounded-2xl bg-green-500/10 border border-green-500/20 text-green-500 flex items-center gap-2 text-sm font-medium animate-in fade-in slide-in-from-top-2">
+            <Sparkles className="h-4 w-4" /> {parsedInput}
+          </div>
+        )}
+
+        {/* Real World Comparison Bento */}
+        {realWorldComp && (
+          <div className="md:col-span-12 p-5 rounded-[2rem] bg-gradient-to-r from-purple-500/10 to-transparent border border-purple-500/10 shadow-lg flex flex-col md:flex-row items-center gap-5 overflow-hidden relative group">
+            <div className="absolute left-0 top-0 w-1 bg-purple-500 h-full shadow-[0_0_10px_rgba(168,85,247,0.5)]" />
+            <div className="text-4xl bg-background/50 p-3 rounded-2xl shadow-inner border border-white/5 group-hover:scale-110 transition-transform duration-300">
+              {realWorldComp.icon}
+            </div>
+            <div>
+              <div className="text-xs uppercase tracking-wider text-purple-500 font-bold mb-1">Real-World Perspective</div>
+              <div className="text-foreground font-medium md:text-lg">{realWorldComp.comparison}</div>
+            </div>
+          </div>
+        )}
+
+        {/* Formula Display Bento */}
+        {showFormula && (
+          <div className="md:col-span-12 p-5 rounded-[2rem] bg-blue-500/5 border border-blue-500/10 shadow-lg relative overflow-hidden">
+            <div className="absolute -right-10 -bottom-10 opacity-5 pointer-events-none">
+              <Calculator className="w-48 h-48" />
+            </div>
+            <div className="flex items-center gap-2 mb-3">
+              <Info className="h-4 w-4 text-blue-500" />
+              <span className="text-sm font-bold text-blue-500 uppercase tracking-wider">Mathematical Formula</span>
+            </div>
+            <div className="bg-background/60 p-4 rounded-xl border border-white/5 font-mono text-sm shadow-inner overflow-x-auto">
+              <span className="text-foreground/80">{formula}</span>
+            </div>
+          </div>
+        )}
+
+        {/* Visual Scale Bento */}
+        {visualScale.length > 0 && showVisualComparison && (
+          <div className="md:col-span-12 p-6 rounded-[2rem] bg-background/60 backdrop-blur-xl border border-white/10 shadow-xl">
+            <div className="flex items-center gap-2 mb-6">
+              <BarChart3 className="h-4 w-4 text-primary" />
+              <span className="text-sm font-bold text-foreground uppercase tracking-wider">Visual Proportion</span>
+            </div>
+            <div className="space-y-4">
+              {visualScale.map((scale, idx) => (
+                <div key={idx} className="space-y-2">
+                  <div className="flex justify-between text-xs font-medium">
+                    <span className="text-foreground flex items-center gap-1.5">
+                      <div className="w-2 h-2 rounded-full shadow-sm" style={{ backgroundColor: scale.color }} />
+                      {scale.label}
+                    </span>
+                    <span className="text-muted-foreground font-mono bg-background/50 px-2 py-0.5 rounded-md border border-white/5">
+                      {scale.percentage.toFixed(1)}%
+                    </span>
+                  </div>
+                  <div className="h-3 md:h-4 bg-muted/50 rounded-full overflow-hidden shadow-inner p-0.5">
+                    <div
+                      className="h-full rounded-full transition-all duration-1000 ease-out relative overflow-hidden"
+                      style={{
+                        width: `${Math.max(scale.percentage, 1)}%`,
+                        backgroundColor: scale.color,
+                        boxShadow: `0 0 10px ${scale.color}80`
+                      }}
                     >
-                      <Copy className="h-3 w-3 mr-1" />
-                      Copy All
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full animate-[shimmer_2s_infinite]" />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* All Conversions Grid Bento */}
+        {showAllConversions && (
+          <div className="md:col-span-12 p-6 rounded-[2rem] bg-background/60 backdrop-blur-xl border border-white/10 shadow-xl">
+             <div className="flex items-center justify-between mb-6">
+               <div className="flex items-center gap-2">
+                  <Grid3x3 className="h-4 w-4 text-primary" />
+                  <span className="text-sm font-bold text-foreground uppercase tracking-wider">Comprehensive View</span>
+               </div>
+               <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={copyAllConversions}
+                  className="h-8 text-xs bg-background hover:bg-accent rounded-xl border-white/10 transition-colors"
+                >
+                  <Copy className="h-3 w-3 mr-1.5 text-muted-foreground" />
+                  Copy List
+                </Button>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 max-h-80 overflow-y-auto pr-2 custom-scrollbar">
+              {allConversions.map((conversion, idx) => (
+                <div
+                  key={idx}
+                  className={cn(
+                    "p-4 rounded-2xl bg-background/50 border border-white/5 hover:bg-accent/40 hover:border-white/10 transition-all hover:shadow-md group/item",
+                    conversion.isStandard && "border-blue-500/20 bg-blue-500/5 hover:border-blue-500/40"
+                  )}
+                >
+                  <div className="text-xs font-medium text-muted-foreground mb-2 flex justify-between items-center">
+                    {conversion.unit}
+                    {conversion.isStandard && <div className="w-1.5 h-1.5 rounded-full bg-blue-500" title="Standard Unit"/>}
+                  </div>
+                  <div className="text-lg font-bold text-foreground truncate group-hover/item:text-primary transition-colors">
+                    {formatIndianNumber(conversion.value)}
+                  </div>
+                  <div className="text-xs text-muted-foreground/60 font-mono mt-1">{conversion.symbol}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Bulk Tool Bento */}
+        {bulkMode && (
+          <div className="md:col-span-12 p-6 rounded-[2rem] bg-indigo-500/5 border border-indigo-500/10 shadow-xl">
+             <div className="flex items-center gap-2 mb-5">
+              <Database className="h-4 w-4 text-indigo-500" />
+              <span className="text-sm font-bold text-indigo-500 uppercase tracking-wider">Bulk Data Processor</span>
+            </div>
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex-1 space-y-3">
+                <Label className="text-xs text-muted-foreground font-medium ml-1">Input Data (comma separated)</Label>
+                <div className="relative">
+                  <Input
+                    value={bulkInput}
+                    onChange={(e) => setBulkInput(e.target.value)}
+                    placeholder="e.g., 1, 2.5, 10, 100"
+                    className="bg-background/50 border-white/10 rounded-xl h-12 pr-24 shadow-inner focus-visible:ring-indigo-500/30"
+                  />
+                  <div className="absolute right-1.5 top-1.5">
+                    <Button
+                      size="sm"
+                      onClick={handleBulkConversion}
+                      className="h-9 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg shadow-md"
+                    >
+                      Process
                     </Button>
                   </div>
-                  <div className="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto">
-                    {allConversions.map((conversion, idx) => (
-                      <div
-                        key={idx}
-                        className={cn(
-                          "p-3 rounded-lg bg-accent border border-border hover:bg-accent/80 transition-colors",
-                          conversion.isStandard && "border-blue-500/30 bg-blue-500/5"
-                        )}
+                </div>
+              </div>
+              
+              {bulkResults.length > 0 && (
+                <div className="flex-1 space-y-3">
+                   <div className="flex justify-between items-end">
+                     <Label className="text-xs text-muted-foreground font-medium ml-1">Results Output</Label>
+                     <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={exportBulkToCSV}
+                        className="h-6 px-2 text-[10px] bg-green-500/10 text-green-500 hover:bg-green-500/20 rounded-md transition-colors"
                       >
-                        <div className="text-xs text-muted-foreground mb-1">{conversion.unit}</div>
-                        <div className="text-lg font-bold text-foreground truncate">
-                          {formatIndianNumber(conversion.value)}
+                        <Download className="h-3 w-3 mr-1" /> Export CSV
+                      </Button>
+                   </div>
+                   <div className="bg-background/80 border border-white/5 rounded-xl p-3 h-40 overflow-y-auto shadow-inner text-sm space-y-1.5 custom-scrollbar">
+                     <div className="grid grid-cols-2 px-2 py-1 text-xs font-semibold text-muted-foreground border-b border-white/5 mb-1">
+                        <span>{fromUnit}</span>
+                        <span className="text-right">{toUnit}</span>
+                     </div>
+                     {bulkResults.map((res, idx) => (
+                        <div key={idx} className="grid grid-cols-2 px-2 py-1.5 rounded-md hover:bg-accent/50 transition-colors">
+                          <span className="font-mono text-muted-foreground">{res.input}</span>
+                          <span className="font-mono font-medium text-right text-indigo-400">{res.output}</span>
                         </div>
-                        <div className="text-xs text-muted-foreground/70">{conversion.symbol}</div>
-                      </div>
+                      ))}
+                   </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Quick Conversions & Smart Suggestions Bento */}
+        {(showQuickConversions || showSmartSuggestions) && (
+           <div className="md:col-span-12 grid grid-cols-1 md:grid-cols-2 gap-4">
+              {showQuickConversions && (
+                <div className="p-5 rounded-[2rem] bg-background/60 backdrop-blur-xl border border-white/10 shadow-lg">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Zap className="h-4 w-4 text-yellow-500" />
+                    <span className="text-sm font-bold text-foreground uppercase tracking-wider">Quick Presets</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    {QUICK_CONVERSIONS.map((quick, idx) => (
+                      <Button
+                        key={idx}
+                        variant="outline"
+                        onClick={() => loadQuickConversion(quick)}
+                        className="bg-background/40 border-white/5 hover:bg-accent/60 rounded-xl h-auto py-3 px-4 flex flex-col items-start gap-1 justify-start shadow-sm transition-all hover:scale-[1.02]"
+                      >
+                        <div className="flex items-center gap-2 text-sm text-foreground">
+                          <span className="text-lg">{quick.icon}</span>
+                          <span className="font-semibold">{quick.label}</span>
+                        </div>
+                        <span className="text-[10px] text-muted-foreground/80 line-clamp-1">{quick.description}</span>
+                      </Button>
                     ))}
                   </div>
                 </div>
-              </CollapsibleContent>
-            </Collapsible>
-          )}
+              )}
 
-        </CardContent>
-      </Card>
-
-      {/* Recent Conversions */}
-      {conversionHistory.length > 0 && (
-        <div className="space-y-3">
-          <div className="flex justify-between items-center px-2">
-            <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <History className='h-4 w-4' />
-              Recent
-            </h3>
-            <Button asChild variant="link" className="text-muted-foreground hover:text-foreground text-xs h-auto p-0">
-              <Link href="/history">View All</Link>
-            </Button>
-          </div>
-          <div className="space-y-2">
-            {conversionHistory.map((item) => (
-              <div key={item.id} className="p-3 rounded-xl bg-accent border border-border flex justify-between items-center group hover:bg-accent/80 transition-colors">
-                <div className='flex items-center text-sm text-foreground'>
-                  <span>{`${item.fromValue} ${item.fromUnit.split(' ')[0]}`}</span>
-                  <ArrowRightLeft className="h-3 w-3 mx-2 text-muted-foreground" />
-                  <span className="font-semibold text-foreground">{`${item.toValue} ${item.toUnit.split(' ')[0]}`}</span>
+              {showSmartSuggestions && smartSuggestions.length > 0 && (
+                <div className="p-5 rounded-[2rem] bg-background/60 backdrop-blur-xl border border-white/10 shadow-lg">
+                   <div className="flex items-center gap-2 mb-4">
+                    <Lightbulb className="h-4 w-4 text-amber-500" />
+                    <span className="text-sm font-bold text-foreground uppercase tracking-wider">Contextual Ideas</span>
+                  </div>
+                  <div className="space-y-2">
+                    {smartSuggestions.map((suggestion, idx) => (
+                      <Button
+                        key={idx}
+                        variant="outline"
+                        onClick={() => applySuggestion(suggestion)}
+                        className="w-full bg-background/40 border-white/5 hover:bg-accent/60 rounded-xl h-12 justify-start px-4 shadow-sm transition-all hover:translate-x-1 group/sug"
+                      >
+                        <span className="mr-3 text-lg bg-background rounded-full p-1 shadow-sm">{suggestion.icon}</span>
+                        <div className="flex flex-col items-start text-left flex-1">
+                           <span className="text-xs font-semibold text-foreground group-hover/sug:text-primary transition-colors">{suggestion.fromUnit} <ArrowRightLeft className="inline w-3 h-3 mx-0.5 text-muted-foreground"/> {suggestion.toUnit}</span>
+                           <span className="text-[10px] text-muted-foreground/70">{suggestion.reason}</span>
+                        </div>
+                      </Button>
+                    ))}
+                  </div>
                 </div>
-                <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-accent rounded-full" onClick={() => handleRestoreHistory(item)}>
-                    <Undo2 className="h-4 w-4" />
-                  </Button>
+              )}
+           </div>
+        )}
+        
+        {/* Calculator Tool Bento */}
+        {showCalculator && (
+          <div className="md:col-span-12 p-6 rounded-[2rem] bg-background/60 backdrop-blur-xl border border-white/10 shadow-xl">
+            <div className="flex items-center gap-2 mb-4">
+              <Calculator className="h-4 w-4 text-primary" />
+              <span className="text-sm font-bold text-foreground uppercase tracking-wider">Inline Calculator</span>
+            </div>
+            <div className="flex gap-3">
+              <div className="relative flex-1">
+                <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+                  <Hash className="h-4 w-4 text-muted-foreground" />
                 </div>
+                <Input
+                  value={calculatorInput}
+                  onChange={(e) => setCalculatorInput(e.target.value)}
+                  onKeyDown={(e) => { if(e.key === 'Enter') calculate() }}
+                  placeholder="Evaluate math expression... (e.g. 10 * 2.5)"
+                  className="bg-background/50 border-white/10 rounded-2xl h-14 pl-11 text-lg shadow-inner focus-visible:ring-primary/20 font-mono"
+                />
               </div>
-            ))}
+              <Button onClick={calculate} className="h-14 px-8 rounded-2xl bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 font-bold text-lg">
+                =
+              </Button>
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      <AdMobBanner className="mt-4 w-full" />
+      </div>
+
+      {/* Recent Conversions & Ads Section */}
+      <div className="mt-8 space-y-6">
+        {conversionHistory.length > 0 && (
+          <div className="p-6 rounded-[2rem] bg-background/40 backdrop-blur-md border border-white/5 shadow-lg">
+            <div className="flex justify-between items-center mb-5">
+              <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                <History className='h-4 w-4 text-primary' />
+                Recent Activity
+              </h3>
+              <Button asChild variant="ghost" size="sm" className="text-xs font-medium text-primary hover:text-primary/80 hover:bg-primary/10 rounded-lg">
+                <Link href="/history">View Full Log</Link>
+              </Button>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+              {conversionHistory.map((item) => (
+                <div key={item.id} className="p-4 rounded-2xl bg-background border border-white/5 shadow-sm flex flex-col justify-between group hover:bg-accent/40 hover:border-white/10 hover:shadow-md transition-all">
+                  <div className='flex items-center justify-between text-sm text-foreground mb-2'>
+                    <div className="flex items-center gap-2">
+                       <span className="font-mono bg-accent/50 px-2 py-0.5 rounded-md text-muted-foreground">{item.fromValue}</span>
+                       <span className="font-medium text-muted-foreground/80 truncate max-w-[70px]">{item.fromUnit.split(' ')[0]}</span>
+                    </div>
+                    <ArrowRightLeft className="h-3.5 w-3.5 text-muted-foreground/50" />
+                    <div className="flex items-center gap-2">
+                       <span className="font-mono font-bold text-primary bg-primary/5 px-2 py-0.5 rounded-md">{item.toValue}</span>
+                       <span className="font-medium text-muted-foreground/80 truncate max-w-[70px]">{item.toUnit.split(' ')[0]}</span>
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-center mt-2 border-t border-white/5 pt-2">
+                     <span className="text-[10px] text-muted-foreground/50">{item.category}</span>
+                     <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-full opacity-0 group-hover:opacity-100 transition-all transform scale-90 group-hover:scale-100" onClick={() => handleRestoreHistory(item)} title="Restore">
+                      <Undo2 className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <AdMobBanner className="w-full rounded-[2rem] overflow-hidden shadow-lg border border-white/5 bg-background/40 backdrop-blur-md" />
+      </div>
 
       {fromUnitDetails && (
         <ConversionComparisonDialog
