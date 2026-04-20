@@ -111,8 +111,6 @@ export default function MaintenancePage() {
 
   const isTimerFinished = timeLeft.days <= 0 && timeLeft.hours <= 0 && timeLeft.minutes <= 0 && timeLeft.seconds <= 0;
 
-  if (!mounted) return null;
-
   return (
     <div className="min-h-screen relative flex items-center justify-center overflow-hidden bg-background p-4 md:p-8">
       {/* Dynamic Background */}
@@ -186,11 +184,11 @@ export default function MaintenancePage() {
                       </div>
                     </div>
                     
-                    <div className="grid grid-cols-4 gap-2 md:gap-4">
-                      <CountdownBox value={String(timeLeft.days)} label="Days" />
-                      <CountdownBox value={String(timeLeft.hours).padStart(2, '0')} label="Hours" />
-                      <CountdownBox value={String(timeLeft.minutes).padStart(2, '0')} label="Mins" />
-                      <CountdownBox value={String(timeLeft.seconds).padStart(2, '0')} label="Secs" />
+                    <div className="grid grid-cols-4 gap-2 md:gap-4" suppressHydrationWarning>
+                      <CountdownBox value={mounted ? String(timeLeft.days) : "0"} label="Days" />
+                      <CountdownBox value={mounted ? String(timeLeft.hours).padStart(2, '0') : "00"} label="Hours" />
+                      <CountdownBox value={mounted ? String(timeLeft.minutes).padStart(2, '0') : "00"} label="Mins" />
+                      <CountdownBox value={mounted ? String(timeLeft.seconds).padStart(2, '0') : "00"} label="Secs" />
                     </div>
                   </>
                 ) : (
