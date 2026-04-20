@@ -217,7 +217,14 @@ export default function DashboardPage() {
         <div className="flex-1 overflow-y-auto scrollbar-hide scroll-smooth">
           <TabsContent value="dashboard" className="p-4 pb-24 space-y-6 mt-0 h-full">
             <PageTransition>
-              {isPageLoading ? <DashboardSkeleton /> : <DashboardModern onNavigate={handleNavigate} />}
+              {isPageLoading ? (
+                <DashboardSkeleton />
+              ) : (
+                <>
+                  <DashboardBanner />
+                  <DashboardModern onNavigate={handleNavigate} />
+                </>
+              )}
             </PageTransition>
           </TabsContent>
           <TabsContent value="tools" className="p-4 pb-24 mt-0 h-full">

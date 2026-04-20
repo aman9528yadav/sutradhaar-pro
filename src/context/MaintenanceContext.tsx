@@ -445,9 +445,7 @@ export const MaintenanceWrapper = ({ children }: { children: ReactNode }) => {
 
         // The owner/developer bypasses maintenance on all pages
         if (isDevMode || isOwner) {
-            if (isMaintenancePage && !pathname.startsWith('/dev')) {
-                router.replace('/');
-            }
+            // Allow dev/owner to navigate freely, including viewing the maintenance page
             return;
         }
 
@@ -467,7 +465,10 @@ export const MaintenanceWrapper = ({ children }: { children: ReactNode }) => {
     }
 
     const isUnderMaintenance = maintenanceConfig.globalMaintenance || maintenanceConfig.pageMaintenance?.[sanitizePathForKey(pathname)];
-    if (isUnderMaintenance && pathname !== '/maintenance' && !((isDevMode || isOwner) && pathname.startsWith('/dev'))) {
+    
+    const bypassMaintenance = isDevMode || isOwner;
+
+    if (isUnderMaintenance && pathname !== '/maintenance' && !bypassMaintenance) {
         return null;
     }
 
