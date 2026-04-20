@@ -136,7 +136,6 @@ export type MaintenanceConfig = {
 
 type MaintenanceContextType = {
     isDevMode: boolean;
-    isOwner: boolean;
     setDevMode: (isDev: boolean) => void;
     maintenanceConfig: MaintenanceConfig;
     setMaintenanceConfig: React.Dispatch<React.SetStateAction<MaintenanceConfig>>;
@@ -399,24 +398,13 @@ export const MaintenanceProvider = ({ children }: { children: ReactNode }) => {
         localStorage.setItem('sutradhaar_dev_mode', isDev ? 'true' : 'false');
     }, []);
 
-    const { user } = useAuth();
-    const { profile } = useProfile();
-
-    const isOwner = React.useMemo(() => {
-        const ownerEmail = 'amanyadavyadav9458@gmail.com'.toLowerCase();
-        const userEmail = user?.email?.toLowerCase() || '';
-        const profileEmail = profile?.email?.toLowerCase() || '';
-        return userEmail === ownerEmail || profileEmail === ownerEmail || profile?.membership === 'owner';
-    }, [user, profile?.email, profile?.membership]);
-
     const contextValue = React.useMemo(() => ({
         isDevMode,
-        isOwner,
         setDevMode,
         maintenanceConfig,
         setMaintenanceConfig,
         isLoading
-    }), [maintenanceConfig, isDevMode, isOwner, setDevMode, isLoading]);
+    }), [maintenanceConfig, isDevMode, setDevMode, isLoading]);
 
     return (
         <MaintenanceContext.Provider value={contextValue}>
@@ -434,7 +422,7 @@ export const useMaintenance = () => {
 };
 
 export const MaintenanceWrapper = ({ children }: { children: ReactNode }) => {
-    const { maintenanceConfig, isDevMode, isOwner, isLoading } = useMaintenance();
+    const { maintenanceConfig, isDevMode, isLoading } = useMaintenance();
     const router = useRouter();
     const pathname = usePathname();
 
@@ -461,7 +449,7 @@ export const MaintenanceWrapper = ({ children }: { children: ReactNode }) => {
                 router.replace('/');
             }
         }
-    }, [maintenanceConfig, isDevMode, isOwner, pathname, router, isLoading]);
+    }, [maintenanceConfig, isDevMode, pathname, router, isLoading]);
 
     if (isLoading) {
         return <DashboardSkeleton />;
